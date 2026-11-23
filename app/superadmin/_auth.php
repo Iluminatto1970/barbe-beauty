@@ -127,6 +127,9 @@ function sa_garantir_tabelas($pdo)
         status VARCHAR(12) NOT NULL DEFAULT 'trial',
         vencimento DATE DEFAULT NULL,
         criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        db_name VARCHAR(64) DEFAULT NULL,
+        boas_vindas_em DATETIME DEFAULT NULL,
+        schema_version INT UNSIGNED NOT NULL DEFAULT 0,
         KEY idx_plano (plano_id),
         KEY idx_status (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");

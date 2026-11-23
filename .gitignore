@@ -53,3 +53,6 @@ blob-report/
 
 # Senhas/segredos gerados localmente
 .secrets/
+
+# Backups de banco gerados por scripts/backup-bancos.sh
+backups/

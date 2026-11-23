@@ -3,6 +3,7 @@ require_once(__DIR__ . '/_auth.php');
 sa_exigir_login();
 sa_garantir_tabelas($pdo);
 bb_tenant_garantir_colunas($pdo);
+$versao_codigo = bb_migracoes_versao_final();
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $tenant = array('id' => '', 'nome' => '', 'slug' => '', 'email' => '', 'telefone' => '', 'plano_id' => '', 'status' => 'trial', 'vencimento' => '');
@@ -39,6 +40,9 @@ sa_topo('Estabelecimentos');
     <?php } ?>
     <?php if (isset($_GET['erro'])) { ?>
         <div class="aviso erro">Não foi possível salvar: <?php echo sa_e($_GET['erro']); ?></div>
+    <?php } ?>
+    <?php if (isset($_GET['migracoes'])) { ?>
+        <div class="aviso ok">Bancos sincronizados: <?php echo (int) $_GET['migracoes']; ?> migração(ões) aplicada(s) em <?php echo (int) @$_GET['bancos']; ?> banco(s).</div>
     <?php } ?>
 
     <div class="painel">
@@ -101,13 +105,20 @@ sa_topo('Estabelecimentos');
     </div>
 
     <h2>Lista</h2>
+    <form method="post" action="tenant-migrar.php" class="acoes-form" style="margin:0 0 16px">
+        <input type="hidden" name="csrf" value="<?php echo sa_e($csrf); ?>">
+        <button type="submit" class="btn">Atualizar estrutura dos bancos</button>
+        <span class="muted" style="font-size:13px">
+            Versão do código: v<?php echo (int) $versao_codigo; ?> · aplica as migrações pendentes em cada banco
+        </span>
+    </form>
     <div class="painel">
         <?php if (count($lista) == 0) { ?>
             <p class="muted">Nenhum estabelecimento cadastrado. Crie o primeiro acima.</p>
         <?php } else { ?>
             <table>
                 <thead>
-                    <tr><th>#</th><th>Estabelecimento</th><th>Domínio</th><th>Plano</th><th>Status</th><th>Vencimento</th><th class="dir">Ações</th></tr>
+                    <tr><th>#</th><th>Estabelecimento</th><th>Domínio</th><th>Banco</th><th>Plano</th><th>Status</th><th>Vencimento</th><th class="dir">Ações</th></tr>
                 </thead>
                 <tbody>
                 <?php foreach ($lista as $t) { ?>
@@ -119,6 +130,10 @@ sa_topo('Estabelecimentos');
                         </td>
                         <td class="agora">
                             <?php echo $t['dominio'] ? '<a href="https://' . sa_e($t['dominio']) . '" target="_blank" rel="noopener">' . sa_e($t['dominio']) . '</a>' : '—'; ?>
+                        </td>
+                        <td class="agora">
+                            <small class="muted"><?php echo sa_e(!empty($t['db_name']) ? $t['db_name'] : '—'); ?></small><br>
+                            <small class="muted">schema v<?php echo (int) $t['schema_version']; ?> / v<?php echo (int) $versao_codigo; ?></small>
                         </td>
                         <td>
                             <?php echo sa_e($t['plano'] ? $t['plano'] : '—'); ?>

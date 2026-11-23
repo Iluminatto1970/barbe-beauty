@@ -17,6 +17,9 @@ if (!defined('BB_DOMINIO_BASE')) {
     define('BB_DOMINIO_BASE', ($bb_dominio_env !== false && $bb_dominio_env !== '') ? $bb_dominio_env : 'iluminatto.online');
 }
 
+// Estrutura canonica e migracoes versionadas por banco
+require_once(__DIR__ . '/migracoes.php');
+
 if (!function_exists('bb_normalizar_host')) {
     function bb_normalizar_host($host)
     {
@@ -230,7 +233,8 @@ if (!function_exists('bb_tenant_resolver')) {
 }
 
 if (!function_exists('bb_tenant_garantir_colunas')) {
-    // Garante a coluna db_name em tenants (banco proprio do cliente)
+    // Garante as colunas de controle do SaaS em tenants.
+    // Roda apenas em telas administrativas (nunca no site do cliente).
     function bb_tenant_garantir_colunas($pdo_controle)
     {
         static $feito = false;
@@ -238,13 +242,16 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
             return;
         }
         try {
-            $q = $pdo_controle->query("SHOW COLUMNS FROM tenants LIKE 'db_name'");
-            if (!$q || !$q->fetch()) {
-                $pdo_controle->exec("ALTER TABLE tenants ADD COLUMN db_name VARCHAR(64) NULL DEFAULT NULL");
-            }
-            $q = $pdo_controle->query("SHOW COLUMNS FROM tenants LIKE 'boas_vindas_em'");
-            if (!$q || !$q->fetch()) {
-                $pdo_controle->exec("ALTER TABLE tenants ADD COLUMN boas_vindas_em DATETIME NULL DEFAULT NULL");
+            $colunas = array(
+                'db_name'        => "VARCHAR(64) NULL DEFAULT NULL",
+                'boas_vindas_em' => "DATETIME NULL DEFAULT NULL",
+                'schema_version' => "INT UNSIGNED NOT NULL DEFAULT 0",
+            );
+            foreach ($colunas as $coluna => $definicao) {
+                $q = $pdo_controle->query("SHOW COLUMNS FROM tenants LIKE '" . $coluna . "'");
+                if (!$q || !$q->fetch()) {
+                    $pdo_controle->exec("ALTER TABLE tenants ADD COLUMN " . $coluna . " " . $definicao);
+                }
             }
             $feito = true;
         } catch (Exception $e) {
@@ -258,7 +265,7 @@ if (!function_exists('bb_tenant_provisionar')) {
     // Idempotente: pode ser chamada varias vezes sem duplicar dados.
     function bb_tenant_provisionar($pdo_controle, $tenant_id)
     {
-        $resultado = array('ok' => false, 'db' => '', 'erro' => '');
+        $resultado = array('ok' => false, 'db' => '', 'erro' => '', 'versao' => 0);
 
         $tenant_id = (int) $tenant_id;
         if ($tenant_id <= 0) {
@@ -304,8 +311,17 @@ if (!function_exists('bb_tenant_provisionar')) {
             $resultado['db'] = $db_nome;
 
             if ($db_nome === $db_controle) {
-                // Instalacao principal: os dados ja vivem no banco de controle
+                // Instalacao principal: os dados ja vivem no banco de controle,
+                // mas as migracoes continuam valendo para a estrutura dele.
+                $migracao = bb_migracoes_sincronizar($pdo_controle);
+                if (!$migracao['ok']) {
+                    $resultado['erro'] = 'estrutura do banco principal: ' . $migracao['erro'];
+                    return $resultado;
+                }
+                $pdo_controle->prepare("UPDATE tenants SET db_name = :db, schema_version = :versao WHERE id = :id")
+                    ->execute(array(':db' => $db_nome, ':versao' => (int) $migracao['versao'], ':id' => $tenant_id));
                 $resultado['ok'] = true;
+                $resultado['versao'] = (int) $migracao['versao'];
                 return $resultado;
             }
 
@@ -313,18 +329,35 @@ if (!function_exists('bb_tenant_provisionar')) {
 
             $pdo_tenant = bb_pdo_banco($db_nome);
 
-            // Clona o schema das tabelas do sistema (sem dados),
-            // mantendo exatamente as colunas do banco em producao.
-            $tabelas_controle = array('super_admins', 'saas_planos', 'tenants', 'tenant_dominios', 'saas_pagamentos');
-            $tabelas = $pdo_controle->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-            foreach ($tabelas as $tabela) {
-                if (in_array($tabela, $tabelas_controle, true)) {
-                    continue;
+            // Estrutura padrao versionada em git (sql/tenant_schema.sql),
+            // nunca mais clonada do banco de um cliente real.
+            $schema = bb_tenant_schema_sql();
+            if (trim($schema) !== '') {
+                $criacao = bb_tenant_criar_schema($pdo_tenant, $schema);
+                if (!$criacao['ok']) {
+                    $resultado['erro'] = 'nao foi possivel criar a estrutura: ' . $criacao['erro'];
+                    return $resultado;
                 }
-                if (!preg_match('/^[a-zA-Z0-9_]+$/', $tabela)) {
-                    continue;
+            } else {
+                // Reserva: sem o arquivo de schema, clona a estrutura atual
+                $tabelas_controle = array('super_admins', 'saas_planos', 'tenants', 'tenant_dominios', 'saas_pagamentos');
+                $tabelas = $pdo_controle->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+                foreach ($tabelas as $tabela) {
+                    if (in_array($tabela, $tabelas_controle, true)) {
+                        continue;
+                    }
+                    if (!preg_match('/^[a-zA-Z0-9_]+$/', $tabela)) {
+                        continue;
+                    }
+                    $pdo_tenant->exec("CREATE TABLE IF NOT EXISTS `$tabela` LIKE `$db_controle`.`$tabela`");
                 }
-                $pdo_tenant->exec("CREATE TABLE IF NOT EXISTS `$tabela` LIKE `$db_controle`.`$tabela`");
+            }
+
+            // Mudancas incrementais para bancos criados antes desta versao
+            $migracao = bb_migracoes_sincronizar($pdo_tenant);
+            if (!$migracao['ok']) {
+                $resultado['erro'] = 'estrutura criada, mas a migracao falhou: ' . $migracao['erro'];
+                return $resultado;
             }
 
             // Configuracao inicial do estabelecimento
@@ -387,10 +420,11 @@ if (!function_exists('bb_tenant_provisionar')) {
             $pdo_tenant->exec("INSERT INTO cargos (nome)
                 SELECT 'Administrador' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM cargos)");
 
-            $pdo_controle->prepare("UPDATE tenants SET db_name = :db WHERE id = :id")
-                ->execute(array(':db' => $db_nome, ':id' => $tenant_id));
+            $pdo_controle->prepare("UPDATE tenants SET db_name = :db, schema_version = :versao WHERE id = :id")
+                ->execute(array(':db' => $db_nome, ':versao' => (int) $migracao['versao'], ':id' => $tenant_id));
 
             $resultado['ok'] = true;
+            $resultado['versao'] = (int) $migracao['versao'];
             return $resultado;
         } catch (Exception $e) {
             $resultado['erro'] = $e->getMessage();
