@@ -1,0 +1,64 @@
+<?php 
+@session_start();
+require_once("conexao.php");
+
+
+$email = trim((string) @$_POST['email']);
+$senha = (string) @$_POST['senha'];
+
+$query = $pdo->prepare("SELECT * from usuarios where (email = :email or cpf = :email) limit 1");
+$query->bindValue(":email", $email);
+$query->execute();
+$res = $query->fetchAll(PDO::FETCH_ASSOC);
+
+$total_reg = 0;
+if (@count($res) > 0) {
+	$checagem = bb_checar_senha($senha, $res[0]['senha_crip']);
+	if ($checagem['ok']) {
+		$total_reg = 1;
+
+		// Migracao transparente: MD5 (ou hash antigo) vira password_hash
+		if ($checagem['rehash']) {
+			$novo_hash = bb_hash_senha($senha);
+			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :hash, senha = '' WHERE id = :id");
+			$up->bindValue(":hash", $novo_hash);
+			$up->bindValue(":id", $res[0]['id']);
+			$up->execute();
+		}
+	}
+}
+
+if($total_reg > 0){
+	$ativo = $res[0]['ativo'];
+
+
+	if($ativo == 'Sim'){
+
+		// Bloqueia estabelecimentos com assinatura pendente/suspensa/vencida
+		$bloqueio = bb_tenant_bloqueio();
+		if ($bloqueio !== '') {
+			echo "<script>window.alert(" . json_encode($bloqueio) . ")</script>";
+			echo "<script>window.location='index.php'</script>";
+			exit;
+		}
+
+		session_regenerate_id(true);
+		$_SESSION['id'] = $res[0]['id'];
+		$_SESSION['nivel'] = $res[0]['nivel'];
+		$_SESSION['nome'] = $res[0]['nome'];
+		// Amarra a sessao ao banco do estabelecimento resolvido pelo dominio
+		$_SESSION['bb_tenant_db'] = bb_banco_atual();
+	
+		//ir para o painel
+		echo "<script>window.location='painel'</script>";
+	}else{
+		echo "<script>window.alert('Seu usuário foi desativado, contate o administrador!')</script>";
+	echo "<script>window.location='index.php'</script>";
+	}
+	
+}else{
+	echo "<script>window.alert('Usuário ou Senha Incorretos!')</script>";
+	echo "<script>window.location='index.php'</script>";
+}
+
+ ?>

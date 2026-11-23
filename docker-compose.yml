@@ -1,0 +1,72 @@
+# ============================================================
+# Barbearia PRO - Ambiente local (Docker)
+# ------------------------------------------------------------
+# Comandos:
+#   docker compose up -d --build   -> sobe o sistema
+#   docker compose down            -> derruba (mantem dados)
+#   docker compose down -v         -> derruba e apaga o banco
+#
+# URLs:
+#   Site:        http://localhost:8080
+#   Painel:      http://localhost:8080/sistema
+#   phpMyAdmin:  http://localhost:8081   (user: barbearia / senha: barbearia123)
+# ============================================================
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: barbearia-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: barbearia
+      MYSQL_USER: barbearia
+      MYSQL_PASSWORD: barbearia123
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Importa o schema + dados na primeira subida
+      - ./sql/barbearia.sql:/docker-entrypoint-initdb.d/01-barbearia.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    build: ./docker
+    container_name: barbearia-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: barbearia
+      DB_USER: barbearia
+      DB_PASSWORD: barbearia123
+      # "" = aplicacao na raiz (sem prefixo /barbearia)
+      APP_BASE_PATH: ""
+      SHOW_DB_ERROR: "0"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: barbearia-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

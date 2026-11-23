@@ -1,0 +1,55 @@
+# Ambiente / segredos
+.env
+.env.local
+
+# MCP local com CLERK_SECRET_KEY real (nunca commitar)
+.mcp.json
+
+# Dados locais do app (bases com histórico/chaves)
+.freebuff/
+
+# Settings locais do Vercel CLI
+.vercel/
+
+# Dados do Docker
+db_data/
+
+# Arquivos antigos / arquivos compactados
+*.zip
+*.rar
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ferramentas locais (editor/agente) — config pessoal
+.vscode/
+.claude/
+.cursor/
+.hermes/
+.pi/
+.trae/
+.agents/
+
+# Node / monorepo (Fase 0)
+node_modules/
+dist/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+coverage/
+
+# Drizzle
+packages/db/drizzle/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+.vercel
+.env*
+
+# Senhas/segredos gerados localmente
+.secrets/
