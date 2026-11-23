@@ -1,0 +1,93 @@
+body {
+  margin: 0;
+  font-family: var(--bp-font-sans);
+  background-color: var(--bp-fundo);
+  color: var(--bp-texto);
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+h1,
+h2 {
+  font-family: var(--bp-font-serif);
+}
+
+section {
+  margin: 32px 0;
+  padding: 24px;
+  background-color: var(--bp-fundo-card);
+  border: 1px solid var(--bp-borda);
+  border-radius: 8px;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+/* ===== Páginas de auth (Clerk) na identidade dark + dourado ===== */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  max-width: none;
+  background:
+    radial-gradient(ellipse at top, rgba(212, 175, 55, 0.08), transparent 55%),
+    var(--color-background, #070707);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.auth-title {
+  font-family: var(--bp-font-serif);
+  color: var(--bp-texto-forte);
+  font-size: 2rem;
+  margin: 0 0 8px;
+}
+
+.auth-subtitle {
+  color: var(--bp-texto-fraco);
+  margin: 0 0 32px;
+}
+
+/* Componentes do Clerk: fundo/card/borda alinhados aos tokens */
+.auth-card .cl-card {
+  background: var(--color-background-card, #101010);
+  border: 1px solid var(--color-border, #262626);
+  box-shadow: none;
+}
+
+.auth-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bp-dourado);
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}

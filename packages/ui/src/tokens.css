@@ -1,0 +1,171 @@
+/* Design Tokens - Auto-generated */
+/* Do not edit directly - modify tokens.json instead */
+
+/* === PRIMITIVES === */
+:root {
+  --primitive-color-gold-300: #F0CD7F;
+  --primitive-color-gold-500: #D4AF37;
+  --primitive-color-gold-900: #171204;
+  --primitive-color-dark-50: #FFFFFF;
+  --primitive-color-dark-200: #FEFEFE;
+  --primitive-color-dark-300: #E8E8E8;
+  --primitive-color-dark-400: #999999;
+  --primitive-color-dark-500: #9A9A9A;
+  --primitive-color-dark-600: #3D3D3D;
+  --primitive-color-dark-700: #1C1C1C;
+  --primitive-color-dark-750: #1A1A1A;
+  --primitive-color-dark-800: #111111;
+  --primitive-color-dark-850: #0A0A0A;
+  --primitive-color-dark-900: #0D0D0D;
+  --primitive-color-dark-950: #070707;
+  --primitive-color-light-100: #F4F2EC;
+  --primitive-color-light-200: #FFFFFF;
+  --primitive-color-light-300: #ECE8E0;
+  --primitive-color-light-400: #E2DDD2;
+  --primitive-color-light-500: #8A8578;
+  --primitive-color-light-700: #3A3833;
+  --primitive-color-light-800: #1E1D1B;
+  --primitive-color-light-900: #171204;
+  --primitive-color-red-500: #E05252;
+  --primitive-fontFamily-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --primitive-fontFamily-serif: 'Playfair Display', 'Poppins', Georgia, serif;
+  --primitive-fontSize-xs: 0.75rem;
+  --primitive-fontSize-sm: 0.9375rem;
+  --primitive-fontSize-base: 1rem;
+  --primitive-fontSize-lg: 1.125rem;
+  --primitive-fontSize-xl: 1.25rem;
+  --primitive-fontSize-2xl: 1.5rem;
+  --primitive-fontSize-3xl: 1.875rem;
+  --primitive-fontSize-4xl: 2.25rem;
+  --primitive-spacing-0: 0;
+  --primitive-spacing-1: 0.25rem;
+  --primitive-spacing-2: 0.5rem;
+  --primitive-spacing-3: 0.75rem;
+  --primitive-spacing-4: 1rem;
+  --primitive-spacing-5: 1.25rem;
+  --primitive-spacing-6: 1.5rem;
+  --primitive-spacing-8: 2rem;
+  --primitive-spacing-10: 2.5rem;
+  --primitive-spacing-12: 3rem;
+  --primitive-spacing-16: 4rem;
+  --primitive-spacing-buttonX: 2.8125rem;
+  --primitive-spacing-buttonY: 0.625rem;
+  --primitive-radius-none: 0;
+  --primitive-radius-sm: 0.125rem;
+  --primitive-radius-default: 0.25rem;
+  --primitive-radius-md: 0.375rem;
+  --primitive-radius-lg: 0.5rem;
+  --primitive-radius-xl: 0.75rem;
+  --primitive-radius-full: 9999px;
+  --primitive-shadow-none: none;
+  --primitive-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --primitive-shadow-default: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --primitive-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --primitive-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --primitive-duration-fast: 150ms;
+  --primitive-duration-normal: 200ms;
+  --primitive-duration-slow: 300ms;
+}
+
+/* === SEMANTIC === */
+:root {
+  --color-background: #070707;
+  --color-background-subtle: #0D0D0D;
+  --color-background-raised: #111111;
+  --color-background-input: #1A1A1A;
+  --color-background-input-2: #1C1C1C;
+  --color-background-info: #0A0A0A;
+  --color-foreground: #E8E8E8;
+  --color-foreground-strong: #FFFFFF;
+  --color-foreground-soft: #FEFEFE;
+  --color-foreground-muted: #9A9A9A;
+  --color-foreground-faint: #999999;
+  --color-primary: #D4AF37;
+  --color-primary-hover: #F0CD7F;
+  --color-primary-foreground: #171204;
+  --color-border: #3D3D3D;
+  --color-destructive: #E05252;
+  --color-destructive-foreground: #FFFFFF;
+  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', 'Poppins', Georgia, serif;
+  --space-component: 1rem;
+  --space-section: 3rem;
+  --bp-fundo: #070707;
+  --bp-fundo-suave: #0D0D0D;
+  --bp-fundo-card: #111111;
+  --bp-fundo-input: #1A1A1A;
+  --bp-fundo-input-2: #1C1C1C;
+  --bp-fundo-info: #0A0A0A;
+  --bp-texto: #E8E8E8;
+  --bp-texto-forte: #FFFFFF;
+  --bp-texto-nav: #FFFFFF;
+  --bp-texto-suave: #FEFEFE;
+  --bp-texto-fraco: #9A9A9A;
+  --bp-texto-apagado: #999999;
+  --bp-borda: #3D3D3D;
+  --bp-dourado: #D4AF37;
+  --bp-dourado-claro: #F0CD7F;
+  --bp-dourado-escuro: #171204;
+  --bp-font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --bp-font-serif: 'Playfair Display', 'Poppins', Georgia, serif;
+}
+
+/* === COMPONENTS === */
+:root {
+  --button-bg: #D4AF37;
+  --button-fg: #171204;
+  --button-border: #D4AF37;
+  --button-hover-bg: transparent;
+  --button-hover-fg: #D4AF37;
+  --button-secondary-bg: transparent;
+  --button-secondary-fg: #D4AF37;
+  --button-secondary-hover-bg: #D4AF37;
+  --button-secondary-hover-fg: #171204;
+  --button-padding-x: 2.8125rem;
+  --button-padding-y: 0.625rem;
+  --button-font-size: 0.9375rem;
+  --button-radius: 0;
+  --button-duration: 300ms;
+  --input-bg: #1A1A1A;
+  --input-fg: #E8E8E8;
+  --input-border: #3D3D3D;
+  --input-focus-ring: #D4AF37;
+  --input-padding-x: 0.75rem;
+  --input-padding-y: 0.5rem;
+  --input-radius: 0;
+  --input-font-size: 1rem;
+  --card-bg: #111111;
+  --card-border: #3D3D3D;
+  --card-shadow: none;
+  --card-padding: 1.5rem;
+  --card-radius: 0;
+}
+
+/* === DARK MODE === */
+[data-theme='claro'] {
+  --color-background: #F4F2EC;
+  --color-background-subtle: #FFFFFF;
+  --color-background-raised: #FFFFFF;
+  --color-background-input: #FFFFFF;
+  --color-background-input-2: #FFFFFF;
+  --color-background-info: #ECE8E0;
+  --color-foreground: #1E1D1B;
+  --color-foreground-strong: #171204;
+  --color-foreground-soft: #3A3833;
+  --color-foreground-muted: #8A8578;
+  --color-foreground-faint: #8A8578;
+  --color-border: #E2DDD2;
+  --bp-fundo: #F4F2EC;
+  --bp-fundo-suave: #FFFFFF;
+  --bp-fundo-card: #FFFFFF;
+  --bp-fundo-input: #FFFFFF;
+  --bp-fundo-input-2: #FFFFFF;
+  --bp-fundo-info: #ECE8E0;
+  --bp-texto: #1E1D1B;
+  --bp-texto-forte: #171204;
+  --bp-texto-nav: #FFFFFF;
+  --bp-texto-suave: #3A3833;
+  --bp-texto-fraco: #8A8578;
+  --bp-texto-apagado: #8A8578;
+  --bp-borda: #E2DDD2;
+}
