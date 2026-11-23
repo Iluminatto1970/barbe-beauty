@@ -1,122 +1,170 @@
-# 💈 Barbearia PRO — Gestão Premium para Barbearias
+# 💈 Sistema de Gestão para Barbearia
 
-Sistema completo de gestão para barbearias em **PHP + MySQL**, com site público,
-agendamento online e painel administrativo. Visual seguindo a identidade premium
-**dark + dourado** (padrão da landing `barbeariapropremium.vercel.app`).
+Um sistema completo de gestão para barbearias desenvolvido em PHP com MySQL, oferecendo funcionalidades tanto para clientes quanto para administradores.
 
-## 🚀 Início rápido (Docker — recomendado)
+## 🚀 Funcionalidades
 
-> Pré-requisito: [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando.
+### Para Clientes (Frontend)
 
-```bash
-docker compose up -d --build
+- **Agendamento Online**: Sistema completo de agendamento com seleção de funcionário, data, horário e serviços
+- **Catálogo de Produtos**: Visualização de produtos disponíveis
+- **Catálogo de Serviços**: Lista de serviços oferecidos com preços
+- **Integração WhatsApp**: Contato direto via WhatsApp
+- **Design Responsivo**: Interface adaptável para dispositivos móveis
+
+### Para Administradores (Backend)
+
+- **Dashboard Completo**: Indicadores de performance, agendamentos e financeiro
+- **Gestão de Agendamentos**: Controle completo da agenda por funcionário
+- **Gestão de Funcionários**: Cadastro, horários, dias de trabalho e comissões
+- **Gestão Financeira**: Contas a pagar/receber, relatórios de vendas
+- **Controle de Estoque**: Produtos, fornecedores e alertas de estoque baixo
+- **Gestão de Clientes**: Cadastro completo com histórico e cartão fidelidade
+- **Sistema de Permissões**: Controle granular de acesso por módulo
+- **Relatórios**: Diversos relatórios gerenciais
+
+## 🛠️ Tecnologias Utilizadas
+
+### Frontend
+
+- **HTML5** e **CSS3**
+- **JavaScript** e **jQuery**
+- **Bootstrap** para responsividade
+- **Owl Carousel** para sliders
+- **Font Awesome** para ícones
+- **AJAX** para interações dinâmicas
+
+### Backend
+
+- **PHP** (versão 7.0+)
+- **MySQL** para banco de dados
+- **PDO** para conexão com banco
+- **Sistema de Sessões** para autenticação
+- **DOMPDF** para geração de relatórios
+
+## 📋 Pré-requisitos
+
+- **XAMPP** ou servidor web com PHP 7.0+
+- **MySQL** 5.6+
+- **Navegador web** moderno
+
+## 🔧 Instalação
+
+1. **Clone ou baixe o projeto** para a pasta `htdocs` do XAMPP:
+
+   ```
+   c:\xampp\htdocs\barbearia\
+   ```
+
+2. **Importe o banco de dados**:
+
+   - Acesse o phpMyAdmin
+   - Crie um banco chamado `barbearia`
+   - Importe o arquivo `barbearia.sql`
+
+3. **Configure a conexão**:
+
+   - Edite o arquivo `sistema/conexao.php`
+   - Ajuste as credenciais do banco de dados:
+     ```php
+     $servidor = 'localhost';
+     $banco = 'barbearia';
+     $usuario = 'root';
+     $senha = '';
+     ```
+
+4. **Acesse o sistema**:
+   - Frontend: `http://localhost/barbearia`
+   - Backend: `http://localhost/barbearia/sistema`
+
+## 🔐 Acesso Padrão
+
+**Administrador:**
+
+## dados_ficticios.sql
+
+- **Email**: admin@barbeariaelite.com
+- **Senha**: 123
+
+## barbearia.sql
+
+- **Email**: admin@admin
+- **Senha**: 123
+
+## 📁 Estrutura do Projeto
+
+```
+barbearia/
+├── ajax/                    # Scripts AJAX
+├── css/                     # Estilos CSS
+├── fonts/                   # Fontes
+├── images/                  # Imagens do frontend
+├── js/                      # Scripts JavaScript
+├── sistema/                 # Sistema administrativo
+│   ├── painel/             # Painel administrativo
+│   │   └── paginas/        # Módulos do sistema
+│   ├── conexao.php         # Configuração do banco
+│   └── autenticar.php      # Autenticação
+├── agendamentos.php        # Página de agendamentos
+├── produtos.php            # Página de produtos
+├── servicos.php            # Página de serviços
+├── index.php               # Página inicial
+└── barbearia.sql           # Estrutura do banco
 ```
 
-| O quê          | URL                          | Acesso                        |
-|----------------|------------------------------|-------------------------------|
-| **Site**       | http://localhost:8080        | —                             |
-| **Painel**     | http://localhost:8080/sistema | `admin@admin` / `123`        |
-| **phpMyAdmin** | http://localhost:8081        | `barbearia` / `barbearia123` |
+## 🗄️ Estrutura do Banco de Dados
 
-O banco (`sql/barbearia.sql`) é importado **automaticamente na primeira subida**.
-Para parar: `docker compose down` (mantém os dados). Para zerar: `docker compose down -v`.
+### Tabelas Principais
 
-## ▶️ Rodar local — runtime portátil (sem instalação, já configurado)
+- **usuarios**: Funcionários e administradores
+- **agendamentos**: Controle de horários e serviços
+- **clientes**: Cadastro de clientes
+- **servicos**: Catálogo de serviços
+- **produtos**: Controle de estoque
+- **receber/pagar**: Gestão financeira
+- **horarios**: Horários disponíveis
+- **config**: Configurações do sistema
 
-O projeto já vem com um **runtime portátil configurado** (PHP 8.2 + MariaDB)
-em `%USERPROFILE%\.local\barbearia-runtime\`, sem precisar de instalação ou admin.
-O servidor embutido do PHP usa `router.php` (que replica as URLs amigáveis do
-`.htaccess`) apontando para a pasta `app/`, e o banco `barbearia` já foi importado.
+## 🎨 Personalização
 
-| Ação            | Como                                        |
-|-----------------|---------------------------------------------|
-| **Iniciar**     | Duplo clique em [`iniciar-local.bat`](iniciar-local.bat) |
-| **Parar**       | Duplo clique em [`parar-local.bat`](parar-local.bat)     |
+### Configurações do Sistema
 
-Após iniciar:
+Acesse o painel administrativo para personalizar:
 
-| O quê          | URL                          | Acesso                        |
-|----------------|------------------------------|-------------------------------|
-| **Site**       | http://localhost:8080        | —                             |
-| **Painel**     | http://localhost:8080/sistema | `admin@admin` / `123`        |
-| **phpMyAdmin** | *(não incluído no runtime portátil)* | — |
+- Nome da barbearia
+- Logo e imagens
+- Informações de contato
+- Textos da página inicial
+- Configurações de WhatsApp e redes sociais
 
-Para recriar o banco do zero (dados de exemplo incluídos):
+Para alterar o horário de funcionamento no Google Maps, siga os passos abaixo:
 
-```bash
-MYSQL="$USERPROFILE/.local/barbearia-runtime/mariadb/mariadb-11.4.8-winx64/bin/mysql.exe"
-"$MYSQL" -u root -e "DROP DATABASE barbearia; CREATE DATABASE barbearia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-"$MYSQL" -u root barbearia < sql/barbearia.sql
-"$MYSQL" --force -u root barbearia < sql/dados_ficticios.sql
-```
+abra o arquivo `index.php` e encontre a linha 1290:
 
-## 🛠️ Alternativa: XAMPP clássico (PHP 7.0+ / MySQL)
+<p><i class="fa fa-clock-o"></i>Seg-Sex: 8h às 18h | Sáb: 8h às 16h</p>
 
-1. Copie a pasta `app/` para `C:\xampp\htdocs\barbearia\`.
-2. No phpMyAdmin, crie o banco `barbearia` e importe `sql/barbearia.sql`.
-3. Acesse `http://localhost/barbearia` e `http://localhost/barbearia/sistema`.
+### Estilos
 
-> A conexão já funciona com o padrão XAMPP (`root` sem senha). Para personalizar,
-> use as variáveis de ambiente abaixo.
+- Edite `css/style.css` para personalizar o frontend
+- Modifique `sistema/painel/css/` para o backend
 
-## 🔐 Acesso padrão
+## 📱 Recursos Especiais
 
-- **E-mail:** `admin@admin` · **Senha:** `123` (altere após o primeiro acesso)
+- **URLs Amigáveis**: Sistema de reescrita via .htaccess
+- **Validação em Tempo Real**: Verificação de horários disponíveis
+- **Cadastro Automático**: Clientes são cadastrados automaticamente no agendamento
+- **Sistema de Cartão Fidelidade**: Controle de pontos por cliente
+- **Alertas de Estoque**: Notificações quando produtos estão em baixa
+- **Comissões**: Cálculo automático de comissões por funcionário
 
-## ⚙️ Configuração por variáveis de ambiente
+## 🔒 Segurança
 
-A conexão (`app/sistema/conexao.php`) lê o ambiente e cai no padrão local se nada
-estiver definido. Modelo em [`.env.example`](.env.example).
+- Autenticação por sessões PHP
+- Senhas criptografadas (MD5)
+- Sistema de permissões granular
+- Validações de entrada de dados
+- Proteção contra SQL Injection (PDO)
 
-| Variável        | Descrição                                          | Padrão       |
-|-----------------|----------------------------------------------------|--------------|
-| `DB_HOST`       | Host do MySQL/MariaDB                              | `localhost`  |
-| `DB_PORT`       | Porta                                              | `3306`       |
-| `DB_NAME`       | Nome do banco                                      | `barbearia`  |
-| `DB_USER`       | Usuário                                            | `root`       |
-| `DB_PASSWORD`   | Senha                                              | *(vazio)*    |
-| `MYSQL_URL`     | URL completa (ex.: Railway) `mysql://u:s@h:3306/b` | —            |
-| `APP_BASE_PATH` | Prefixo da URL (`""` = raiz, `barbearia` = XAMPP)  | auto-detecta |
-| `SHOW_DB_ERROR` | `1` exibe detalhes do erro de conexão              | `0`          |
+---
 
-## 🧩 MCP do Railway
-
-O servidor MCP do Railway (`https://mcp.railway.com`) já está configurado no projeto
-(`.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`).
-Veja o guia completo em **[MCP_RAILWAY.md](MCP_RAILWAY.md)** — inclui autenticação
-OAuth, ativação em Cursor/VS Code/Claude Code e o passo a passo do deploy.
-
-## 📁 Estrutura
-
-```
-├── app/                    # Aplicação (site público + painel)
-│   ├── index.php           # Página inicial
-│   ├── agendamentos.php    # Agendamento online
-│   ├── servicos.php        # Serviços
-│   ├── produtos.php        # Produtos
-│   ├── css/                # Estilos (tema dark + dourado)
-│   └── sistema/            # Painel administrativo + conexão
-├── sql/
-│   ├── barbearia.sql       # Schema + dados base (auto-import no Docker)
-│   └── dados_ficticios.sql # Dados de exemplo (opcional)
-├── docker/                 # Imagem PHP 8.2 + Apache (pdo_mysql, gd, rewrite)
-├── docker-compose.yml      # web + mariadb + phpmyadmin
-└── MCP_RAILWAY.md          # Guia do MCP Railway
-```
-
-## 📷 Imagens
-
-A pasta `Imagens de exemplo/` contém fotos de serviços/produtos/pessoas.
-As imagens usadas pelo site (`app/images/`) e pelo painel (`app/sistema/painel/img/`)
-já estão nos lugares certos.
-
-## 🧭 Roadmap
-
-- [x] Tema premium dark + dourado (site, login e painel)
-- [x] Alternador de tema escuro/claro (site e painel, preferência salva)
-- [x] Layout responsivo (menu mobile, carrosséis, seções e painel)
-- [x] Config por variáveis de ambiente (Docker/Railway-ready)
-- [x] MCP do Railway configurado
-- [x] Ambiente local com Docker (auto-seed do banco)
-- [ ] Deploy no Railway (guia em `MCP_RAILWAY.md`)
-- [ ] Seed automático do banco no Railway
+**Desenvolvido com ❤️ para facilitar a gestão de barbearias**

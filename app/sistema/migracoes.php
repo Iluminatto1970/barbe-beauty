@@ -24,28 +24,6 @@ if (!defined('BB_MIGRACOES_TABELA')) {
     define('BB_MIGRACOES_TABELA', 'schema_versoes');
 }
 
-if (!function_exists('bb_migracoes_raiz')) {
-    // Raiz do projeto em qualquer layout:
-    //   repositorio: app/sistema/... + sql/...      (dois niveis acima)
-    //   deploy web:  sistema/... + sql/...          (um nivel acima)
-    function bb_migracoes_raiz()
-    {
-        static $raiz = null;
-        if ($raiz !== null) {
-            return $raiz;
-        }
-        $candidatos = array(dirname(__DIR__, 2), dirname(__DIR__, 1));
-        foreach ($candidatos as $candidato) {
-            if (is_dir($candidato . '/sql/migracoes')) {
-                $raiz = $candidato;
-                return $raiz;
-            }
-        }
-        $raiz = dirname(__DIR__, 2);
-        return $raiz;
-    }
-}
-
 if (!function_exists('bb_migracoes_diretorio')) {
     function bb_migracoes_diretorio()
     {
@@ -53,7 +31,7 @@ if (!function_exists('bb_migracoes_diretorio')) {
         if ($env !== false && $env !== '') {
             return rtrim($env, '/\\');
         }
-        return bb_migracoes_raiz() . '/sql/migracoes';
+        return dirname(__DIR__, 2) . '/sql/migracoes';
     }
 }
 
@@ -272,7 +250,7 @@ if (!function_exists('bb_tenant_schema_sql')) {
 
         $caminho = getenv('BB_TENANT_SCHEMA');
         if ($caminho === false || $caminho === '') {
-            $caminho = bb_migracoes_raiz() . '/sql/tenant_schema.sql';
+            $caminho = dirname(__DIR__, 2) . '/sql/tenant_schema.sql';
         }
         $conteudo = @file_get_contents($caminho);
         $sql = ($conteudo === false) ? '' : $conteudo;
