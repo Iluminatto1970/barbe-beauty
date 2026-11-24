@@ -22,15 +22,20 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 	.calendario-dia.hoje{ box-shadow: inset 0 0 0 2px <?php echo $cor_tema ?>; }
 	.calendario-dia.selecionado{ background:<?php echo $cor_tema ?>; color:#fff; font-weight:bold; }
 	.calendario-dia:disabled{ background:#fff; color:#c3cdd1; cursor:not-allowed; text-decoration:line-through; }
+	.calendario-dia.passado{ background:#eceff1; color:#90a4ae; text-decoration:line-through; cursor:not-allowed; }
+	.calendario-dia.fechado{ background:#f3f6f8; color:#9aa7ae; text-decoration:none; cursor:not-allowed; }
+	.calendario-dia.lotado{ background:#fdecea; color:#c0392b; text-decoration:line-through; font-weight:600; cursor:not-allowed; }
 	.calendario-dia.vazio{ visibility:hidden; }
 	.calendario-legenda{ font-size:13px; color:#fff; text-align:center; margin:8px 0 6px 0; }
 	.calendario-obs{ font-size:12px; color:#e6e6e6; text-align:center; margin:0 0 12px 0; }
 	.calendario-dia.com-agendamentos{ position:relative; }
 	.calendario-dia .cal-dot{ position:absolute; left:50%; bottom:3px; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:#f0ad4e; }
 	.calendario-dia .cal-dot.confirmado{ background:#2ecc71; }
-	.calendario-dia.lotado{ text-decoration:line-through; }
 	.cal-dot-legenda{ display:inline-block; width:8px; height:8px; border-radius:50%; margin:0 5px 0 14px; vertical-align:middle; background:#f0ad4e; }
 	.cal-dot-legenda.confirmado{ background:#2ecc71; }
+	.cal-legenda-cor{ display:inline-block; width:10px; height:10px; border-radius:3px; margin:0 5px 0 14px; vertical-align:middle; }
+	.cal-legenda-cor.passado{ background:#eceff1; border:1px solid #cfd8dc; }
+	.cal-legenda-cor.lotado{ background:#fdecea; border:1px solid #f0b9b4; }
 
 	/* Botao de envio do agendamento no WhatsApp */
 	.btn-whatsapp{ display:inline-block; margin-top:14px; background:#25d366; color:#fff !important; padding:12px 22px; border-radius:30px; font-weight:bold; text-decoration:none !important; font-size:15px; box-shadow:0 4px 12px rgba(0,0,0,.2); }
@@ -129,6 +134,7 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 						</div>
 						<div class="calendario-legenda" id="cal-legenda">Selecione um dia disponível</div>
 						<div class="calendario-obs"><span class="cal-dot-legenda"></span>Aguardando confirmação<span class="cal-dot-legenda confirmado"></span>Confirmado</div>
+						<div class="calendario-obs"><span class="cal-legenda-cor passado"></span>Dia encerrado<span class="cal-legenda-cor lotado"></span>Sem horário livre</div>
 						<input type="hidden" name="data" id="data" value="<?php echo $data_atual ?>" />
 					</div>
 					<div class="form-group">
@@ -1993,7 +1999,17 @@ function criarConfetti() {
 			if(ehPassado || naoTrabalha || lotado){ botao.disabled = true; }
 			if(iso === dataParaISO(calHoje)){ botao.classList.add('hoje'); }
 			if(iso === calSelecionado){ botao.classList.add('selecionado'); }
-			if(lotado){ botao.classList.add('lotado'); botao.title = 'Sem horarios livres neste dia'; }
+			// Cores diferentes para dia encerrado, dia sem atendimento e dia lotado
+			if(ehPassado){
+				botao.classList.add('passado');
+				botao.title = 'Dia já passou';
+			} else if(naoTrabalha){
+				botao.classList.add('fechado');
+				botao.title = 'Sem atendimento neste dia';
+			} else if(lotado){
+				botao.classList.add('lotado');
+				botao.title = 'Sem horarios livres neste dia';
+			}
 
 			if(ocupadosDia.length > 0){
 				botao.classList.add('com-agendamentos');
