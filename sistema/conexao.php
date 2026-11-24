@@ -19,7 +19,7 @@ if (!defined('BB_HEADERS_SENT') && php_sapi_name() !== 'cli' && !headers_sent())
 		header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 	}
 	// CSP basico (permite inline scripts/styles usados pelo projeto)
-	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
+	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'");
 }
 
 // ============================================================
