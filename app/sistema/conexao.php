@@ -81,6 +81,25 @@ if (!function_exists('bb_checar_senha')) {
     }
 }
 
+if (!function_exists('bb_permitir_usuarios_teste')) {
+    // Permite criar contas de teste (admin/admin, admin@admin) apenas em
+    // ambiente local/dev. Em producao (DB remoto ou SEED_TEST_USERS=0) fica
+    // desativado por seguranca. Override explicito via env SEED_TEST_USERS.
+    function bb_permitir_usuarios_teste()
+    {
+        $flag = getenv('SEED_TEST_USERS');
+        if ($flag !== false && $flag !== '') {
+            $v = strtolower(trim((string) $flag));
+            return in_array($v, array('1', 'true', 'yes', 'on'), true);
+        }
+        $host = getenv('DB_HOST');
+        if ($host === false || $host === '') {
+            $host = 'localhost';
+        }
+        return in_array(strtolower(trim((string) $host)), array('localhost', '127.0.0.1', '::1'), true);
+    }
+}
+
 date_default_timezone_set('America/Sao_Paulo');
 
 // ============================================================

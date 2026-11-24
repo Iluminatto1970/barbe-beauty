@@ -32,7 +32,7 @@ if (bb_banco_atual() === bb_banco_controle()) {
 }
 
 // Garante usuario de teste admin@admin / 123 (idempotente)
-if (bb_banco_atual() === bb_banco_controle()) {
+if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
 	$admin_teste = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = 'admin@admin' LIMIT 1");
 	$admin_teste->execute();
 	$row = $admin_teste->fetch(PDO::FETCH_ASSOC);
@@ -52,7 +52,7 @@ if (bb_banco_atual() === bb_banco_controle()) {
 }
 
 // Garante usuario de teste 'admin' / '123' (idempotente)
-if (bb_banco_atual() === bb_banco_controle()) {
+if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
 	$admin_user = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = 'admin' LIMIT 1");
 	$admin_user->execute();
 	$row2 = $admin_user->fetch(PDO::FETCH_ASSOC);
