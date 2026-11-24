@@ -145,16 +145,25 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 							$total_reg = @count($res);
 							if($total_reg > 0){
 								for($i=0; $i < $total_reg; $i++){
-									$foto = $res[$i]['foto'];
-									if($foto == "" || $foto == "sem-foto.jpg"){
-										$foto = "sistema/img/" . $logo_sistema;
+									$foto = trim((string)$res[$i]['foto']);
+									$nome_prof = (string)$res[$i]['nome'];
+									// A foto so aparece se o arquivo existir de verdade; sem foto o card mostra as iniciais do profissional
+									$tem_foto = ($foto !== '' && $foto !== 'sem-foto.jpg' && is_file(__DIR__.'/sistema/painel/img/perfil/'.$foto));
+									$nome_js = htmlspecialchars(addslashes($nome_prof), ENT_QUOTES);
+									echo '<div class="professional-card" onclick="selecionarProfissional('.(int)$res[$i]['id'].', \''.$nome_js.'\')" data-id="'.(int)$res[$i]['id'].'" role="button" tabindex="0" aria-label="Selecionar '.htmlspecialchars($nome_prof, ENT_QUOTES).'">';
+									if($tem_foto){
+										$foto_url = 'sistema/painel/img/perfil/'.implode('/', array_map('rawurlencode', explode('/', $foto)));
+										echo '<div class="professional-photo"><img src="'.htmlspecialchars($foto_url, ENT_QUOTES).'" alt="'.htmlspecialchars($nome_prof, ENT_QUOTES).'"></div>';
 									} else {
-										$foto = "sistema/painel/img/perfil/".$foto;
+										$partes_nome = preg_split('/\s+/', trim($nome_prof));
+										$iniciais = mb_strtoupper(mb_substr($partes_nome[0], 0, 1, 'UTF-8'), 'UTF-8');
+										if(count($partes_nome) > 1){
+											$iniciais .= mb_strtoupper(mb_substr(end($partes_nome), 0, 1, 'UTF-8'), 'UTF-8');
+										}
+										$paleta_avatar = array('#8a6d1f', '#2c3e50', '#1e7a4f', '#6a3f8f', '#a83232', '#0f6b74');
+										$cor_avatar = $paleta_avatar[(int)(hexdec(substr(md5($nome_prof), 0, 8)) % count($paleta_avatar))];
+										echo '<div class="professional-photo avatar-iniciais" style="background:'.$cor_avatar.'"><span>'.htmlspecialchars($iniciais, ENT_QUOTES).'</span></div>';
 									}
-									echo '<div class="professional-card" onclick="selecionarProfissional('.$res[$i]['id'].', \''.addslashes($res[$i]['nome']).'\')" data-id="'.$res[$i]['id'].'">';
-									echo '<div class="professional-photo">';
-									echo '<img src="'.$foto.'" alt="'.$res[$i]['nome'].'" onerror="this.src=\'sistema/img/<?php echo $logo_sistema ?>\'">';
-									echo '</div>';
 									echo '<div class="professional-info">';
 									echo '<h5>'.$res[$i]['nome'].'</h5>';
 									$cargo_exibir = $res[$i]['nivel'];
@@ -162,6 +171,7 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 										$cargo_exibir = 'Profissional';
 									}
 									echo '<p>'.$cargo_exibir.'</p>';
+									echo '<span class="professional-selected-tag"><i class="fa fa-check"></i> Selecionado</span>';
 									echo '</div>';
 									echo '<div class="professional-check"><i class="fa fa-check"></i></div>';
 									echo '</div>';
@@ -204,17 +214,18 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 							$total_reg = @count($res);
 							if($total_reg > 0){
 								for($i=0; $i < $total_reg; $i++){
-									$foto = $res[$i]['foto'];
-									if($foto == "" || $foto == "sem-foto.jpg"){
-										$foto = "sistema/img/" . $logo_sistema;
+									$foto = trim((string)$res[$i]['foto']);
+									$logo_fallback = 'sistema/img/'.$logo_sistema;
+									if($foto == "" || $foto == "sem-foto.jpg" || !is_file(__DIR__.'/sistema/painel/img/servicos/'.$foto)){
+										$foto = $logo_fallback;
 									} else {
-										$foto = "sistema/painel/img/servicos/".$foto;
+										$foto = "sistema/painel/img/servicos/".implode('/', array_map('rawurlencode', explode('/', $foto)));
 									}
 									$valor = $res[$i]['valor'];
 									$valorF = number_format($valor, 2, ',', '.');
 									echo '<div class="service-card" onclick="alternarServico(this)" data-id="'.$res[$i]['id'].'" data-nome="'.htmlspecialchars($res[$i]['nome'], ENT_QUOTES).'" data-valor="'.$valor.'">';
 									echo '<div class="service-photo">';
-									echo '<img src="'.$foto.'" alt="'.$res[$i]['nome'].'" onerror="this.src=\'sistema/img/<?php echo $logo_sistema ?>\'">';
+									echo '<img src="'.htmlspecialchars($foto, ENT_QUOTES).'" alt="'.htmlspecialchars($res[$i]['nome'], ENT_QUOTES).'" onerror="this.onerror=null;this.src=\''.htmlspecialchars($logo_fallback, ENT_QUOTES).'\'">';
 									echo '</div>';
 									echo '<div class="service-info">';
 									echo '<h5>'.$res[$i]['nome'].'</h5>';
@@ -868,6 +879,16 @@ function criarConfetti() {
 			margin-bottom: 6px;
 		}
 
+		.professional-photo.avatar-iniciais span {
+			font-size: 16px;
+		}
+
+		.professional-selected-tag {
+			font-size: 9px;
+			padding: 2px 6px;
+			margin-top: 4px;
+		}
+
 		.professional-info h5 {
 			font-size: 11px;
 		}
@@ -1015,6 +1036,38 @@ function criarConfetti() {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+	}
+
+	/* Sem foto cadastrada: iniciais do profissional no lugar do logo da loja */
+	.professional-photo.avatar-iniciais {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-color: rgba(255,255,255,0.45);
+	}
+
+	.professional-photo.avatar-iniciais span {
+		color: #fff;
+		font-weight: 700;
+		font-size: 28px;
+		line-height: 1;
+		letter-spacing: 1px;
+	}
+
+	/* Selo que indica qual profissional esta escolhido */
+	.professional-selected-tag {
+		display: none;
+		margin-top: 8px;
+		font-size: 12px;
+		font-weight: 700;
+		color: #0f5132;
+		background: #d1f2dd;
+		border-radius: 12px;
+		padding: 3px 10px;
+	}
+
+	.professional-card.selected .professional-selected-tag {
+		display: inline-block;
 	}
 
 	.professional-info h5 {
