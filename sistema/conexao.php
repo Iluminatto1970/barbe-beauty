@@ -103,6 +103,13 @@ if (!function_exists('bb_permitir_usuarios_teste')) {
 
 date_default_timezone_set('America/Sao_Paulo');
 
+if (!function_exists('bb_tabela_permitida')) {
+    function bb_tabela_permitida($tabela) {
+        $permitidas = array('acessos','agendamentos','cargos','cat_produtos','cat_servicos','clientes','comentarios','dias','entradas','fornecedores','grupo_acessos','horarios','pagar','produtos','receber','saidas','servicos','textos_index','usuarios','usuarios_permissoes','config');
+        return in_array($tabela, $permitidas, true);
+    }
+}
+
 // ============================================================
 // RATE LIMIT DE LOGIN (anti brute-force)
 // ============================================================

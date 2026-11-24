@@ -1,6 +1,7 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'servicos';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 
 $id = $_POST['id'];
 $nome = $_POST['nome'];
@@ -19,7 +20,9 @@ if($categoria == 0){
 }
 
 //validar nome
-$query = $pdo->query("SELECT * from $tabela where nome = '$nome'");
+$query = $pdo->prepare("SELECT * from $tabela where nome = :nome");
+$query->bindValue(':nome', $nome);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) > 0 and $id != $res[0]['id']){
 	echo 'Nome já Cadastrado, escolha outro!!';
@@ -31,7 +34,9 @@ if(@count($res) > 0 and $id != $res[0]['id']){
 
 
 //validar troca da foto
-$query = $pdo->query("SELECT * FROM $tabela where id = '$id'");
+$query = $pdo->prepare("SELECT * FROM $tabela where id = :id");
+$query->bindValue(':id', $id);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -72,9 +77,17 @@ if(@$_FILES['foto']['name'] != ""){
 
 if($id == ""){
 	$segmento_texto = (isset($segmento) && $segmento == 'salao') ? 'salao' : 'barbearia';
-	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, categoria = '$categoria', valor = :valor, dias_retorno = '$dias_retorno', ativo = 'Sim', foto = '$foto', comissao = :comissao, segmento = '$segmento_texto'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, categoria = :categoria, valor = :valor, dias_retorno = :dias_retorno, ativo = 'Sim', foto = :foto, comissao = :comissao, segmento = :segmento_texto");
+$query->bindValue(':categoria', $categoria);
+$query->bindValue(':dias_retorno', $dias_retorno);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':segmento_texto', $segmento_texto);
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, categoria = '$categoria', valor = :valor, dias_retorno = '$dias_retorno', foto = '$foto', comissao = :comissao WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, categoria = :categoria, valor = :valor, dias_retorno = :dias_retorno, foto = :foto, comissao = :comissao WHERE id = :id");
+$query->bindValue(':categoria', $categoria);
+$query->bindValue(':dias_retorno', $dias_retorno);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':id', $id);
 }
 
 $query->bindValue(":nome", "$nome");

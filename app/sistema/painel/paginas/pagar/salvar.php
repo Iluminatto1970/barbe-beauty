@@ -1,6 +1,7 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'pagar';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 @session_start();
 $id_usuario = $_SESSION['id'];
 
@@ -30,7 +31,9 @@ if($data_pgto != ''){
 
 
 //validar troca da foto
-$query = $pdo->query("SELECT * FROM $tabela where id = '$id'");
+$query = $pdo->prepare("SELECT * FROM $tabela where id = :id");
+$query->bindValue(':id', $id);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -70,9 +73,23 @@ if(@$_FILES['foto']['name'] != ""){
 
 
 if($id == ""){
-	$query = $pdo->prepare("INSERT INTO $tabela SET descricao = :descricao, tipo = 'Conta', valor = :valor, data_lanc = curDate(), data_venc = '$data_venc', data_pgto = '$data_pgto', usuario_lanc = '$id_usuario', usuario_baixa = '$usuario_pgto', foto = '$foto', pessoa = '$pessoa', pago = '$pago', funcionario = '$funcionario'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET descricao = :descricao, tipo = 'Conta', valor = :valor, data_lanc = curDate(), data_venc = :data_venc, data_pgto = :data_pgto, usuario_lanc = :id_usuario, usuario_baixa = :usuario_pgto, foto = :foto, pessoa = :pessoa, pago = :pago, funcionario = :funcionario");
+$query->bindValue(':data_pgto', $data_pgto);
+$query->bindValue(':data_venc', $data_venc);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':funcionario', $funcionario);
+$query->bindValue(':id_usuario', $id_usuario);
+$query->bindValue(':pago', $pago);
+$query->bindValue(':pessoa', $pessoa);
+$query->bindValue(':usuario_pgto', $usuario_pgto);
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET descricao = :descricao, valor = :valor, data_venc = '$data_venc', data_pgto = '$data_pgto', foto = '$foto', pessoa = '$pessoa', funcionario = '$funcionario' WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET descricao = :descricao, valor = :valor, data_venc = :data_venc, data_pgto = :data_pgto, foto = :foto, pessoa = :pessoa, funcionario = :funcionario WHERE id = :id");
+$query->bindValue(':data_pgto', $data_pgto);
+$query->bindValue(':data_venc', $data_venc);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':funcionario', $funcionario);
+$query->bindValue(':id', $id);
+$query->bindValue(':pessoa', $pessoa);
 }
 
 $query->bindValue(":descricao", "$descricao");

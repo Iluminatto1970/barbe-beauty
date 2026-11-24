@@ -1,6 +1,7 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'clientes';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 
 $id = $_POST['id'];
 $nome = $_POST['nome'];
@@ -11,7 +12,9 @@ $cartoes = $_POST['cartao'];
 
 
 //validar email
-$query = $pdo->query("SELECT * from $tabela where telefone = '$telefone'");
+$query = $pdo->prepare("SELECT * from $tabela where telefone = :telefone");
+$query->bindValue(':telefone', $telefone);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) > 0 and $id != $res[0]['id']){
 	echo 'Telefone já Cadastrado, escolha outro!!';
@@ -20,9 +23,14 @@ if(@count($res) > 0 and $id != $res[0]['id']){
 
 
 if($id == ""){
-	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, telefone = :telefone, data_cad = curDate(), data_nasc = '$data_nasc', cartoes = '$cartoes', endereco = :endereco, alertado = 'Não'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, telefone = :telefone, data_cad = curDate(), data_nasc = :data_nasc, cartoes = :cartoes, endereco = :endereco, alertado = 'Não'");
+$query->bindValue(':cartoes', $cartoes);
+$query->bindValue(':data_nasc', $data_nasc);
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, telefone = :telefone, data_nasc = '$data_nasc', cartoes = '$cartoes', endereco = :endereco WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, telefone = :telefone, data_nasc = :data_nasc, cartoes = :cartoes, endereco = :endereco WHERE id = :id");
+$query->bindValue(':cartoes', $cartoes);
+$query->bindValue(':data_nasc', $data_nasc);
+$query->bindValue(':id', $id);
 }
 
 $query->bindValue(":nome", "$nome");

@@ -1,6 +1,7 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'comentarios';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 
 $id = $_POST['id'];
 $nome = $_POST['nome'];
@@ -14,7 +15,9 @@ if($cliente == 1){
 }
 
 //validar troca da foto
-$query = $pdo->query("SELECT * FROM $tabela where id = '$id'");
+$query = $pdo->prepare("SELECT * FROM $tabela where id = :id");
+$query->bindValue(':id', $id);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -55,9 +58,14 @@ if(@$_FILES['foto']['name'] != ""){
 
 if($id == ""){
 	$segmento_texto = (isset($segmento) && $segmento == 'salao') ? 'salao' : 'barbearia';
-	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, texto = :texto, ativo = '$ativo', foto = '$foto', segmento = '$segmento_texto'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, texto = :texto, ativo = :ativo, foto = :foto, segmento = :segmento_texto");
+$query->bindValue(':ativo', $ativo);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':segmento_texto', $segmento_texto);
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, texto = :texto, foto = '$foto' WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, texto = :texto, foto = :foto WHERE id = :id");
+$query->bindValue(':foto', $foto);
+$query->bindValue(':id', $id);
 }
 
 $query->bindValue(":nome", "$nome");

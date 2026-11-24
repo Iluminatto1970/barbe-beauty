@@ -1,10 +1,13 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'cat_servicos';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 
 $id = $_POST['id'];
 
-$query2 = $pdo->query("SELECT * FROM servicos where categoria = '$id'");
+$query2 = $pdo->prepare("SELECT * FROM servicos where categoria = :id");
+$query2->bindValue(':id', $id);
+$query2->execute();
 $res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 $total_reg2 = @count($res2);
 if($total_reg2 > 0){
@@ -12,6 +15,8 @@ if($total_reg2 > 0){
 	exit();
 }
 
-$pdo->query("DELETE from $tabela where id = '$id'");
+$stmt = $pdo->prepare("DELETE from $tabela where id = :id");
+$stmt->bindValue(':id', $id);
+$stmt->execute();
 echo 'Excluído com Sucesso';
 ?>

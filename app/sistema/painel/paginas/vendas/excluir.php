@@ -1,10 +1,13 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'receber';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 
 $id = $_POST['id'];
 
-$query = $pdo->query("SELECT * FROM $tabela where id = '$id'");
+$query = $pdo->prepare("SELECT * FROM $tabela where id = :id");
+$query->bindValue(':id', $id);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 $foto = $res[0]['foto'];
@@ -15,15 +18,22 @@ if($foto != "sem-foto.jpg"){
 	@unlink('../../img/contas/'.$foto);
 }
 
-$query = $pdo->query("SELECT * FROM produtos where id = '$produto'");
+$query = $pdo->prepare("SELECT * FROM produtos where id = :produto");
+$query->bindValue(':produto', $produto);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 $estoque = $res[0]['estoque'];
 
 $total_estoque = $estoque + $quantidade;
-$pdo->query("UPDATE produtos SET estoque = '$total_estoque' WHERE id = '$produto'");
+$stmt = $pdo->prepare("UPDATE produtos SET estoque = :total_estoque WHERE id = :produto");
+$stmt->bindValue(':produto', $produto);
+$stmt->bindValue(':total_estoque', $total_estoque);
+$stmt->execute();
 
 
-$pdo->query("DELETE from $tabela where id = '$id'");
+$stmt = $pdo->prepare("DELETE from $tabela where id = :id");
+$stmt->bindValue(':id', $id);
+$stmt->execute();
 echo 'Excluído com Sucesso';
  ?>

@@ -1,6 +1,7 @@
 <?php 
 require_once("../../../conexao.php");
 $tabela = 'receber';
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 @session_start();
 $id_usuario = $_SESSION['id'];
 
@@ -18,7 +19,9 @@ if($produto == 0){
 	exit();
 }
 
-$query = $pdo->query("SELECT * FROM produtos where id = '$produto'");
+$query = $pdo->prepare("SELECT * FROM produtos where id = :produto");
+$query->bindValue(':produto', $produto);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $descricao = 'Venda - ('.$quantidade.') '.$res[0]['nome'];
 $estoque = $res[0]['estoque'];
@@ -40,13 +43,18 @@ if($quantidade > $estoque){
 
 //atualizar dados do produto
 $total_estoque = $estoque - $quantidade;
-$pdo->query("UPDATE produtos SET estoque = '$total_estoque' WHERE id = '$produto'");
+$stmt = $pdo->prepare("UPDATE produtos SET estoque = :total_estoque WHERE id = :produto");
+$stmt->bindValue(':produto', $produto);
+$stmt->bindValue(':total_estoque', $total_estoque);
+$stmt->execute();
 
 
 
 
 //validar troca da foto
-$query = $pdo->query("SELECT * FROM $tabela where id = '$id'");
+$query = $pdo->prepare("SELECT * FROM $tabela where id = :id");
+$query->bindValue(':id', $id);
+$query->execute();
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -88,9 +96,25 @@ if(@$_FILES['foto']['name'] != ""){
 
 
 if($id == ""){
-	$query = $pdo->prepare("INSERT INTO $tabela SET descricao = :descricao, tipo = 'Venda', valor = :valor, data_lanc = curDate(), data_venc = '$data_venc', data_pgto = '$data_pgto', usuario_lanc = '$id_usuario', usuario_baixa = '$usuario_pgto', foto = '$foto', pessoa = '$pessoa', pago = '$pago', produto = '$produto', quantidade = '$quantidade'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET descricao = :descricao, tipo = 'Venda', valor = :valor, data_lanc = curDate(), data_venc = :data_venc, data_pgto = :data_pgto, usuario_lanc = :id_usuario, usuario_baixa = :usuario_pgto, foto = :foto, pessoa = :pessoa, pago = :pago, produto = :produto, quantidade = :quantidade");
+$query->bindValue(':data_pgto', $data_pgto);
+$query->bindValue(':data_venc', $data_venc);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':id_usuario', $id_usuario);
+$query->bindValue(':pago', $pago);
+$query->bindValue(':pessoa', $pessoa);
+$query->bindValue(':produto', $produto);
+$query->bindValue(':quantidade', $quantidade);
+$query->bindValue(':usuario_pgto', $usuario_pgto);
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET descricao = :descricao, valor = :valor, data_venc = '$data_venc', data_pgto = '$data_pgto', foto = '$foto', pessoa = '$pessoa', produto = '$produto', quantidade = '$quantidade' WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET descricao = :descricao, valor = :valor, data_venc = :data_venc, data_pgto = :data_pgto, foto = :foto, pessoa = :pessoa, produto = :produto, quantidade = :quantidade WHERE id = :id");
+$query->bindValue(':data_pgto', $data_pgto);
+$query->bindValue(':data_venc', $data_venc);
+$query->bindValue(':foto', $foto);
+$query->bindValue(':id', $id);
+$query->bindValue(':pessoa', $pessoa);
+$query->bindValue(':produto', $produto);
+$query->bindValue(':quantidade', $quantidade);
 }
 
 $query->bindValue(":descricao", "$descricao");
