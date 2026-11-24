@@ -7,6 +7,12 @@
 require_once(__DIR__ . '/verificar.php');
 require_once(__DIR__ . '/../../superadmin/_asaas.php');
 
+try {
+    asaas_garantir_colunas($pdo_controle);
+} catch (Exception $e) {
+    // estrutura da cobranca ja existente
+}
+
 $quota = bb_quota_plano($pdo);
 $preco = (float) $quota['preco'];
 $erro = '';
@@ -15,8 +21,12 @@ $link_pagamento = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     bb_csrf_check_request();
 
+    $cpf_cnpj = preg_replace('/\D+/', '', (string) (isset($_POST['cpf_cnpj']) ? $_POST['cpf_cnpj'] : ''));
+
     if (empty($tenant_atual) || empty($tenant_atual['id'])) {
         $erro = 'Estabelecimento não identificado.';
+    } elseif (!in_array(strlen($cpf_cnpj), array(11, 14), true)) {
+        $erro = 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para a cobrança.';
     } elseif (!asaas_configurado()) {
         $erro = 'Pagamento indisponível no momento. Fale com o suporte.';
     } else {
@@ -25,7 +35,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $forma = 'UNDEFINED';
         }
 
+        // Guarda o documento do estabelecimento (o Asaas exige na cobrança)
+        try {
+            $q = $pdo_controle->prepare("UPDATE tenants SET cpf_cnpj = :cpf WHERE id = :id");
+            $q->bindValue(':cpf', $cpf_cnpj);
+            $q->bindValue(':id', (int) $tenant_atual['id'], PDO::PARAM_INT);
+            $q->execute();
+        } catch (Exception $e) {
+            // coluna criada por asaas_garantir_colunas; segue o fluxo
+        }
+
         $tenant = $tenant_atual;
+        $tenant['cpf_cnpj'] = $cpf_cnpj;
         $r = asaas_criar_assinatura($pdo_controle, $tenant, $preco, $forma, date('Y-m-d'));
         if (!$r['ok']) {
             $erro = $r['erro'];
@@ -115,6 +136,10 @@ $valor_fmt = number_format($preco, 2, ',', '.');
 
       <form method="post" action="plano.php">
         <input type="hidden" name="csrf_token" value="<?php echo bb_e(bb_csrf_token()); ?>">
+        <p style="margin-bottom:6px"><strong>CPF ou CNPJ do responsável</strong></p>
+        <input type="text" name="cpf_cnpj" maxlength="20" required placeholder="somente números"
+               value="<?php echo bb_e(isset($tenant_atual['cpf_cnpj']) ? $tenant_atual['cpf_cnpj'] : ''); ?>"
+               style="width:100%;padding:11px 14px;border:1px solid #dbe3ea;border-radius:8px;font-size:15px;margin-bottom:16px">
         <p style="margin-bottom:6px"><strong>Forma de pagamento</strong></p>
         <div class="forma">
           <label><input type="radio" name="forma" value="PIX" checked> PIX</label>

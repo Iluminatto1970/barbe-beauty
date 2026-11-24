@@ -195,6 +195,8 @@ if (!function_exists('asaas_garantir_colunas')) {
                 'senha_crip'            => "VARCHAR(255) NULL",
                 'token'                 => "VARCHAR(64) NULL",
                 'origem'                => "VARCHAR(20) NULL",
+                // Documento exigido pelo Asaas para emitir a cobranca
+                'cpf_cnpj'              => "VARCHAR(20) NULL",
             ),
             'saas_pagamentos' => array(
                 'asaas_payment_id' => "VARCHAR(40) NULL",
@@ -237,7 +239,16 @@ if (!function_exists('asaas_cliente_do_tenant')) {
     // Garante um cliente no Asaas e devolve o id (cus_...)
     function asaas_cliente_do_tenant($pdo, $tenant)
     {
+        $cpf_cnpj = isset($tenant['cpf_cnpj']) ? preg_replace('/\D+/', '', (string) $tenant['cpf_cnpj']) : '';
+
         if (!empty($tenant['asaas_customer_id'])) {
+            // Cliente ja existe: o Asaas exige o documento para emitir cobranca
+            if ($cpf_cnpj !== '') {
+                $up = asaas_req('POST', '/customers/' . $tenant['asaas_customer_id'], array('cpfCnpj' => $cpf_cnpj));
+                if (!$up['ok']) {
+                    return array('ok' => false, 'id' => '', 'erro' => $up['erro']);
+                }
+            }
             return array('ok' => true, 'id' => $tenant['asaas_customer_id'], 'erro' => '');
         }
 
@@ -249,6 +260,9 @@ if (!function_exists('asaas_cliente_do_tenant')) {
         );
         if (!empty($tenant['telefone'])) {
             $dados['mobilePhone'] = preg_replace('/\D+/', '', $tenant['telefone']);
+        }
+        if ($cpf_cnpj !== '') {
+            $dados['cpfCnpj'] = $cpf_cnpj;
         }
 
         $r = asaas_req('POST', '/customers', $dados);

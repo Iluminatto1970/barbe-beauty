@@ -109,6 +109,12 @@ $_SESSION['assinar_csrf'] = $csrf;
             </div>
           </div>
 
+          <div class="campo" style="margin-top:12px">
+            <label for="cpf_cnpj">CPF ou CNPJ</label>
+            <input type="text" id="cpf_cnpj" name="cpf_cnpj" maxlength="20" placeholder="somente números" value="<?php echo sa_e(isset($_GET['cpf_cnpj']) ? $_GET['cpf_cnpj'] : ''); ?>">
+            <small class="muted">Necessário apenas para emitir a cobrança do plano pago.</small>
+          </div>
+
           <div class="duas-colunas" style="margin-top:12px">
             <div class="campo">
               <label for="senha">Senha de acesso</label>

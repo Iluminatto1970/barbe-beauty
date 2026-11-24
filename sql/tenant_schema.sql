@@ -58,11 +58,11 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   `nome` varchar(50) NOT NULL,
   `telefone` varchar(20) DEFAULT NULL,
   `endereco` varchar(100) DEFAULT NULL,
-  `data_nasc` date NOT NULL,
+  `data_nasc` date DEFAULT NULL,
   `data_cad` date NOT NULL,
   `cartoes` int(11) NOT NULL,
   `data_retorno` date DEFAULT NULL,
-  `ultimo_servico` int(11) NOT NULL,
+  `ultimo_servico` int(11) NOT NULL DEFAULT 0,
   `alertado` varchar(5) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;

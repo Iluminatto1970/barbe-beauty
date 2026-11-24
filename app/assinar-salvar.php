@@ -29,19 +29,21 @@ $senha     = (string) @$_POST['senha'];
 $senha2    = (string) @$_POST['senha2'];
 $plano_id  = (int) @$_POST['plano_id'];
 $forma     = (string) @$_POST['forma'];
+$cpf_cnpj  = preg_replace('/\D+/', '', (string) @$_POST['cpf_cnpj']);
 
 $formas_validas = array('UNDEFINED', 'PIX', 'BOLETO');
 if (!in_array($forma, $formas_validas, true)) {
     $forma = 'UNDEFINED';
 }
 
-$voltar = function ($mensagem) use ($nome, $slug, $email, $telefone) {
+$voltar = function ($mensagem) use ($nome, $slug, $email, $telefone, $cpf_cnpj) {
     $params = http_build_query(array(
-        'erro'     => $mensagem,
-        'nome'     => $nome,
-        'slug'     => $slug,
-        'email'    => $email,
-        'telefone' => $telefone,
+        'erro'      => $mensagem,
+        'nome'      => $nome,
+        'slug'      => $slug,
+        'email'     => $email,
+        'telefone'  => $telefone,
+        'cpf_cnpj'  => $cpf_cnpj,
     ));
     header('Location: assinar.php?' . $params);
     exit;
@@ -79,6 +81,14 @@ if (!$plano) {
 $valor = (float) $plano['valor'];
 $gratis = ($valor <= 0);
 
+// O Asaas exige CPF/CNPJ do cliente para emitir a cobranca
+if ($cpf_cnpj !== '' && !in_array(strlen($cpf_cnpj), array(11, 14), true)) {
+    $voltar('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.');
+}
+if (!$gratis && $cpf_cnpj === '') {
+    $voltar('Informe o CPF ou CNPJ para emitir a cobrança do plano pago.');
+}
+
 // Plano gratuito nao passa pelo Asaas
 if (!$gratis && !asaas_configurado()) {
     $voltar('Pagamento indisponível no momento. Tente novamente mais tarde.');
@@ -103,9 +113,10 @@ $token = bin2hex(random_bytes(24));
 
 // Cria o estabelecimento aguardando pagamento
 $ins = $pdo->prepare("INSERT INTO tenants
-    (slug, nome, email, telefone, plano_id, status, vencimento, senha_crip, token, origem, criado_em)
-    VALUES (:slug, :nome, :email, :telefone, :plano, :status, NULL, :senha, :token, 'autocadastro', NOW())");
+    (slug, nome, email, telefone, cpf_cnpj, plano_id, status, vencimento, senha_crip, token, origem, criado_em)
+    VALUES (:slug, :nome, :email, :telefone, :cpf, :plano, :status, NULL, :senha, :token, 'autocadastro', NOW())");
 $ins->bindValue(':status', $gratis ? 'trial' : 'pendente');
+$ins->bindValue(':cpf', $cpf_cnpj !== '' ? $cpf_cnpj : null, $cpf_cnpj !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
 $ins->bindValue(':slug', $slug);
 $ins->bindValue(':nome', $nome);
 $ins->bindValue(':email', $email);
