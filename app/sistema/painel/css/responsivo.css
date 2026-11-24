@@ -275,7 +275,9 @@ body.menu-aberto .fundo-menu {
   .panel-body,
   .widget-content,
   .content-top-2,
-  .table-responsive {
+  .table-responsive,
+  #listar,
+  .bs-example {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }

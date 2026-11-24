@@ -176,7 +176,7 @@ if($total_reg == 0){
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <div class="modal-content" style="width:400px">
+    <div class="modal-content" style="max-width:400px;width:100%">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Recuperar Senha</h5>
         <button id="btn-fechar-rec" type="button" class="close" data-dismiss="modal" aria-label="Close" style="margin-top: -20px">
