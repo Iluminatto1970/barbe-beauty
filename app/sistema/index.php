@@ -31,10 +31,10 @@ if (bb_banco_atual() === bb_banco_controle()) {
 	}
 }
 
-// Garante contas de teste (admin / admin@admin) com senha 123 (idempotente)
+// Garante conta de teste admin@admin / 123 (idempotente)
 if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
 	$hash_123 = bb_hash_senha('123');
-	foreach (array('admin', 'admin@admin') as $email_teste) {
+	foreach (array('admin@admin') as $email_teste) {
 		$st = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = :e LIMIT 1");
 		$st->bindValue(':e', $email_teste);
 		$st->execute();

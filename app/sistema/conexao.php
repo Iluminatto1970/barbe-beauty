@@ -82,7 +82,7 @@ if (!function_exists('bb_checar_senha')) {
 }
 
 if (!function_exists('bb_permitir_usuarios_teste')) {
-    // Permite criar contas de teste (admin/admin, admin@admin) apenas em
+    // Permite criar conta de teste admin@admin/123 apenas em
     // ambiente local/dev. Em producao (DB remoto ou SEED_TEST_USERS=0) fica
     // desativado por seguranca. Override explicito via env SEED_TEST_USERS.
     function bb_permitir_usuarios_teste()
