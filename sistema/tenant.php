@@ -179,6 +179,31 @@ if (!function_exists('bb_host_subdominio_base')) {
     }
 }
 
+if (!function_exists('bb_host_controle')) {
+    // Hosts autorizados a usar o banco de controle (instalacao principal).
+    // Qualquer outro host so pode servir se estiver cadastrado em tenant_dominios.
+    function bb_host_controle($host)
+    {
+        $host = bb_normalizar_host($host);
+        if ($host === '') {
+            return true; // CLI, cron, sem host
+        }
+        if ($host === 'localhost' || $host === '127.0.0.1' || $host === '::1') {
+            return true;
+        }
+        $extra = getenv('BB_HOSTS_CONTROLE');
+        if ($extra !== false && $extra !== '') {
+            foreach (explode(',', $extra) as $h) {
+                if (bb_normalizar_host(trim($h)) === $host) {
+                    return true;
+                }
+            }
+        }
+        $base = strtolower(BB_DOMINIO_BASE);
+        return ($host === $base || $host === 'www.' . $base);
+    }
+}
+
 if (!function_exists('bb_tenant_resolver')) {
     // Descobre o tenant do dominio. Recebe a conexao com o banco de controle.
     function bb_tenant_resolver($pdo_controle, $host)
@@ -366,25 +391,36 @@ if (!function_exists('bb_tenant_provisionar')) {
             }
 
             // Configuracao inicial do estabelecimento
+            // Nasce com dados neutros do tema: NUNCA clona a config do banco de
+            // controle, que pertence a outro estabelecimento (nome, imagens,
+            // endereco, mapa, instagram e textos).
             $total_cfg = (int) $pdo_tenant->query('SELECT COUNT(*) FROM config')->fetchColumn();
             if ($total_cfg === 0) {
-                $cfg = $pdo_controle->query('SELECT * FROM config ORDER BY id LIMIT 1')->fetch(PDO::FETCH_ASSOC);
-                if (!$cfg) {
-                    $cfg = array();
-                }
-                // Id fixo + INSERT IGNORE: duas ativacoes simultaneas nao duplicam
-                $cfg_id = isset($cfg['id']) ? (int) $cfg['id'] : 0;
-                unset($cfg['id']);
-                $cfg['nome'] = $tenant['nome'];
-                if (isset($cfg['email'])) {
-                    $cfg['email'] = $tenant['email'] ? $tenant['email'] : $cfg['email'];
-                }
-                if (isset($cfg['telefone_whatsapp']) && !empty($tenant['telefone'])) {
-                    $cfg['telefone_whatsapp'] = $tenant['telefone'];
-                }
-                if (isset($cfg['texto_rodape'])) {
-                    $cfg['texto_rodape'] = 'Edite este texto nas configuracoes do painel administrativo';
-                }
+                $segmento_novo = (isset($tenant['segmento']) && $tenant['segmento'] === 'salao') ? 'salao' : 'barbearia';
+                $cfg = array(
+                    'nome'               => substr((string) $tenant['nome'], 0, 50),
+                    'email'              => substr((string) (isset($tenant['email']) ? $tenant['email'] : ''), 0, 50),
+                    'telefone_fixo'      => '',
+                    'telefone_whatsapp'  => substr((string) (isset($tenant['telefone']) ? $tenant['telefone'] : ''), 0, 20),
+                    'endereco'           => '',
+                    'logo'               => 'logo.png',
+                    'icone'              => 'favicon.png',
+                    'logo_rel'           => 'logo_rel.jpg',
+                    'tipo_rel'           => 'pdf',
+                    'instagram'          => '',
+                    'tipo_comissao'      => 'Porcentagem',
+                    'texto_rodape'       => 'Edite este texto nas configuracoes do painel administrativo',
+                    'img_banner_index'   => ($segmento_novo === 'salao') ? 'salao-banner.jpg' : 'banner.jpg',
+                    'texto_sobre'        => 'Edite este texto nas configuracoes do painel administrativo',
+                    'imagem_sobre'       => ($segmento_novo === 'salao') ? 'salao-sobre.jpg' : 'foto_barbearia.jpg',
+                    'icone_site'         => ($segmento_novo === 'salao') ? 'salao-favicon.png' : 'favicon.png',
+                    'mapa'               => '',
+                    'texto_fidelidade'   => 'A cada 10 servicos, ganhe 1!',
+                    'quantidade_cartoes' => 10,
+                    'texto_agendamento'  => 'Selecionar Prestador de Servico',
+                    'msg_agendamento'    => 'Sim',
+                    'segmento'           => $segmento_novo,
+                );
 
                 $colunas = array();
                 $marcadores = array();
@@ -397,13 +433,8 @@ if (!function_exists('bb_tenant_provisionar')) {
                     $marcadores[] = '?';
                     $valores[] = $valor;
                 }
-                if ($cfg_id > 0) {
-                    array_unshift($colunas, '`id`');
-                    array_unshift($marcadores, '?');
-                    array_unshift($valores, $cfg_id);
-                }
                 if (count($colunas) > 0) {
-                    $pdo_tenant->prepare('INSERT IGNORE INTO config (' . implode(', ', $colunas) . ') VALUES (' . implode(', ', $marcadores) . ')')
+                    $pdo_tenant->prepare('INSERT INTO config (' . implode(', ', $colunas) . ') VALUES (' . implode(', ', $marcadores) . ')')
                         ->execute($valores);
                 }
             }

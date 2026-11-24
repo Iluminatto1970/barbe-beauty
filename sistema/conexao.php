@@ -320,8 +320,9 @@ if (bb_requisicao_de_controle($bb_caminho_req)) {
     if ($tenant_atual) {
         $tenant_id_atual = (int) $tenant_atual['id'];
         $bb_tenant_db_atual = bb_tenant_banco($tenant_atual);
-    } elseif (bb_host_subdominio_base($bb_host_req) !== '') {
-        // Subdominio sem estabelecimento: nao serve o site principal
+    } elseif (!bb_host_controle($bb_host_req)) {
+        // Host sem estabelecimento cadastrado: nao cai no banco de controle,
+        // para nunca exibir os dados de outro estabelecimento.
         http_response_code(404);
         echo 'Estabelecimento nao encontrado.';
         exit;
