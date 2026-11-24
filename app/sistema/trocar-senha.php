@@ -1,7 +1,6 @@
 <?php
 @session_start();
 require_once("conexao.php");
-bb_csrf_check_request();
 
 if (@$_SESSION['id'] == "") {
     echo "<script>window.location='index.php'</script>";

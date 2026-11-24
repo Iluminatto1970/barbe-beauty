@@ -508,11 +508,11 @@ $email_sistema_base      = isset($email_sistema) ? $email_sistema : '';
 
 bb_aplicar_segmento($segmento);
 
-?>
-
 // Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX) - apos definicao dos helpers
 if (php_sapi_name() !== 'cli' && !headers_sent()) {
 	$ct = bb_csrf_token();
 	setcookie('csrf_token', $ct, 0, '/', '', false, false);
 	$_COOKIE['csrf_token'] = $ct;
 }
+
+?>
