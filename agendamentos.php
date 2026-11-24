@@ -192,7 +192,8 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 					<div class="form-group">
 						<div class="services-grid">
 							<?php 
-							$query = $pdo->query("SELECT * FROM servicos where segmento = '$segmento' ORDER BY nome asc");
+							$query = $pdo->prepare("SELECT * FROM servicos where segmento = :v1 ORDER BY nome asc");
+							$query->execute(array(':v1' => $segmento));
 							$res = $query->fetchAll(PDO::FETCH_ASSOC);
 							$total_reg = @count($res);
 							if($total_reg > 0){

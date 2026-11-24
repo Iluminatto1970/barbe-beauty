@@ -213,7 +213,8 @@ $filtro = '%'.$filtro.'%';
 
 		<?php 
 		$total_entradas = 0;
-		$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo LIKE '$filtro' and pago = 'Sim' ORDER BY data_pgto asc");
+		$query = $pdo->prepare("SELECT * FROM pagar where data_pgto >= :v1 and data_pgto <= :v2 and tipo LIKE :v3 and pago = 'Sim' ORDER BY data_pgto asc");
+		$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal, ':v3' => $filtro));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);
 	if($total_reg > 0){
@@ -259,7 +260,8 @@ $filtro = '%'.$filtro.'%';
 	$data_vencF = implode('/', array_reverse(explode('-', $data_venc)));
 	
 
-		$query2 = $pdo->query("SELECT * FROM fornecedores where id = '$pessoa'");
+		$query2 = $pdo->prepare("SELECT * FROM fornecedores where id = :v1");
+		$query2->execute(array(':v1' => $pessoa));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -277,7 +279,8 @@ $filtro = '%'.$filtro.'%';
 		}
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$funcionario'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $funcionario));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -296,7 +299,8 @@ $filtro = '%'.$filtro.'%';
 		}
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_baixa'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $usuario_baixa));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -307,7 +311,8 @@ $filtro = '%'.$filtro.'%';
 
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_lanc'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $usuario_lanc));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){

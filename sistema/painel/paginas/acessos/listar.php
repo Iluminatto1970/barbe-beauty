@@ -29,7 +29,8 @@ for($i=0; $i < $total_reg; $i++){
 	$grupo = $res[$i]['grupo'];	
 	
 	
-		$query2 = $pdo->query("SELECT * FROM grupo_acessos where id = '$grupo'");
+		$query2 = $pdo->prepare("SELECT * FROM grupo_acessos where id = :v1");
+		$query2->execute(array(':v1' => $grupo));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -113,4 +114,5 @@ HTML;
 		$('#chave').val('');	
 	}
 </script>
+
 

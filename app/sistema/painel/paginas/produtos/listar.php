@@ -3,7 +3,8 @@ require_once("../../../conexao.php");
 $tabela = 'produtos';
 
 $segmento_texto = (isset($segmento) && $segmento == 'salao') ? 'salao' : 'barbearia';
-$query = $pdo->query("SELECT * FROM $tabela where segmento = '$segmento_texto' ORDER BY id desc");
+$query = $pdo->prepare("SELECT * FROM $tabela where segmento = :v1 ORDER BY id desc");
+$query->execute(array(':v1' => $segmento_texto));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -41,7 +42,8 @@ for($i=0; $i < $total_reg; $i++){
 
 	
 
-		$query2 = $pdo->query("SELECT * FROM cat_produtos where id = '$categoria'");
+		$query2 = $pdo->prepare("SELECT * FROM cat_produtos where id = :v1");
+		$query2->execute(array(':v1' => $categoria));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){

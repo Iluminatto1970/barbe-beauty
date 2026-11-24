@@ -9,7 +9,8 @@ $id_usuario = $_SESSION['id'];
 $id = $_POST['id'];
 
 
-$query = $pdo->query("SELECT * FROM $tabela where id = '$id'");
+$query = $pdo->prepare("SELECT * FROM $tabela where id = :v1");
+$query->execute(array(':v1' => $id));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $funcionario = $res[0]['funcionario'];
 $servico = $res[0]['servico'];
@@ -18,7 +19,8 @@ $descricao = 'Comissão - '.$res[0]['descricao'];
 $tipo = $res[0]['tipo'];
 
 if($tipo == 'Serviço'){
-	$query = $pdo->query("SELECT * FROM servicos where id = '$servico'");
+	$query = $pdo->prepare("SELECT * FROM servicos where id = :v1");
+	$query->execute(array(':v1' => $servico));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$valor = $res[0]['valor'];
 	$comissao = $res[0]['comissao'];
@@ -30,12 +32,12 @@ if($tipo == 'Serviço'){
 	}
 
 	//lançar a conta a pagar para a comissão do funcionário
-$pdo->query("INSERT INTO pagar SET descricao = '$descricao', tipo = 'Comissão', valor = '$valor_comissao', data_lanc = curDate(), data_venc = curDate(), usuario_lanc = '$id_usuario', foto = 'sem-foto.jpg', pago = 'Não', funcionario = '$funcionario', servico = '$servico', cliente = '$cliente'");
+$pdo->prepare("INSERT INTO pagar SET descricao = :v1, tipo = 'Comissão', valor = :v2, data_lanc = curDate(), data_venc = curDate(), usuario_lanc = :v3, foto = 'sem-foto.jpg', pago = 'Não', funcionario = :v4, servico = :v5, cliente = :v6")->execute(array(':v1' => $descricao, ':v2' => $valor_comissao, ':v3' => $id_usuario, ':v4' => $funcionario, ':v5' => $servico, ':v6' => $cliente));
 }
 
 
 
-$pdo->query("UPDATE $tabela SET pago = 'Sim', usuario_baixa = '$id_usuario', data_pgto = curDate() where id = '$id'");
+$pdo->prepare("UPDATE $tabela SET pago = 'Sim', usuario_baixa = :v1, data_pgto = curDate() where id = :v2")->execute(array(':v1' => $id_usuario, ':v2' => $id));
 
 echo 'Baixado com Sucesso';
  ?>

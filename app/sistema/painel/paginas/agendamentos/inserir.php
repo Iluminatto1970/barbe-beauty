@@ -24,7 +24,8 @@ $diasemana_numero = date('w', strtotime($data));
 $dia_procurado = $diasemana[$diasemana_numero];
 
 //percorrer os dias da semana que ele trabalha
-$query = $pdo->query("SELECT * FROM dias where funcionario = '$funcionario' and dia = '$dia_procurado'");
+$query = $pdo->prepare("SELECT * FROM dias where funcionario = :v1 and dia = :v2");
+$query->execute(array(':v1' => $funcionario, ':v2' => $dia_procurado));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) == 0){
 		echo 'Este Funcionário não trabalha neste Dia!';
@@ -37,7 +38,8 @@ $dataF = implode('/', array_reverse(explode('-', $data)));
 $horaF = date("H:i", strtotime($hora));
 
 //validar horario
-$query = $pdo->query("SELECT * FROM $tabela where data = '$data' and hora = '$hora' and funcionario = '$funcionario'");
+$query = $pdo->prepare("SELECT * FROM $tabela where data = :v1 and hora = :v2 and funcionario = :v3");
+$query->execute(array(':v1' => $data, ':v2' => $hora, ':v3' => $funcionario));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0 and $res[0]['id'] != $id){

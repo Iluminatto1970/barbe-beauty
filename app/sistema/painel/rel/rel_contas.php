@@ -11,6 +11,10 @@ $pago = $_GET['pago'];
 $busca = $_GET['busca'];
 $tabela = $_GET['tabela'];
 
+// Whitelist de identificadores vindos da URL (anti SQL injection)
+$busca = ($busca === 'data_lanc') ? 'data_lanc' : 'data_venc';
+$tabela = ($tabela === 'pagar') ? 'pagar' : 'receber';
+
 $dataInicialF = implode('/', array_reverse(explode('-', $dataInicial)));
 $dataFinalF = implode('/', array_reverse(explode('-', $dataFinal)));
 
@@ -230,7 +234,8 @@ $pago = '%'.$pago.'%';
 		$total_pagoF = 0;
 		$total_a_pagar = 0;
 		$total_a_pagarF = 0;
-		$query = $pdo->query("SELECT * from $tabela where ($busca >= '$dataInicial' and $busca <= '$dataFinal') and pago LIKE '$pago' order by id desc ");
+		$query = $pdo->prepare("SELECT * from $tabela where ($busca >= :dataInicial and $busca <= :dataFinal) and pago LIKE :pago order by id desc ");
+		$query->execute(array(':dataInicial' => $dataInicial, ':dataFinal' => $dataFinal, ':pago' => $pago));
 		$res = $query->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg = count($res);
 		if($total_reg > 0){

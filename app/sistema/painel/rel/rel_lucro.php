@@ -227,7 +227,8 @@ if($dataInicial == $dataFinal){
 
   	<?php
   	//totalizar os serviços 
-  	$query = $pdo->query("SELECT * FROM receber where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Serviço' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query = $pdo->prepare("SELECT * FROM receber where data_pgto >= :v1 and data_pgto <= :v2 and tipo = 'Serviço' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);	
   	for($i=0; $i < $total_reg; $i++){
@@ -240,7 +241,8 @@ if($dataInicial == $dataFinal){
 
 
 	//totalizar os vendas 
-  	$query = $pdo->query("SELECT * FROM receber where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Venda' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query = $pdo->prepare("SELECT * FROM receber where data_pgto >= :v1 and data_pgto <= :v2 and tipo = 'Venda' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);	
   	for($i=0; $i < $total_reg; $i++){
@@ -253,7 +255,8 @@ if($dataInicial == $dataFinal){
 
 
 	//totalizar contas recebidas
-  	$query = $pdo->query("SELECT * FROM receber where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Conta' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query = $pdo->prepare("SELECT * FROM receber where data_pgto >= :v1 and data_pgto <= :v2 and tipo = 'Conta' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);	
   	for($i=0; $i < $total_reg; $i++){
@@ -268,7 +271,8 @@ if($dataInicial == $dataFinal){
 
 
 	//totalizar contas despesas
-  	$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Conta' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query = $pdo->prepare("SELECT * FROM pagar where data_pgto >= :v1 and data_pgto <= :v2 and tipo = 'Conta' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);	
   	for($i=0; $i < $total_reg; $i++){
@@ -282,7 +286,8 @@ if($dataInicial == $dataFinal){
 
 
 	//totalizar contas compras
-  	$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Compra' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query = $pdo->prepare("SELECT * FROM pagar where data_pgto >= :v1 and data_pgto <= :v2 and tipo = 'Compra' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);	
   	for($i=0; $i < $total_reg; $i++){
@@ -297,7 +302,8 @@ if($dataInicial == $dataFinal){
 
 
 	//totalizar contas despesas
-  	$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Comissão' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query = $pdo->prepare("SELECT * FROM pagar where data_pgto >= :v1 and data_pgto <= :v2 and tipo = 'Comissão' and pago = 'Sim' ORDER BY data_pgto asc");
+  	$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);	
   	for($i=0; $i < $total_reg; $i++){

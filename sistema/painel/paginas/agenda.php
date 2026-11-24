@@ -92,7 +92,8 @@ $data_atual = date('Y-m-d');
 							<select class="form-control sel3" id="servico" name="servico" style="width:100%;" required> 
 
 									<?php 
-									$query = $pdo->query("SELECT * FROM servicos where segmento = '$segmento' ORDER BY nome asc");
+									$query = $pdo->prepare("SELECT * FROM servicos where segmento = :v1 ORDER BY nome asc");
+									$query->execute(array(':v1' => $segmento));
 									$res = $query->fetchAll(PDO::FETCH_ASSOC);
 									$total_reg = @count($res);
 									if($total_reg > 0){

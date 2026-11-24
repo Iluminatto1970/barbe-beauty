@@ -40,7 +40,8 @@ $pago = '%'.$pago.'%';
 if($funcionario == ''){
 	$nome_func = '';
 }else{
-	$query = $pdo->query("SELECT * FROM usuarios where id = '$funcionario'");
+	$query = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+	$query->execute(array(':v1' => $funcionario));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);	
 	$nome_func = ' - Funcionário: '.$res[0]['nome'];
 	$nome_func2 = $res[0]['nome'];
@@ -232,7 +233,8 @@ $funcionario = '%'.$funcionario.'%';
 $total_a_pagar = 0;
 $total_pendente = 0;
 
-		$query = $pdo->query("SELECT * FROM pagar where data_lanc >= '$dataInicial' and data_lanc <= '$dataFinal' and pago LIKE '$pago' and funcionario LIKE '$funcionario' and tipo = 'Comissão' ORDER BY pago asc, data_venc asc");
+		$query = $pdo->prepare("SELECT * FROM pagar where data_lanc >= :v1 and data_lanc <= :v2 and pago LIKE :v3 and funcionario LIKE :v4 and tipo = 'Comissão' ORDER BY pago asc, data_venc asc");
+		$query->execute(array(':v1' => $dataInicial, ':v2' => $dataFinal, ':v3' => $pago, ':v4' => $funcionario));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);
 	if($total_reg > 0){
@@ -277,7 +279,8 @@ $total_pendente = 0;
 	$data_vencF = implode('/', array_reverse(explode('-', $data_venc)));
 	
 
-		$query2 = $pdo->query("SELECT * FROM clientes where id = '$pessoa'");
+		$query2 = $pdo->prepare("SELECT * FROM clientes where id = :v1");
+		$query2->execute(array(':v1' => $pessoa));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -289,7 +292,8 @@ $total_pendente = 0;
 		}
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_baixa'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $usuario_baixa));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -300,7 +304,8 @@ $total_pendente = 0;
 
 
 
-		$query2 = $pdo->query("SELECT * FROM clientes where id = '$cliente'");
+		$query2 = $pdo->prepare("SELECT * FROM clientes where id = :v1");
+		$query2->execute(array(':v1' => $cliente));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -311,7 +316,8 @@ $total_pendente = 0;
 
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_lanc'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $usuario_lanc));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -322,7 +328,8 @@ $total_pendente = 0;
 
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$funcionario'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $funcionario));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -337,7 +344,8 @@ $total_pendente = 0;
 		}		
 
 
-		$query2 = $pdo->query("SELECT * FROM servicos where id = '$servico'");
+		$query2 = $pdo->prepare("SELECT * FROM servicos where id = :v1");
+		$query2->execute(array(':v1' => $servico));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){

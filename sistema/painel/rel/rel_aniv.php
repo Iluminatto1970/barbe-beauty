@@ -206,7 +206,8 @@ if($dataInicial == $dataFinal){
 
 		<?php 
 		$total_entradas = 0;
-		$query = $pdo->query("SELECT * FROM clientes where month(data_nasc) >= '$dataMesInicial' and day(data_nasc) >= '$dataDiaInicial' and month(data_nasc) <= '$dataMesFinal' and day(data_nasc) <= '$dataDiaFinal' order by data_nasc asc, id asc");
+		$query = $pdo->prepare("SELECT * FROM clientes where month(data_nasc) >= :v1 and day(data_nasc) >= :v2 and month(data_nasc) <= :v3 and day(data_nasc) <= :v4 order by data_nasc asc, id asc");
+		$query->execute(array(':v1' => $dataMesInicial, ':v2' => $dataDiaInicial, ':v3' => $dataMesFinal, ':v4' => $dataDiaFinal));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);
 	if($total_reg > 0){

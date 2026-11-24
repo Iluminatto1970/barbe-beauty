@@ -299,7 +299,8 @@
       <h2>Nossos Serviços</h2>
       <p class="col-lg-8 px-0">
         <?php 
-        $query = $pdo->query("SELECT * FROM cat_servicos where segmento = '$segmento' ORDER BY id asc");
+        $query = $pdo->prepare("SELECT * FROM cat_servicos where segmento = :v1 ORDER BY id asc");
+        $query->execute(array(':v1' => $segmento));
         $res = $query->fetchAll(PDO::FETCH_ASSOC);
         $total_reg = @count($res);
         if($total_reg > 0){ 
@@ -317,7 +318,8 @@
         <?php
         }
         
-        $query = $pdo->query("SELECT * FROM servicos where ativo = 'Sim' and segmento = '$segmento' ORDER BY id asc");
+        $query = $pdo->prepare("SELECT * FROM servicos where ativo = 'Sim' and segmento = :v1 ORDER BY id asc");
+        $query->execute(array(':v1' => $segmento));
         $res = $query->fetchAll(PDO::FETCH_ASSOC);
         $total_reg = @count($res);
         if($total_reg > 0){ 

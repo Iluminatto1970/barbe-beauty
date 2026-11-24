@@ -129,7 +129,8 @@ $data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
 								<select class="form-control sel2" id="servico" name="servico" style="width:100%;" required> 
 
 									<?php 
-									$query = $pdo->query("SELECT * FROM servicos where segmento = '$segmento' ORDER BY nome asc");
+									$query = $pdo->prepare("SELECT * FROM servicos where segmento = :v1 ORDER BY nome asc");
+									$query->execute(array(':v1' => $segmento));
 									$res = $query->fetchAll(PDO::FETCH_ASSOC);
 									$total_reg = @count($res);
 									if($total_reg > 0){

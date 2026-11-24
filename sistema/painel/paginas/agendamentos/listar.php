@@ -18,7 +18,8 @@ if($funcionario == ""){
 echo <<<HTML
 <small>
 HTML;
-$query = $pdo->query("SELECT * FROM agendamentos where funcionario = '$funcionario' and data = '$data' ORDER BY hora asc");
+$query = $pdo->prepare("SELECT * FROM agendamentos where funcionario = :v1 and data = :v2 ORDER BY hora asc");
+$query->execute(array(':v1' => $funcionario, ':v2' => $data));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -67,7 +68,8 @@ if($status == 'Aguardando'){
 	$cor_status = '#9aa0a6';
 }
 
-$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario'");
+$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+$query2->execute(array(':v1' => $usuario));
 $res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res2) > 0){
 	$nome_usu = $res2[0]['nome'];
@@ -101,7 +103,8 @@ if(@count($ids_serv) > 0){
 }
 
 
-$query2 = $pdo->query("SELECT * FROM clientes where id = '$cliente'");
+$query2 = $pdo->prepare("SELECT * FROM clientes where id = :v1");
+$query2->execute(array(':v1' => $cliente));
 $res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res2) > 0){
 	$nome_cliente = $res2[0]['nome'];

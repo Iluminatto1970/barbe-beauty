@@ -211,7 +211,8 @@ $data_hoje = utf8_encode(strftime('%A, %d de %B de %Y', strtotime('today')));
 
 	
 
-		$query2 = $pdo->query("SELECT * FROM cat_produtos where id = '$categoria'");
+		$query2 = $pdo->prepare("SELECT * FROM cat_produtos where id = :v1");
+		$query2->execute(array(':v1' => $categoria));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){

@@ -33,7 +33,8 @@ for($i=0; $i < $total_reg; $i++){
 	$data = $res[$i]['data'];
 			
 
-		$query2 = $pdo->query("SELECT * FROM produtos where id = '$produto'");
+		$query2 = $pdo->prepare("SELECT * FROM produtos where id = :v1");
+		$query2->execute(array(':v1' => $produto));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -45,7 +46,8 @@ for($i=0; $i < $total_reg; $i++){
 		}
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios where id = :v1");
+		$query2->execute(array(':v1' => $usuario));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -100,4 +102,5 @@ HTML;
     $('#tabela_filter label input').focus();
 } );
 </script>
+
 

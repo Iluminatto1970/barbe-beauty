@@ -1,11 +1,10 @@
-<?php 
+<?php
 require_once("../sistema/conexao.php");
 
 $telefone = $_POST['telefone'];
 $nome = $_POST['nome'];
 $funcionario = $_POST['funcionario'];
 $hora = @$_POST['hora'];
-// O cliente pode escolher mais de um serviço (ids separados por virgula)
 $ids_servicos = array();
 foreach(explode(',', (string)@$_POST['servico']) as $cod_servico){
 	$cod_servico = intval(trim($cod_servico));
@@ -28,20 +27,19 @@ if($hora == ""){
 	exit();
 }
 
-// Não aceita agendamento em data passada
 if($data < date('Y-m-d')){
 	echo 'Não é possível agendar em uma data que já passou!';
 	exit();
 }
 
-// Não aceita horário que já passou no dia de hoje
 if($data == date('Y-m-d') and strtotime($data.' '.$hora) <= time()){
 	echo 'Este horário já passou, escolha outro!';
 	exit();
 }
 
 //validar horario
-$query = $pdo->query("SELECT * FROM agendamentos where data = '$data' and hora = '$hora' and funcionario = '$funcionario'");
+$query = $pdo->prepare("SELECT * FROM agendamentos where data = :data and hora = :hora and funcionario = :funcionario");
+$query->execute(array(':data' => $data, ':hora' => $hora, ':funcionario' => $funcionario));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0 and $res[0]['id'] != $id){
@@ -50,37 +48,24 @@ if($total_reg > 0 and $res[0]['id'] != $id){
 }
 
 //Cadastrar o cliente caso não tenha cadastro
-$query = $pdo->query("SELECT * FROM clientes where telefone LIKE '$telefone' ");
+$query = $pdo->prepare("SELECT * FROM clientes where telefone LIKE :telefone");
+$query->execute(array(':telefone' => $telefone));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) == 0){
 	$query = $pdo->prepare("INSERT INTO clientes SET nome = :nome, telefone = :telefone, data_cad = curDate(), cartoes = '0', alertado = 'Não'");
-
-	$query->bindValue(":nome", "$nome");
-	$query->bindValue(":telefone", "$telefone");	
-	$query->execute();
+	$query->execute(array(':nome' => $nome, ':telefone' => $telefone));
 	$id_cliente = $pdo->lastInsertId();
-
 }else{
 	$id_cliente = $res[0]['id'];
 }
 
-
 if($id == ""){
-	//marcar o agendamento
-	$query = $pdo->prepare("INSERT INTO agendamentos SET funcionario = '$funcionario', cliente = '$id_cliente', hora = '$hora', data = '$data', usuario = '0', status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = '$servico', servicos = '$lista_servicos'");
-
+	$query = $pdo->prepare("INSERT INTO agendamentos SET funcionario = :funcionario, cliente = :id_cliente, hora = :hora, data = :data, usuario = '0', status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = :servico, servicos = :lista_servicos");
+	$query->execute(array(':funcionario' => $funcionario, ':id_cliente' => $id_cliente, ':hora' => $hora, ':data' => $data, ':obs' => $obs, ':servico' => $servico, ':lista_servicos' => $lista_servicos));
 	echo 'Agendado com Sucesso';
-	
 }else{
-	//edito o agendamento
-	$query = $pdo->prepare("UPDATE agendamentos SET funcionario = '$funcionario', hora = '$hora', data = '$data', usuario = '0', status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = '$servico', servicos = '$lista_servicos' where id = '$id'");
-
+	$query = $pdo->prepare("UPDATE agendamentos SET funcionario = :funcionario, hora = :hora, data = :data, usuario = '0', status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = :servico, servicos = :lista_servicos where id = :id");
+	$query->execute(array(':funcionario' => $funcionario, ':hora' => $hora, ':data' => $data, ':obs' => $obs, ':servico' => $servico, ':lista_servicos' => $lista_servicos, ':id' => $id));
 	echo 'Editado com Sucesso';
 }
-
-$query->bindValue(":obs", "$obs");
-$query->execute();
-
-
-
 ?>

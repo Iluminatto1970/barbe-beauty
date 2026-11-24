@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once("../../../conexao.php");
 bb_csrf_check_request();
 $tabela = 'entradas';
@@ -12,15 +12,12 @@ $motivo_entrada = $_POST['motivo_entrada'];
 
 $novo_estoque = $estoque + $quantidade_entrada;
 
-$query = $pdo->prepare("INSERT INTO $tabela SET produto = '$id_produto', quantidade = '$quantidade_entrada', motivo = :motivo, usuario = '$id_usuario', data = curDate()");
-
-
-$query->bindValue(":motivo", "$motivo_entrada");
-$query->execute();
-
+$query = $pdo->prepare("INSERT INTO $tabela SET produto = :id_produto, quantidade = :quantidade, motivo = :motivo, usuario = :usuario, data = curDate()");
+$query->execute(array(':id_produto' => $id_produto, ':quantidade' => $quantidade_entrada, ':motivo' => $motivo_entrada, ':usuario' => $id_usuario));
 
 //atualizar o total no estoque do produto
-$pdo->query("UPDATE produtos SET estoque = '$novo_estoque' WHERE id = '$id_produto'");
+$up = $pdo->prepare("UPDATE produtos SET estoque = :novo WHERE id = :id_produto");
+$up->execute(array(':novo' => $novo_estoque, ':id_produto' => $id_produto));
 
 echo 'Salvo com Sucesso';
- ?>
+?>

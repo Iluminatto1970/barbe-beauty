@@ -9,7 +9,7 @@ $dataInicial = @$_POST['data_inicial'];
 $dataFinal = @$_POST['data_final'];
 $funcionario = @$_POST['id_funcionario'];
 
-$pdo->query("UPDATE $tabela SET pago = 'Sim', usuario_baixa = '$id_usuario', data_pgto = curDate() where data_lanc >= '$dataInicial' and data_lanc <= '$dataFinal' and pago = 'Não' and funcionario LIKE '$funcionario' and tipo = 'Comissão'");
+$pdo->prepare("UPDATE $tabela SET pago = 'Sim', usuario_baixa = :v1, data_pgto = curDate() where data_lanc >= :v2 and data_lanc <= :v3 and pago = 'Não' and funcionario LIKE :v4 and tipo = 'Comissão'")->execute(array(':v1' => $id_usuario, ':v2' => $dataInicial, ':v3' => $dataFinal, ':v4' => $funcionario));
 
 echo 'Baixado com Sucesso';
  ?>

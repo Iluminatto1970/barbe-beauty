@@ -18,7 +18,8 @@ if($total_reg > 0){
 		$id = $res[$i]['id'];
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios_permissoes where usuario = '$id_usuario' and permissao = '$id'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios_permissoes where usuario = :v1 and permissao = :v2");
+		$query2->execute(array(':v1' => $id_usuario, ':v2' => $id));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){
@@ -58,7 +59,8 @@ for($i=0; $i < $total_reg; $i++){
 	
 
 $checked = '';
-$query3 = $pdo->query("SELECT * FROM acessos where grupo = '$id' order by id asc");
+$query3 = $pdo->prepare("SELECT * FROM acessos where grupo = :v1 order by id asc");
+$query3->execute(array(':v1' => $id));
 $res3 = $query3->fetchAll(PDO::FETCH_ASSOC);
 $total_reg3 = @count($res3);
 
@@ -70,7 +72,8 @@ if($total_reg3 > 0){
 		$id = $res3[$i3]['id'];
 
 
-		$query2 = $pdo->query("SELECT * FROM usuarios_permissoes where usuario = '$id_usuario' and permissao = '$id'");
+		$query2 = $pdo->prepare("SELECT * FROM usuarios_permissoes where usuario = :v1 and permissao = :v2");
+		$query2->execute(array(':v1' => $id_usuario, ':v2' => $id));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$total_reg2 = @count($res2);
 		if($total_reg2 > 0){

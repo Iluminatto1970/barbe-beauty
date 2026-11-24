@@ -8,7 +8,7 @@ $id_usuario = $_SESSION['id'];
 
 $id = $_POST['id'];
 
-$pdo->query("UPDATE $tabela SET pago = 'Sim', usuario_baixa = '$id_usuario', data_pgto = curDate() where id = '$id'");
+$pdo->prepare("UPDATE $tabela SET pago = 'Sim', usuario_baixa = :v1, data_pgto = curDate() where id = :v2")->execute(array(':v1' => $id_usuario, ':v2' => $id));
 
 echo 'Baixado com Sucesso';
  ?>

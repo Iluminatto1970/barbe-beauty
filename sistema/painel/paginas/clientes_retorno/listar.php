@@ -47,7 +47,8 @@ for($i=0; $i < $total_reg; $i++){
 	
 	$whats = '55'.preg_replace('/[ ()-]+/' , '' , $telefone);
 
-	$query2 = $pdo->query("SELECT * FROM servicos where id = '$ultimo_servico'");
+	$query2 = $pdo->prepare("SELECT * FROM servicos where id = :v1");
+	$query2->execute(array(':v1' => $ultimo_servico));
 	$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 	if(@count($res2) > 0){
 		$nome_servico = $res2[0]['nome'];

@@ -4,7 +4,8 @@ $tabela = 'dias';
 
 $id_func = $_POST['func'];
 
-$query = $pdo->query("SELECT * FROM $tabela where funcionario = '$id_func' ORDER BY id asc");
+$query = $pdo->prepare("SELECT * FROM $tabela where funcionario = :v1 ORDER BY id asc");
+$query->execute(array(':v1' => $id_func));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){

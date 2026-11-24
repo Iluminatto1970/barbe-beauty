@@ -3,7 +3,8 @@ require_once("../../../conexao.php");
 $tabela = 'comentarios';
 
 $segmento_texto = (isset($segmento) && $segmento == 'salao') ? 'salao' : 'barbearia';
-$query = $pdo->query("SELECT * FROM $tabela where segmento = '$segmento_texto' ORDER BY id desc");
+$query = $pdo->prepare("SELECT * FROM $tabela where segmento = :v1 ORDER BY id desc");
+$query->execute(array(':v1' => $segmento_texto));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){

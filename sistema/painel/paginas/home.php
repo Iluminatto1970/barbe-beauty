@@ -100,11 +100,13 @@ if($total_servicos_pago_hoje > 0 and $total_servicos_hoje > 0){
 
 
 //totalizando comissoes pagas mes
-$query = $pdo->query("SELECT * FROM pagar where data_lanc >= '$data_inicio_mes' and data_lanc <= '$data_final_mes' and tipo = 'Comissão' ");
+$query = $pdo->prepare("SELECT * FROM pagar where data_lanc >= :v1 and data_lanc <= :v2 and tipo = 'Comissão' ");
+$query->execute(array(':v1' => $data_inicio_mes, ':v2' => $data_final_mes));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_comissoes_mes = @count($res);
 
-$query = $pdo->query("SELECT * FROM pagar where data_lanc >= '$data_inicio_mes' and data_lanc <= '$data_final_mes' and tipo = 'Comissão' and pago = 'Sim' ");
+$query = $pdo->prepare("SELECT * FROM pagar where data_lanc >= :v1 and data_lanc <= :v2 and tipo = 'Comissão' and pago = 'Sim' ");
+$query->execute(array(':v1' => $data_inicio_mes, ':v2' => $data_final_mes));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_comissoes_mes_pagas = @count($res);
 
@@ -183,7 +185,8 @@ $dados_meses_vendas =  '';
 
         //DESPESAS
         $total_mes_despesa = 0;
-        $query = $pdo->query("SELECT * FROM pagar where pago = 'Sim' and tipo = 'Conta' and data_pgto >= '$data_mes_inicio_grafico' and data_pgto <= '$data_mes_final_grafico' ORDER BY id asc");
+        $query = $pdo->prepare("SELECT * FROM pagar where pago = 'Sim' and tipo = 'Conta' and data_pgto >= :v1 and data_pgto <= :v2 ORDER BY id asc");
+        $query->execute(array(':v1' => $data_mes_inicio_grafico, ':v2' => $data_mes_final_grafico));
         $res = $query->fetchAll(PDO::FETCH_ASSOC);
         $total_reg = @count($res);
         if($total_reg > 0){
@@ -201,7 +204,8 @@ $dados_meses_vendas =  '';
 
          //VENDAS
         $total_mes_vendas = 0;
-        $query = $pdo->query("SELECT * FROM receber where pago = 'Sim' and tipo = 'Venda' and data_pgto >= '$data_mes_inicio_grafico' and data_pgto <= '$data_mes_final_grafico' ORDER BY id asc");
+        $query = $pdo->prepare("SELECT * FROM receber where pago = 'Sim' and tipo = 'Venda' and data_pgto >= :v1 and data_pgto <= :v2 ORDER BY id asc");
+        $query->execute(array(':v1' => $data_mes_inicio_grafico, ':v2' => $data_mes_final_grafico));
         $res = $query->fetchAll(PDO::FETCH_ASSOC);
         $total_reg = @count($res);
         if($total_reg > 0){
@@ -219,7 +223,8 @@ $dados_meses_vendas =  '';
 
         //SERVICOS
         $total_mes_servicos = 0;
-        $query = $pdo->query("SELECT * FROM receber where pago = 'Sim' and tipo = 'Serviço' and data_pgto >= '$data_mes_inicio_grafico' and data_pgto <= '$data_mes_final_grafico' ORDER BY id asc");
+        $query = $pdo->prepare("SELECT * FROM receber where pago = 'Sim' and tipo = 'Serviço' and data_pgto >= :v1 and data_pgto <= :v2 ORDER BY id asc");
+        $query->execute(array(':v1' => $data_mes_inicio_grafico, ':v2' => $data_mes_final_grafico));
         $res = $query->fetchAll(PDO::FETCH_ASSOC);
         $total_reg = @count($res);
         if($total_reg > 0){

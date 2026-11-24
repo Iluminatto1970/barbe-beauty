@@ -30,7 +30,8 @@ $diasemana_numero = date('w', strtotime($data));
 $dia_procurado = $diasemana[$diasemana_numero];
 
 //percorrer os dias da semana que ele trabalha
-$query = $pdo->query("SELECT * FROM dias where funcionario = '$funcionario' and dia = '$dia_procurado'");
+$query = $pdo->prepare("SELECT * FROM dias where funcionario = :v1 and dia = :v2");
+$query->execute(array(':v1' => $funcionario, ':v2' => $dia_procurado));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) == 0){
 		echo 'Este Funcionário não trabalha neste Dia!';
@@ -40,7 +41,8 @@ if(@count($res) == 0){
 ?>
 <div class="horarios-grid">
 	<?php 
-	$query = $pdo->query("SELECT * FROM horarios where funcionario = '$funcionario' ORDER BY horario asc");
+	$query = $pdo->prepare("SELECT * FROM horarios where funcionario = :v1 ORDER BY horario asc");
+	$query->execute(array(':v1' => $funcionario));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);
 	$slots_exibidos = 0;
@@ -56,7 +58,8 @@ if(@count($res) == 0){
 				}
 
 				//validar horario
-				$query2 = $pdo->query("SELECT * FROM agendamentos where data = '$data' and hora = '$hora' and funcionario = '$funcionario'");
+				$query2 = $pdo->prepare("SELECT * FROM agendamentos where data = :v1 and hora = :v2 and funcionario = :v3");
+				$query2->execute(array(':v1' => $data, ':v2' => $hora, ':v3' => $funcionario));
 				$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 				$total_reg2 = @count($res2);
 				$eh_edicao = ($hora_rec != "" && strtotime($hora_rec) == strtotime($hora));

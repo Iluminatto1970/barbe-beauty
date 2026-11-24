@@ -1144,7 +1144,8 @@
 <?php 
 // Textos do carrossel conforme o segmento (barbearia ou salao)
 $segmento_textos = ($segmento == 'salao') ? 'salao' : 'barbearia';
-$query = $pdo->query("SELECT * FROM textos_index WHERE segmento = '$segmento_textos' ORDER BY id asc");
+$query = $pdo->prepare("SELECT * FROM textos_index WHERE segmento = :v1 ORDER BY id asc");
+$query->execute(array(':v1' => $segmento_textos));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg == 0){
@@ -1264,7 +1265,8 @@ for($i=0; $i < $total_reg; $i++){
         <h2>Nossos Serviços</h2>
         <p class="col-lg-8 px-0">
           <?php 
-          $query = $pdo->query("SELECT * FROM cat_servicos where segmento = '$segmento' ORDER BY id asc");
+          $query = $pdo->prepare("SELECT * FROM cat_servicos where segmento = :v1 ORDER BY id asc");
+          $query->execute(array(':v1' => $segmento));
           $res = $query->fetchAll(PDO::FETCH_ASSOC);
           $total_reg = @count($res);
           if($total_reg > 0){ 
@@ -1282,7 +1284,8 @@ for($i=0; $i < $total_reg; $i++){
           <?php
           }
           
-          $query = $pdo->query("SELECT * FROM servicos where ativo = 'Sim' and segmento = '$segmento' ORDER BY id asc");
+          $query = $pdo->prepare("SELECT * FROM servicos where ativo = 'Sim' and segmento = :v1 ORDER BY id asc");
+          $query->execute(array(':v1' => $segmento));
           $res = $query->fetchAll(PDO::FETCH_ASSOC);
           $total_reg = @count($res);
           if($total_reg > 0){ 
@@ -1362,7 +1365,8 @@ for($i=0; $i < $total_reg; $i++){
 
   <!-- products section -->
   <?php 
-  $query = $pdo->query("SELECT * FROM produtos where estoque > 0 and valor_venda > 0 and segmento = '$segmento' ORDER BY id desc limit 8");
+  $query = $pdo->prepare("SELECT * FROM produtos where estoque > 0 and valor_venda > 0 and segmento = :v1 ORDER BY id desc limit 8");
+  $query->execute(array(':v1' => $segmento));
   $res = $query->fetchAll(PDO::FETCH_ASSOC);
   $total_reg = @count($res);
   if($total_reg > 0){ 
@@ -1482,7 +1486,8 @@ for($i=0; $i < $total_reg; $i++){
 
   <!-- client section -->
 <?php 
-$query = $pdo->query("SELECT * FROM comentarios where ativo = 'Sim' and segmento = '$segmento' ORDER BY id asc");
+$query = $pdo->prepare("SELECT * FROM comentarios where ativo = 'Sim' and segmento = :v1 ORDER BY id asc");
+$query->execute(array(':v1' => $segmento));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){ 

@@ -3,7 +3,8 @@ require_once("../sistema/conexao.php");
 
 $telefone = @$_POST['tel'];
 
-$query = $pdo->query("SELECT * FROM clientes where telefone LIKE '$telefone' ");
+$query = $pdo->prepare("SELECT * FROM clientes where telefone LIKE :v1 ");
+$query->execute(array(':v1' => $telefone));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) > 0){
 	$cartoes = $res[0]['cartoes'];

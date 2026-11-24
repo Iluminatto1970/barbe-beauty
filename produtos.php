@@ -286,7 +286,8 @@
 </div>
 
 <?php 
-$query = $pdo->query("SELECT * FROM produtos where estoque > 0 and valor_venda > 0 and segmento = '$segmento' ORDER BY id desc");
+$query = $pdo->prepare("SELECT * FROM produtos where estoque > 0 and valor_venda > 0 and segmento = :v1 ORDER BY id desc");
+$query->execute(array(':v1' => $segmento));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){ 

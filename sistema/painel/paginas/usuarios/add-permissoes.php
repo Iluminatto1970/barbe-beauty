@@ -4,7 +4,7 @@ bb_csrf_check_request();
 
 $id_usuario = $_POST['id'];
 
-$pdo->query("DELETE FROM usuarios_permissoes where usuario = '$id_usuario'");
+$pdo->prepare("DELETE FROM usuarios_permissoes where usuario = :v1")->execute(array(':v1' => $id_usuario));
 
 $query = $pdo->query("SELECT * FROM acessos order by id asc");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -16,7 +16,8 @@ if($total_reg > 0){
 		$chave = $res[$i]['chave'];
 		$id = $res[$i]['id'];
 
-		$query = $pdo->query("INSERT INTO usuarios_permissoes SET permissao = '$id', usuario = '$id_usuario'");
+		$query = $pdo->prepare("INSERT INTO usuarios_permissoes SET permissao = :v1, usuario = :v2");
+		$query->execute(array(':v1' => $id, ':v2' => $id_usuario));
 
 	}
 }

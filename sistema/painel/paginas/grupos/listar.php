@@ -26,7 +26,8 @@ for($i=0; $i < $total_reg; $i++){
 	$nome = $res[$i]['nome'];
 
 
-	$query2 = $pdo->query("SELECT * FROM acessos where grupo = '$id'");
+	$query2 = $pdo->prepare("SELECT * FROM acessos where grupo = :v1");
+	$query2->execute(array(':v1' => $id));
 	$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 	$total_servicos = @count($res2);
 		
