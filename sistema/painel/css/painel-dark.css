@@ -256,6 +256,12 @@ select.form-control option {
   color: var(--text);
 }
 
+select.form-control {
+  height: auto !important;
+  padding: 8px 15px !important;
+  line-height: 1.4 !important;
+}
+
 .checkbox label,
 .radio label {
   color: var(--text);
