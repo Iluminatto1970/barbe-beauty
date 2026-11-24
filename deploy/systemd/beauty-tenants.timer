@@ -1,0 +1,11 @@
+[Unit]
+Description=Barbearia PRO - sincroniza subdominios dos clientes a cada minuto
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=60s
+AccuracySec=10s
+Unit=beauty-tenants.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Barbearia PRO - sincroniza subdominios dos clientes com o Caddy
+After=network.target mariadb.service php8.4-fpm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/php /usr/local/sbin/beauty-sync-tenants.php
