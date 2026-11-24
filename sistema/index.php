@@ -12,6 +12,7 @@ if ($uri_requisitada != '' and $uri_requisitada !== '/' and substr($uri_requisit
 }
 
 require_once("conexao.php");
+bb_csrf_check_request();
 require_once("google.php");
 
 $google_indisponivel = isset($_GET['google']) && $_GET['google'] === 'indisponivel';
@@ -122,6 +123,7 @@ if($total_reg == 0){
                              </div>
                             
                             <form accept-charset="UTF-8" role="form" action="autenticar.php" method="post">
+	<?php echo bb_csrf_field(); ?>
                                 <div class="form-group mb-3">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -147,7 +149,7 @@ if($total_reg == 0){
                                 <button class="btn btn-login btn-block mb-3" type="submit">
                                     <i class="fa fa-sign-in mr-2"></i>Entrar no Sistema
                                 </button>
-                            </form>
+                            <?php echo bb_csrf_field(); ?></form>
 
                             <?php if (bb_google_configurado()) { ?>
                                 <a class="btn btn-block mb-3" href="google-login.php"
@@ -212,7 +214,7 @@ if($total_reg == 0){
       <div class="modal-footer">      
         <button type="submit" class="btn btn-primary">Recuperar</button>
       </div>
-  </form>
+  <?php echo bb_csrf_field(); ?></form>
     </div>
   </div>
 </div>

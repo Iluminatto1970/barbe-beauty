@@ -123,6 +123,7 @@ if($total_reg == 0){
                              </div>
                             
                             <form accept-charset="UTF-8" role="form" action="autenticar.php" method="post">
+	<?php echo bb_csrf_field(); ?>
                                 <div class="form-group mb-3">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
