@@ -110,6 +110,53 @@ if (!function_exists('bb_permitir_usuarios_teste')) {
 date_default_timezone_set('America/Sao_Paulo');
 
 // ============================================================
+// RATE LIMIT DE LOGIN (anti brute-force)
+// ============================================================
+if (!function_exists('bb_rate_limit_login')) {
+    function bb_rate_limit_login($max = 5, $window = 900) {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        $dir = sys_get_temp_dir() . '/bb_login';
+        if (!is_dir($dir)) @mkdir($dir, 0700, true);
+        $file = $dir . '/' . md5($ip) . '.json';
+        $now = time();
+        $data = array('attempts' => 0, 'first' => $now);
+        if (is_file($file)) {
+            $d = json_decode((string)@file_get_contents($file), true);
+            if (is_array($d)) $data = $d;
+        }
+        if ($now - (int)$data['first'] > $window) {
+            $data = array('attempts' => 0, 'first' => $now);
+        }
+        if ((int)$data['attempts'] >= $max) {
+            return (int)($data['first'] + $window - $now);
+        }
+        return 0;
+    }
+    function bb_rate_limit_login_fail() {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        $dir = sys_get_temp_dir() . '/bb_login';
+        if (!is_dir($dir)) @mkdir($dir, 0700, true);
+        $file = $dir . '/' . md5($ip) . '.json';
+        $now = time();
+        $data = array('attempts' => 0, 'first' => $now);
+        if (is_file($file)) {
+            $d = json_decode((string)@file_get_contents($file), true);
+            if (is_array($d)) $data = $d;
+        }
+        if ($now - (int)$data['first'] > 900) {
+            $data = array('attempts' => 0, 'first' => $now);
+        }
+        $data['attempts'] = (int)$data['attempts'] + 1;
+        @file_put_contents($file, json_encode($data), LOCK_EX);
+    }
+    function bb_rate_limit_login_ok() {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        $file = sys_get_temp_dir() . '/bb_login/' . md5($ip) . '.json';
+        @unlink($file);
+    }
+}
+
+// ============================================================
 // MULTI-TENANT
 // ------------------------------------------------------------
 // O banco de controle guarda os estabelecimentos e assinaturas.

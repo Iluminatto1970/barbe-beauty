@@ -6,6 +6,14 @@ require_once("conexao.php");
 $email = trim((string) @$_POST['email']);
 $senha = (string) @$_POST['senha'];
 
+// Rate limit (anti brute-force)
+$wait = bb_rate_limit_login();
+if ($wait > 0) {
+	echo "<script>window.alert('Muitas tentativas de login. Tente novamente em " . (int)ceil($wait / 60) . " minuto(s).')</script>";
+	echo "<script>window.location='index.php'</script>";
+	exit;
+}
+
 $query = $pdo->prepare("SELECT * from usuarios where (email = :email or cpf = :email) limit 1");
 $query->bindValue(":email", $email);
 $query->execute();
@@ -28,7 +36,8 @@ if (@count($res) > 0) {
 	}
 }
 
-if($total_reg > 0){
+if ($total_reg > 0) {
+	bb_rate_limit_login_ok();
 	$ativo = $res[0]['ativo'];
 
 
@@ -56,7 +65,8 @@ if($total_reg > 0){
 	echo "<script>window.location='index.php'</script>";
 	}
 	
-}else{
+} else {
+	bb_rate_limit_login_fail();
 	echo "<script>window.alert('Usuário ou Senha Incorretos!')</script>";
 	echo "<script>window.location='index.php'</script>";
 }
