@@ -31,41 +31,20 @@ if (bb_banco_atual() === bb_banco_controle()) {
 	}
 }
 
-// Garante usuario de teste admin@admin / 123 (idempotente)
+// Garante contas de teste (admin / admin@admin) com senha 123 (idempotente)
 if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
-	$admin_teste = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = 'admin@admin' LIMIT 1");
-	$admin_teste->execute();
-	$row = $admin_teste->fetch(PDO::FETCH_ASSOC);
 	$hash_123 = bb_hash_senha('123');
-	if (!$row) {
-		$pdo->query("INSERT INTO usuarios SET nome = 'Admin', email = 'admin@admin', cpf = '000.000.000-00', senha = '', senha_crip = '$hash_123', nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'");
-	} else {
-		// Garante a senha 123 caso o hash esteja vazio ou invalido
-		$check = bb_checar_senha('123', $row['senha_crip']);
-		if (!$check['ok']) {
+	foreach (array('admin', 'admin@admin') as $email_teste) {
+		$st = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = :e LIMIT 1");
+		$st->bindValue(':e', $email_teste);
+		$st->execute();
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$row) {
+			$pdo->prepare("INSERT INTO usuarios SET nome = 'Admin', email = :e, cpf = '000.000.000-00', senha = '', senha_crip = :h, nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'")
+				->execute(array(':e' => $email_teste, ':h' => $hash_123));
+		} elseif (!bb_checar_senha('123', $row['senha_crip'])['ok']) {
 			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :h, senha = '' WHERE id = :id");
-			$up->bindValue(':h', $hash_123);
-			$up->bindValue(':id', $row['id']);
-			$up->execute();
-		}
-	}
-}
-
-// Garante usuario de teste 'admin' / '123' (idempotente)
-if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
-	$admin_user = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = 'admin' LIMIT 1");
-	$admin_user->execute();
-	$row2 = $admin_user->fetch(PDO::FETCH_ASSOC);
-	$hash_123b = bb_hash_senha('123');
-	if (!$row2) {
-		$pdo->query("INSERT INTO usuarios SET nome = 'Admin', email = 'admin', cpf = '000.000.000-00', senha = '', senha_crip = '$hash_123b', nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'");
-	} else {
-		$check2 = bb_checar_senha('123', $row2['senha_crip']);
-		if (!$check2['ok']) {
-			$up2 = $pdo->prepare("UPDATE usuarios SET senha_crip = :h, senha = '' WHERE id = :id");
-			$up2->bindValue(':h', $hash_123b);
-			$up2->bindValue(':id', $row2['id']);
-			$up2->execute();
+			$up->execute(array(':h' => $hash_123, ':id' => $row['id']));
 		}
 	}
 }
