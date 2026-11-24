@@ -417,7 +417,7 @@ if (!function_exists('bb_tenant_provisionar')) {
                     'mapa'               => '',
                     'texto_fidelidade'   => 'A cada 10 servicos, ganhe 1!',
                     'quantidade_cartoes' => 10,
-                    'texto_agendamento'  => 'Selecionar Prestador de Servico',
+                    'texto_agendamento'  => 'Selecione o Prestador',
                     'msg_agendamento'    => 'Sim',
                     'segmento'           => $segmento_novo,
                 );
