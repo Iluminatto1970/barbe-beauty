@@ -21,12 +21,6 @@ if (!defined('BB_HEADERS_SENT') && php_sapi_name() !== 'cli' && !headers_sent())
 	// CSP basico (permite inline scripts/styles usados pelo projeto)
 	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
 }
-// Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX)
-if (php_sapi_name() !== 'cli' && !headers_sent()) {
-	$ct = bb_csrf_token();
-	setcookie('csrf_token', $ct, 0, '/', '', false, false);
-	$_COOKIE['csrf_token'] = $ct;
-}
 
 // ============================================================
 // CONEXAO COM O BANCO DE DADOS - Barbearia PRO
@@ -515,3 +509,10 @@ $email_sistema_base      = isset($email_sistema) ? $email_sistema : '';
 bb_aplicar_segmento($segmento);
 
 ?>
+
+// Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX) - apos definicao dos helpers
+if (php_sapi_name() !== 'cli' && !headers_sent()) {
+	$ct = bb_csrf_token();
+	setcookie('csrf_token', $ct, 0, '/', '', false, false);
+	$_COOKIE['csrf_token'] = $ct;
+}
