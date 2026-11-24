@@ -1,6 +1,28 @@
 <?php 
 
 // ============================================================
+// HEADERS DE SEGURANCA (Sprint 1 - item 40)
+// Enviados cedo (conexao.php e incluido no topo de todas as paginas).
+// ============================================================
+if (!defined('BB_HEADERS_SENT') && php_sapi_name() !== 'cli' && !headers_sent()) {
+	define('BB_HEADERS_SENT', true);
+	// Evita clickjacking
+	header('X-Frame-Options: SAMEORIGIN');
+	// Evita MIME sniffing
+	header('X-Content-Type-Options: nosniff');
+	// Referrer policy
+	header('Referrer-Policy: strict-origin-when-cross-origin');
+	// Permissoes do navegador
+	header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+	// HSTS (so em HTTPS)
+	if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+		header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+	}
+	// CSP basico (permite inline scripts/styles usados pelo projeto)
+	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
+}
+
+// ============================================================
 // CONEXAO COM O BANCO DE DADOS - Barbearia PRO
 // ------------------------------------------------------------
 // Le as configuracoes por variaveis de ambiente (Docker/Railway)
@@ -162,6 +184,52 @@ if (!function_exists('bb_rate_limit_login')) {
     function bb_rate_limit_login_ok() {
         $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
         $file = sys_get_temp_dir() . '/bb_login/' . md5($ip) . '.json';
+        @unlink($file);
+    }
+}
+
+// BLOQUEIO POR CONTA (anti brute-force por email)
+// ============================================================
+if (!function_exists('bb_rate_limit_conta')) {
+    function bb_rate_limit_conta($email, $max = 10, $window = 1800) {
+        if ($email === '') return 0;
+        $dir = sys_get_temp_dir() . '/bb_conta';
+        if (!is_dir($dir)) @mkdir($dir, 0700, true);
+        $file = $dir . '/' . md5(strtolower(trim($email))) . '.json';
+        $now = time();
+        $data = array('attempts' => 0, 'first' => $now);
+        if (is_file($file)) {
+            $d = json_decode((string)@file_get_contents($file), true);
+            if (is_array($d)) $data = $d;
+        }
+        if ($now - (int)$data['first'] > $window) {
+            $data = array('attempts' => 0, 'first' => $now);
+        }
+        if ((int)$data['attempts'] >= $max) {
+            return (int)($data['first'] + $window - $now);
+        }
+        return 0;
+    }
+    function bb_rate_limit_conta_fail($email) {
+        if ($email === '') return;
+        $dir = sys_get_temp_dir() . '/bb_conta';
+        if (!is_dir($dir)) @mkdir($dir, 0700, true);
+        $file = $dir . '/' . md5(strtolower(trim($email))) . '.json';
+        $now = time();
+        $data = array('attempts' => 0, 'first' => $now);
+        if (is_file($file)) {
+            $d = json_decode((string)@file_get_contents($file), true);
+            if (is_array($d)) $data = $d;
+        }
+        if ($now - (int)$data['first'] > 1800) {
+            $data = array('attempts' => 0, 'first' => $now);
+        }
+        $data['attempts'] = (int)$data['attempts'] + 1;
+        @file_put_contents($file, json_encode($data), LOCK_EX);
+    }
+    function bb_rate_limit_conta_ok($email) {
+        if ($email === '') return;
+        $file = sys_get_temp_dir() . '/bb_conta/' . md5(strtolower(trim($email))) . '.json';
         @unlink($file);
     }
 }

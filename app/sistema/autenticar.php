@@ -6,10 +6,18 @@ require_once("conexao.php");
 $email = trim((string) @$_POST['email']);
 $senha = (string) @$_POST['senha'];
 
-// Rate limit (anti brute-force)
+// Rate limit (anti brute-force) por IP
 $wait = bb_rate_limit_login();
 if ($wait > 0) {
 	echo "<script>window.alert('Muitas tentativas de login. Tente novamente em " . (int)ceil($wait / 60) . " minuto(s).')</script>";
+	echo "<script>window.location='index.php'</script>";
+	exit;
+}
+
+// Rate limit por conta (anti brute-force por email)
+$waitC = bb_rate_limit_conta($email);
+if ($waitC > 0) {
+	echo "<script>window.alert('Conta temporariamente bloqueada. Tente novamente em " . (int)ceil($waitC / 60) . " minuto(s).')</script>";
 	echo "<script>window.location='index.php'</script>";
 	exit;
 }
@@ -38,6 +46,7 @@ if (@count($res) > 0) {
 
 if ($total_reg > 0) {
 	bb_rate_limit_login_ok();
+	bb_rate_limit_conta_ok($email);
 	$ativo = $res[0]['ativo'];
 
 
@@ -67,6 +76,7 @@ if ($total_reg > 0) {
 	
 } else {
 	bb_rate_limit_login_fail();
+	bb_rate_limit_conta_fail($email);
 	echo "<script>window.alert('Usuário ou Senha Incorretos!')</script>";
 	echo "<script>window.location='index.php'</script>";
 }
