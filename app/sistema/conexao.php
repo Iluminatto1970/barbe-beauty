@@ -92,11 +92,18 @@ if (!function_exists('bb_permitir_usuarios_teste')) {
             $v = strtolower(trim((string) $flag));
             return in_array($v, array('1', 'true', 'yes', 'on'), true);
         }
-        $host = getenv('DB_HOST');
-        if ($host === false || $host === '') {
-            $host = 'localhost';
+        // Auto-detect local dev: apenas quando a requisicao vem de localhost
+        // (HTTP_HOST e REMOTE_ADDR locais). Producao (dominio/IP externo) nao
+        // semeia contas de teste mesmo com DB local (ex.: VPS).
+        $http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        $remote = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        if ($http_host === '' || $remote === '') {
+            return false; // CLI / sem contexto HTTP: exige flag explicita
         }
-        return in_array(strtolower(trim((string) $host)), array('localhost', '127.0.0.1', '::1'), true);
+        $http_host = strtolower(trim(explode(':', $http_host)[0]));
+        $local_hosts = array('localhost', '127.0.0.1', '::1');
+        return in_array($http_host, $local_hosts, true)
+            && in_array($remote, $local_hosts, true);
     }
 }
 
