@@ -2,6 +2,7 @@
 $tabela = 'receber';
 if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 $data_atual = date('Y-m-d');
 
 @session_start();

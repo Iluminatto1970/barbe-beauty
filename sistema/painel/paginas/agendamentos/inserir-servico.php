@@ -1,6 +1,7 @@
 <?php 
 $tabela = 'receber';
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 $data_atual = date('Y-m-d');
 
 @session_start();

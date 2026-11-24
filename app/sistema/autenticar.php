@@ -1,6 +1,7 @@
 <?php 
 @session_start();
 require_once("conexao.php");
+bb_csrf_check_request();
 
 
 $email = trim((string) @$_POST['email']);
@@ -36,10 +37,15 @@ if (@count($res) > 0) {
 		// Migracao transparente: MD5 (ou hash antigo) vira password_hash
 		if ($checagem['rehash']) {
 			$novo_hash = bb_hash_senha($senha);
-			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :hash, senha = '' WHERE id = :id");
+			// Flag: se veio de MD5 legado, forca troca de senha (sunset)
+			$era_md5 = preg_match('/^[a-f0-9]{32}$/i', (string)$res[0]['senha_crip']);
+			$flag = $era_md5 ? 1 : 0;
+			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :hash, senha = '', precisa_trocar_senha = :flag WHERE id = :id");
 			$up->bindValue(":hash", $novo_hash);
+			$up->bindValue(":flag", $flag, PDO::PARAM_INT);
 			$up->bindValue(":id", $res[0]['id']);
 			$up->execute();
+			$res[0]['precisa_trocar_senha'] = $flag;
 		}
 	}
 }
@@ -66,9 +72,15 @@ if ($total_reg > 0) {
 		$_SESSION['nome'] = $res[0]['nome'];
 		// Amarra a sessao ao banco do estabelecimento resolvido pelo dominio
 		$_SESSION['bb_tenant_db'] = bb_banco_atual();
-	
-		//ir para o painel
-		echo "<script>window.location='painel'</script>";
+
+		// Sunset MD5: forca troca de senha se migrado de MD5
+		$precisa = (int)@$res[0]['precisa_trocar_senha'];
+		if ($precisa === 1) {
+			echo "<script>window.location='trocar-senha.php'</script>";
+		} else {
+			//ir para o painel
+			echo "<script>window.location='painel'</script>";
+		}
 	}else{
 		echo "<script>window.alert('Seu usuário foi desativado, contate o administrador!')</script>";
 	echo "<script>window.location='index.php'</script>";

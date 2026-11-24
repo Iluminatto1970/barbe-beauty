@@ -202,7 +202,7 @@ $data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
 				<div class="modal-footer">      
 					<button type="submit" class="btn btn-primary">Salvar</button>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 			
 		</div>

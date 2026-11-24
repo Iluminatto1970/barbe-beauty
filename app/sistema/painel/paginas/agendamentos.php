@@ -185,7 +185,7 @@ if(@$agendamentos == 'ocultar'){
 
 
 
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 		</div>
 	</div>
@@ -274,7 +274,7 @@ if(@$agendamentos == 'ocultar'){
 
 
 
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 		</div>
 	</div>

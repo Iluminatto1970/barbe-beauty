@@ -37,7 +37,7 @@ echo <<<HTML
 <td>{$titulo}</td>
 <td>{$descricaoF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$titulo}','{$descricao}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{$titulo}','{bb_e($descricao)}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
 		
 		<li class="dropdown head-dpdn2" style="display: inline-block;">

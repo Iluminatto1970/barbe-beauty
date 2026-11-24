@@ -105,7 +105,7 @@ if(@$fornecedores == 'ocultar'){
 				<div class="modal-footer">      
 					<button type="submit" class="btn btn-primary">Salvar</button>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 			
 		</div>

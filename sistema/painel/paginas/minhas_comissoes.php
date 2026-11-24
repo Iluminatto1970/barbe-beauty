@@ -77,7 +77,7 @@ $id_func = $_SESSION['id'];
 
 				<button type="submit" class="text-danger link-botao"><i class="fa fa-file-pdf-o" class="text-danger"></i> <span class="text-primary">Relatório</span></button>
 
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 			</div>
 		</div>
 		

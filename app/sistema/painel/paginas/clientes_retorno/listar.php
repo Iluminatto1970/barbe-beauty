@@ -78,14 +78,14 @@ $url_agendamento = $url_sistema.'agendamento';
 
 echo <<<HTML
 <tr class="">
-<td>{$nome}</td>
-<td class="esc">{$telefone}</td>
-<td class="esc {$classe_retorno}">{$data_retornoF}</td>
-<td class="esc">{$nome_servico}</td>
+<td>{bb_e($nome)}</td>
+<td class="esc">{bb_e($telefone)}</td>
+<td class="esc {$classe_retorno}">{bb_e($data_retornoF)}</td>
+<td class="esc">{bb_e($nome_servico)}</td>
 <td class="esc">{$dias}</td>
 <td>
 		
-		<big><a href="#" onclick="mostrar('{$nome}', '{$telefone}', '{$cartoes}', '{$data_cadF}', '{$data_nascF}', '{$endereco}', '{$data_retornoF}', '{$nome_servico}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($telefone)}', '{$cartoes}', '{bb_e($data_cadF)}', '{bb_e($data_nascF)}', '{bb_e($endereco)}', '{bb_e($data_retornoF)}', '{bb_e($nome_servico)}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 		<big><a onclick="alertar('{$id}')" href="http://api.whatsapp.com/send?1=pt_BR&phone=$whats&text=Olá $nome, já faz $dias dias que você não vem dar um trato no visual, caso queira fazer um novo agendamento é só acessar nosso site $url_agendamento, será um prazer atendê-lo novamente!!" target="_blank" title="Abrir Whatsapp"><i class="fa fa-whatsapp text-danger"></i></a></big>
 

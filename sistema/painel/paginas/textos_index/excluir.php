@@ -1,5 +1,6 @@
 <?php 
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 $tabela = 'textos_index';
 if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
 

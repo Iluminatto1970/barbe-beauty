@@ -1,6 +1,7 @@
 <?php 
 $tabela = 'agendamentos';
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 
 @session_start();
 $usuario_logado = @$_SESSION['id'];

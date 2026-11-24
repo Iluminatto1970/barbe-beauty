@@ -1,6 +1,7 @@
 <?php 
 $tabela = 'agendamentos';
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 if (!bb_tabela_permitida($tabela)) { echo 'Tabela invalida'; exit(); }
 
 @session_start();

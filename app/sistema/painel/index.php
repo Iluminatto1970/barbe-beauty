@@ -677,7 +677,7 @@ $dataMesInicial = $partesInicial[1];
 				<div class="modal-footer">      
 					<button type="submit" class="btn btn-primary">Editar Perfil</button>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 		</div>
 	</div>
 </div>
@@ -1090,7 +1090,7 @@ $dataMesInicial = $partesInicial[1];
 
 					<button type="submit" class="btn btn-primary">Salvar Dados</button>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 		</div>
 	</div>
 </div>
@@ -1173,7 +1173,7 @@ $dataMesInicial = $partesInicial[1];
 					<div class="modal-footer">
 						<button type="submit" class="btn btn-primary">Gerar Relatório</button>
 					</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 			</div>
 		</div>
@@ -1255,7 +1255,7 @@ $dataMesInicial = $partesInicial[1];
 					<div class="modal-footer">
 						<button type="submit" class="btn btn-primary">Gerar Relatório</button>
 					</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 			</div>
 		</div>
@@ -1359,7 +1359,7 @@ $dataMesInicial = $partesInicial[1];
 					<div class="modal-footer">
 						<button type="submit" class="btn btn-primary">Gerar Relatório</button>
 					</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 			</div>
 		</div>
@@ -1467,7 +1467,7 @@ $dataMesInicial = $partesInicial[1];
 					<div class="modal-footer">
 						<button type="submit" class="btn btn-primary">Gerar Relatório</button>
 					</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 			</div>
 		</div>
@@ -1535,7 +1535,7 @@ $dataMesInicial = $partesInicial[1];
 					<div class="modal-footer">
 						<button type="submit" class="btn btn-primary">Gerar Relatório</button>
 					</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 			</div>
 		</div>
@@ -1605,7 +1605,7 @@ $dataMesInicial = $partesInicial[1];
 					<div class="modal-footer">
 						<button type="submit" class="btn btn-primary">Gerar Relatório</button>
 					</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 			</div>
 		</div>

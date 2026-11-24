@@ -63,7 +63,7 @@ echo <<<HTML
 <tr class="{$alerta_estoque}">
 <td>
 <img src="img/produtos/{$foto}" width="27px" class="mr-2">
-{$nome}
+{bb_e($nome)}
 </td>
 <td class="esc">{$nome_cat}</td>
 <td class="esc">R$ {$valor_compraF}</td>
@@ -71,9 +71,9 @@ echo <<<HTML
 <td class="esc">{$estoque}</td>
 
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}', '{$categoria}', '{$descricao}', '{$valor_compra}', '{$valor_venda}', '{$foto}', '{$nivel_estoque}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{$categoria}', '{bb_e($descricao)}', '{$valor_compra}', '{$valor_venda}', '{$foto}', '{$nivel_estoque}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{$nome}', '{$nome_cat}', '{$descricao}', '{$valor_compraF}',  '{$valor_vendaF}', '{$estoque}', '{$foto}', '{$nivel_estoque}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{$nome_cat}', '{bb_e($descricao)}', '{$valor_compraF}',  '{$valor_vendaF}', '{$estoque}', '{$foto}', '{$nivel_estoque}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 
@@ -90,9 +90,9 @@ echo <<<HTML
 		</li>
 
 
-		<big><a href="#" onclick="saida('{$id}','{$nome}', '{$estoque}')" title="Saída de Produto"><i class="fa fa-sign-out text-danger"></i></a></big>
+		<big><a href="#" onclick="saida('{$id}','{bb_e($nome)}', '{$estoque}')" title="Saída de Produto"><i class="fa fa-sign-out text-danger"></i></a></big>
 
-		<big><a href="#" onclick="entrada('{$id}','{$nome}', '{$estoque}')" title="Entrada de Produto"><i class="fa fa-sign-in verde"></i></a></big>
+		<big><a href="#" onclick="entrada('{$id}','{bb_e($nome)}', '{$estoque}')" title="Entrada de Produto"><i class="fa fa-sign-in verde"></i></a></big>
 
 	
 		</td>

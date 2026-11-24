@@ -48,13 +48,13 @@ echo <<<HTML
 <tr class="{$classe_linha}">
 <td>
 <img src="img/comentarios/{$foto}" width="27px" class="mr-2">
-{$nome}
+{bb_e($nome)}
 </td>
 <td class="esc">{$textoF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}', '{$texto}', '{$foto}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{$texto}', '{$foto}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{$nome}', '{$texto}', '{$foto}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{$texto}', '{$foto}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

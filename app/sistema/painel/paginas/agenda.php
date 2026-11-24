@@ -160,7 +160,7 @@ $data_atual = date('Y-m-d');
 
 
 
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 		</div>
 	</div>
@@ -250,7 +250,7 @@ $data_atual = date('Y-m-d');
 
 
 
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 		</div>
 	</div>

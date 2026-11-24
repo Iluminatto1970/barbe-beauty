@@ -145,7 +145,7 @@ if(@$produtos == 'ocultar'){
 				<div class="modal-footer">      
 					<button type="submit" class="btn btn-primary">Salvar</button>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 			
 		</div>
@@ -277,7 +277,7 @@ if(@$produtos == 'ocultar'){
 				<input type="hidden" id="id_saida" name="id">
 				<input type="hidden" id="estoque_saida" name="estoque">
 
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 				<br>
 					<small><div id="mensagem-saida" align="center"></div></small>
@@ -328,7 +328,7 @@ if(@$produtos == 'ocultar'){
 				<input type="hidden" id="id_entrada" name="id">
 				<input type="hidden" id="estoque_entrada" name="estoque">
 
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 				<br>
 					<small><div id="mensagem-entrada" align="center"></div></small>

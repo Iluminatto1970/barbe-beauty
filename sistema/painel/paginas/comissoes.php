@@ -157,7 +157,7 @@ $data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
 					<br>
 					<small><div id="mensagem" align="center"></div></small>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 							
 		</div>

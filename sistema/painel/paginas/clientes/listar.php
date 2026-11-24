@@ -67,16 +67,16 @@ for($i=0; $i < $total_reg; $i++){
 
 echo <<<HTML
 <tr class="">
-<td>{$nome}</td>
-<td class="esc">{$telefone}</td>
-<td class="esc">{$data_cadF}</td>
-<td class="esc">{$data_nascF}</td>
-<td class="esc {$classe_retorno}">{$data_retornoF}</td>
+<td>{bb_e($nome)}</td>
+<td class="esc">{bb_e($telefone)}</td>
+<td class="esc">{bb_e($data_cadF)}</td>
+<td class="esc">{bb_e($data_nascF)}</td>
+<td class="esc {$classe_retorno}">{bb_e($data_retornoF)}</td>
 <td class="esc">{$cartoes}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}', '{$telefone}', '{$endereco}', '{$data_nasc}', '{$cartoes}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$data_nasc}', '{$cartoes}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{$nome}', '{$telefone}', '{$cartoes}', '{$data_cadF}', '{$data_nascF}', '{$endereco}', '{$data_retornoF}', '{$nome_servico}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($telefone)}', '{$cartoes}', '{bb_e($data_cadF)}', '{bb_e($data_nascF)}', '{bb_e($endereco)}', '{bb_e($data_retornoF)}', '{bb_e($nome_servico)}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

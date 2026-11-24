@@ -1,6 +1,7 @@
 <?php 
 
 require_once('../../conexao.php');
+bb_csrf_check_request();
 
 $dataInicial = $_POST['dataInicial'];
 $dataFinal = $_POST['dataFinal'];

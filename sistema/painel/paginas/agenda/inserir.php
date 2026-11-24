@@ -1,6 +1,8 @@
 <?php 
 $tabela = 'agendamentos';
 require_once("../../../conexao.php");
+bb_csrf_check_request();
+if (!bb_tabela_permitida($tabela)) { echo 'Tabela invalida'; exit(); }
 
 @session_start();
 $usuario_logado = @$_SESSION['id'];
@@ -23,8 +25,9 @@ $diasemana_numero = date('w', strtotime($data));
 $dia_procurado = $diasemana[$diasemana_numero];
 
 //percorrer os dias da semana que ele trabalha
-$query = $pdo->query("SELECT * FROM dias where funcionario = '$funcionario' and dia = '$dia_procurado'");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
+$st = $pdo->prepare("SELECT * FROM dias where funcionario = :func and dia = :dia");
+$st->execute(array(':func' => $funcionario, ':dia' => $dia_procurado));
+$res = $st->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) == 0){
 		echo 'Este Funcionário não trabalha neste Dia!';
 	exit();
@@ -32,13 +35,13 @@ if(@count($res) == 0){
 
 
 
-
 $dataF = implode('/', array_reverse(explode('-', $data)));
 $horaF = date("H:i", strtotime($hora));
 
 //validar cpf
-$query = $pdo->query("SELECT * FROM $tabela where data = '$data' and hora = '$hora' and funcionario = '$funcionario'");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
+$st = $pdo->prepare("SELECT * FROM $tabela where data = :data and hora = :hora and funcionario = :func");
+$st->execute(array(':data' => $data, ':hora' => $hora, ':func' => $funcionario));
+$res = $st->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0 and $res[0]['id'] != $id){
 	echo 'Este horário não está disponível!';
@@ -46,11 +49,17 @@ if($total_reg > 0 and $res[0]['id'] != $id){
 }
 
 
-$query = $pdo->prepare("INSERT INTO $tabela SET funcionario = '$funcionario', cliente = '$cliente', hora = '$hora', data = '$data', usuario = '$usuario_logado', status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = '$servico'");
+$st = $pdo->prepare("INSERT INTO $tabela SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, usuario = :usu, status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = :serv");
 
-$query->bindValue(":obs", "$obs");
-$query->execute();
-
+$st->execute(array(
+	':func' => $funcionario,
+	':cli' => $cliente,
+	':hora' => $hora,
+	':data' => $data,
+	':usu' => $usuario_logado,
+	':obs' => $obs,
+	':serv' => $servico,
+));
 
 echo 'Salvo com Sucesso'; 
 

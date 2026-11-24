@@ -1,5 +1,6 @@
 <?php 
 require_once('../../conexao.php');
+bb_csrf_check_request();
 
 setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
 date_default_timezone_set('America/Sao_Paulo');

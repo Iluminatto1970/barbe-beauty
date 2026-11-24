@@ -58,7 +58,7 @@ if(@$grupos == 'ocultar'){
 					<br>
 					<small><div id="mensagem" align="center"></div></small>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 							
 		</div>

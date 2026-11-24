@@ -188,7 +188,7 @@ if(@$funcionarios == 'ocultar'){
 				<div class="modal-footer">      
 					<button type="submit" class="btn btn-primary">Salvar</button>
 				</div>
-			</form>
+			<?php echo bb_csrf_field(); ?></form>
 
 			
 		</div>
@@ -344,7 +344,7 @@ if(@$funcionarios == 'ocultar'){
 					<input type="hidden" name="id" id="id_horarios">
 
 				</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 				<hr>
 				<div class="" id="listar-horarios">
@@ -405,7 +405,7 @@ if(@$funcionarios == 'ocultar'){
 					<input type="hidden" name="id" id="id_dias">
 
 				</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 				<hr>
 				<div class="" id="listar-dias">

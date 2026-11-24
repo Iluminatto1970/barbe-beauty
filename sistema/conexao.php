@@ -1,6 +1,34 @@
 <?php 
 
 // ============================================================
+// HEADERS DE SEGURANCA (Sprint 1 - item 40)
+// Enviados cedo (conexao.php e incluido no topo de todas as paginas).
+// ============================================================
+if (!defined('BB_HEADERS_SENT') && php_sapi_name() !== 'cli' && !headers_sent()) {
+	define('BB_HEADERS_SENT', true);
+	// Evita clickjacking
+	header('X-Frame-Options: SAMEORIGIN');
+	// Evita MIME sniffing
+	header('X-Content-Type-Options: nosniff');
+	// Referrer policy
+	header('Referrer-Policy: strict-origin-when-cross-origin');
+	// Permissoes do navegador
+	header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+	// HSTS (so em HTTPS)
+	if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+		header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+	}
+	// CSP basico (permite inline scripts/styles usados pelo projeto)
+	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
+}
+// Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX)
+if (php_sapi_name() !== 'cli' && !headers_sent()) {
+	$ct = bb_csrf_token();
+	setcookie('csrf_token', $ct, 0, '/', '', false, false);
+	$_COOKIE['csrf_token'] = $ct;
+}
+
+// ============================================================
 // CONEXAO COM O BANCO DE DADOS - Barbearia PRO
 // ------------------------------------------------------------
 // Le as configuracoes por variaveis de ambiente (Docker/Railway)
@@ -48,6 +76,49 @@ if ($base_path_env === false) {
 $url_sistema = $scheme . '://' . $host_url . '/' . ($base_path !== '' ? $base_path . '/' : '');
 
 // ============================================================
+// CSRF (Sprint 1 - item 2)
+// ============================================================
+if (!function_exists('bb_csrf_token')) {
+    function bb_csrf_token() {
+        if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+    function bb_csrf_field() {
+        $t = bb_csrf_token();
+        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($t, ENT_QUOTES, 'UTF-8') . '">';
+    }
+    function bb_csrf_validate($token) {
+        if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+        $stored = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
+        if ($stored === '') return false;
+        // Aceita token vindo de POST/GET ou de cookie (double-submit para AJAX)
+        if ($token === '' || $token === null) {
+            $token = isset($_COOKIE['csrf_token']) ? $_COOKIE['csrf_token'] : '';
+        }
+        if ($token === '' || $token === null) return false;
+        return hash_equals($stored, (string)$token);
+    }
+    function bb_csrf_check_request() {
+        $tok = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : (isset($_GET['csrf_token']) ? $_GET['csrf_token'] : '');
+        if (!bb_csrf_validate($tok)) {
+            http_response_code(403);
+            echo 'CSRF token invalido ou ausente.';
+            exit();
+        }
+    }
+}
+
+// Helper de escape XSS (Sprint 1 - item 3)
+if (!function_exists('bb_e')) {
+    function bb_e($v) {
+        return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+// ============================================================
 // SENHAS
 // ------------------------------------------------------------
 // Usa password_hash (bcrypt/argon2). Bancos antigos tem senha em
@@ -82,6 +153,9 @@ if (!function_exists('bb_checar_senha')) {
 }
 
 if (!function_exists('bb_permitir_usuarios_teste')) {
+    // Permite criar conta de teste admin@admin/123 apenas em
+    // ambiente local/dev. Em producao (DB remoto ou SEED_TEST_USERS=0) fica
+    // desativado por seguranca. Override explicito via env SEED_TEST_USERS.
     function bb_permitir_usuarios_teste()
     {
         $flag = getenv('SEED_TEST_USERS');
@@ -89,10 +163,13 @@ if (!function_exists('bb_permitir_usuarios_teste')) {
             $v = strtolower(trim((string) $flag));
             return in_array($v, array('1', 'true', 'yes', 'on'), true);
         }
+        // Auto-detect local dev: apenas quando a requisicao vem de localhost
+        // (HTTP_HOST e REMOTE_ADDR locais). Producao (dominio/IP externo) nao
+        // semeia contas de teste mesmo com DB local (ex.: VPS).
         $http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
         $remote = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
         if ($http_host === '' || $remote === '') {
-            return false;
+            return false; // CLI / sem contexto HTTP: exige flag explicita
         }
         $http_host = strtolower(trim(explode(':', $http_host)[0]));
         $local_hosts = array('localhost', '127.0.0.1', '::1');
@@ -103,6 +180,9 @@ if (!function_exists('bb_permitir_usuarios_teste')) {
 
 date_default_timezone_set('America/Sao_Paulo');
 
+// ============================================================
+// WHITELIST DE TABELAS (anti SQL injection em identificadores)
+// ============================================================
 if (!function_exists('bb_tabela_permitida')) {
     function bb_tabela_permitida($tabela) {
         $permitidas = array('acessos','agendamentos','cargos','cat_produtos','cat_servicos','clientes','comentarios','dias','entradas','fornecedores','grupo_acessos','horarios','pagar','produtos','receber','saidas','servicos','textos_index','usuarios','usuarios_permissoes','config');
@@ -153,6 +233,52 @@ if (!function_exists('bb_rate_limit_login')) {
     function bb_rate_limit_login_ok() {
         $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
         $file = sys_get_temp_dir() . '/bb_login/' . md5($ip) . '.json';
+        @unlink($file);
+    }
+}
+
+// BLOQUEIO POR CONTA (anti brute-force por email)
+// ============================================================
+if (!function_exists('bb_rate_limit_conta')) {
+    function bb_rate_limit_conta($email, $max = 10, $window = 1800) {
+        if ($email === '') return 0;
+        $dir = sys_get_temp_dir() . '/bb_conta';
+        if (!is_dir($dir)) @mkdir($dir, 0700, true);
+        $file = $dir . '/' . md5(strtolower(trim($email))) . '.json';
+        $now = time();
+        $data = array('attempts' => 0, 'first' => $now);
+        if (is_file($file)) {
+            $d = json_decode((string)@file_get_contents($file), true);
+            if (is_array($d)) $data = $d;
+        }
+        if ($now - (int)$data['first'] > $window) {
+            $data = array('attempts' => 0, 'first' => $now);
+        }
+        if ((int)$data['attempts'] >= $max) {
+            return (int)($data['first'] + $window - $now);
+        }
+        return 0;
+    }
+    function bb_rate_limit_conta_fail($email) {
+        if ($email === '') return;
+        $dir = sys_get_temp_dir() . '/bb_conta';
+        if (!is_dir($dir)) @mkdir($dir, 0700, true);
+        $file = $dir . '/' . md5(strtolower(trim($email))) . '.json';
+        $now = time();
+        $data = array('attempts' => 0, 'first' => $now);
+        if (is_file($file)) {
+            $d = json_decode((string)@file_get_contents($file), true);
+            if (is_array($d)) $data = $d;
+        }
+        if ($now - (int)$data['first'] > 1800) {
+            $data = array('attempts' => 0, 'first' => $now);
+        }
+        $data['attempts'] = (int)$data['attempts'] + 1;
+        @file_put_contents($file, json_encode($data), LOCK_EX);
+    }
+    function bb_rate_limit_conta_ok($email) {
+        if ($email === '') return;
+        $file = sys_get_temp_dir() . '/bb_conta/' . md5(strtolower(trim($email))) . '.json';
         @unlink($file);
     }
 }

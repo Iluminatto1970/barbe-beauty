@@ -66,16 +66,16 @@ echo <<<HTML
 <tr class="{$classe_linha}">
 <td>
 <img src="img/perfil/{$foto}" width="27px" class="mr-2">
-{$nome}
+{bb_e($nome)}
 </td>
-<td class="esc">{$email}</td>
-<td class="esc">{$cpf}</td>
+<td class="esc">{bb_e($email)}</td>
+<td class="esc">{bb_e($cpf)}</td>
 <td class="esc">{$nivel}</td>
 <td class="esc">{$dataF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}', '{$email}', '{$telefone}', '{$cpf}', '{$nivel}', '{$endereco}', '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}', '{$segmento_user}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($email)}', '{bb_e($telefone)}', '{bb_e($cpf)}', '{$nivel}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}', '{$segmento_user}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{$nome}', '{$email}', '{$cpf}', '{$senha}', '{$nivel}', '{$dataF}', '{$ativo}', '{$telefone}', '{$endereco}', '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($email)}', '{bb_e($cpf)}', '{$senha}', '{$nivel}', '{$dataF}', '{$ativo}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 
@@ -95,9 +95,9 @@ echo <<<HTML
 
 		<big><a href="#" onclick="ativar('{$id}', '{$acao}')" title="{$titulo_link}"><i class="fa {$icone} text-success"></i></a></big>
 
-		<a href="#" onclick="horarios('{$id}', '{$nome}')" title="Lançar Horários"><i class="fa fa-calendar text-secondary"></i></a>
+		<a href="#" onclick="horarios('{$id}', '{bb_e($nome)}')" title="Lançar Horários"><i class="fa fa-calendar text-secondary"></i></a>
 
-		<a href="#" onclick="dias('{$id}', '{$nome}')" title="Lançar Dias"><i class="fa fa-calendar text-danger"></i></a>
+		<a href="#" onclick="dias('{$id}', '{bb_e($nome)}')" title="Lançar Dias"><i class="fa fa-calendar text-danger"></i></a>
 
 
 		<big><a href="http://api.whatsapp.com/send?1=pt_BR&phone=$whats&text=" target="_blank" title="Abrir Whatsapp"><i class="fa fa-whatsapp verde"></i></a></big>

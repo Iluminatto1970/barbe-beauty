@@ -33,7 +33,7 @@ $pag = 'funcionarios';
 					<input type="hidden" name="id" id="id_dias" value="<?php echo $id_usuario ?>">
 
 				</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 <small><div id="mensagem-dias"></div></small>
 

@@ -1,5 +1,6 @@
 <?php 
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 $tabela = 'clientes';
 
 $id = $_POST['id'];

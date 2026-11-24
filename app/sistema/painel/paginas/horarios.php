@@ -23,7 +23,7 @@ $pag = 'funcionarios';
 					<input type="hidden" name="id" id="id_horarios" value="<?php echo $id_usuario ?>">
 
 				</div>
-				</form>
+				<?php echo bb_csrf_field(); ?></form>
 
 <small><div id="mensagem-horarios"></div></small>
 

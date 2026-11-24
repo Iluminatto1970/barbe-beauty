@@ -64,16 +64,16 @@ echo <<<HTML
 <tr class="{$classe_linha}">
 <td>
 <img src="img/perfil/{$foto}" width="27px" class="mr-2">
-{$nome}
+{bb_e($nome)}
 </td>
-<td class="esc">{$email}</td>
+<td class="esc">{bb_e($email)}</td>
 <td class="esc">{$senhaF}</td>
 <td class="esc">{$nivel}</td>
 <td class="esc">{$dataF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}', '{$email}', '{$telefone}', '{$cpf}', '{$nivel}', '{$endereco}', '{$foto}', '{$atendimento}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($email)}', '{bb_e($telefone)}', '{bb_e($cpf)}', '{$nivel}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{$nome}', '{$email}', '{$cpf}', '{$senhaF}', '{$nivel}', '{$dataF}', '{$ativo}', '{$telefone}', '{$endereco}', '{$foto}', '{$atendimento}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($email)}', '{bb_e($cpf)}', '{$senhaF}', '{$nivel}', '{$dataF}', '{$ativo}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 
@@ -93,7 +93,7 @@ echo <<<HTML
 
 		<big><a href="#" onclick="ativar('{$id}', '{$acao}')" title="{$titulo_link}"><i class="fa {$icone} text-success"></i></a></big>
 
-		<big><a href="#" onclick="permissoes('{$id}', '{$nome}')" title="Definir Permissões"><i class="fa fa-lock " style="color:blue; margin-left:3px"></i></a></big>
+		<big><a href="#" onclick="permissoes('{$id}', '{bb_e($nome)}')" title="Definir Permissões"><i class="fa fa-lock " style="color:blue; margin-left:3px"></i></a></big>
 
 
 		</td>

@@ -21,6 +21,12 @@ if (!defined('BB_HEADERS_SENT') && php_sapi_name() !== 'cli' && !headers_sent())
 	// CSP basico (permite inline scripts/styles usados pelo projeto)
 	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
 }
+// Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX)
+if (php_sapi_name() !== 'cli' && !headers_sent()) {
+	$ct = bb_csrf_token();
+	setcookie('csrf_token', $ct, 0, '/', '', false, false);
+	$_COOKIE['csrf_token'] = $ct;
+}
 
 // ============================================================
 // CONEXAO COM O BANCO DE DADOS - Barbearia PRO
@@ -68,6 +74,49 @@ if ($base_path_env === false) {
     }
 }
 $url_sistema = $scheme . '://' . $host_url . '/' . ($base_path !== '' ? $base_path . '/' : '');
+
+// ============================================================
+// CSRF (Sprint 1 - item 2)
+// ============================================================
+if (!function_exists('bb_csrf_token')) {
+    function bb_csrf_token() {
+        if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+    function bb_csrf_field() {
+        $t = bb_csrf_token();
+        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($t, ENT_QUOTES, 'UTF-8') . '">';
+    }
+    function bb_csrf_validate($token) {
+        if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+        $stored = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
+        if ($stored === '') return false;
+        // Aceita token vindo de POST/GET ou de cookie (double-submit para AJAX)
+        if ($token === '' || $token === null) {
+            $token = isset($_COOKIE['csrf_token']) ? $_COOKIE['csrf_token'] : '';
+        }
+        if ($token === '' || $token === null) return false;
+        return hash_equals($stored, (string)$token);
+    }
+    function bb_csrf_check_request() {
+        $tok = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : (isset($_GET['csrf_token']) ? $_GET['csrf_token'] : '');
+        if (!bb_csrf_validate($tok)) {
+            http_response_code(403);
+            echo 'CSRF token invalido ou ausente.';
+            exit();
+        }
+    }
+}
+
+// Helper de escape XSS (Sprint 1 - item 3)
+if (!function_exists('bb_e')) {
+    function bb_e($v) {
+        return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    }
+}
 
 // ============================================================
 // SENHAS

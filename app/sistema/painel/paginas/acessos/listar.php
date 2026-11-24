@@ -43,12 +43,12 @@ for($i=0; $i < $total_reg; $i++){
 echo <<<HTML
 <tr class="">
 <td>
-{$nome}
+{bb_e($nome)}
 </td>
 <td class="esc">{$chave}</td>
 <td class="esc">{$nome_cat}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}', '{$chave}', '{$grupo}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{$chave}', '{$grupo}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
 		<li class="dropdown head-dpdn2" style="display: inline-block;">
 		<a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><big><i class="fa fa-trash-o text-danger"></i></big></a>

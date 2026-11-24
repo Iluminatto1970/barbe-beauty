@@ -19,11 +19,16 @@ function listar(){
 }
 
 
+function getCsrfToken(){
+    var m = document.cookie.match(/(?:^|; )csrf_token=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
 function excluir(id){
     $.ajax({
         url: 'paginas/' + pag + "/excluir.php",
         method: 'POST',
-        data: {id},
+        data: {id: id, csrf_token: getCsrfToken()},
         dataType: "text",
 
         success: function (mensagem) {            
@@ -45,7 +50,7 @@ function confirmarAgendamento(id){
     $.ajax({
         url: 'paginas/' + pag + "/confirmar.php",
         method: 'POST',
-        data: {id},
+        data: {id: id, csrf_token: getCsrfToken()},
         dataType: 'text',
 
         success: function (mensagem) {
@@ -59,7 +64,7 @@ function ativar(id, acao){
     $.ajax({
         url: 'paginas/' + pag + "/mudar-status.php",
         method: 'POST',
-        data: {id, acao},
+        data: {id: id, acao: acao, csrf_token: getCsrfToken()},
         dataType: "text",
 
         success: function (mensagem) {            

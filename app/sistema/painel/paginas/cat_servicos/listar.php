@@ -34,10 +34,10 @@ for($i=0; $i < $total_reg; $i++){
 	
 echo <<<HTML
 <tr class="">
-<td>{$nome}</td>
+<td>{bb_e($nome)}</td>
 <td>{$total_servicos}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$nome}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
 		
 		<li class="dropdown head-dpdn2" style="display: inline-block;">

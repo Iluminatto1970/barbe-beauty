@@ -1,5 +1,6 @@
 <?php 
 require_once("../../../conexao.php");
+bb_csrf_check_request();
 $tabela = 'saidas';
 @session_start();
 $id_usuario = $_SESSION['id'];
