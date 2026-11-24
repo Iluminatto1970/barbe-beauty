@@ -180,7 +180,7 @@ $query_id = $pdo->query("SELECT id FROM config ORDER BY id LIMIT 1");
 $res_id = $query_id->fetchAll(PDO::FETCH_ASSOC);
 $id_config = @$res_id[0]['id'];
 
-$query = $pdo->prepare("UPDATE config SET nome = :nome, email = :email, telefone_whatsapp = :whatsapp, telefone_fixo = :telefone_fixo, endereco = :endereco, logo = '$arquivo_logo', icone = '$arquivo_icone', logo_rel = '$arquivo_logo_rel', tipo_rel = '$tipo_rel', instagram = :instagram, tipo_comissao = '$tipo_comissao', texto_rodape = :texto_rodape, img_banner_index = '$img_banner_index', icone_site = '$arquivo_icone_site', imagem_sobre = '$img_sobre', texto_sobre = :texto_sobre, mapa = :mapa, quantidade_cartoes = '$quantidade_cartoes', texto_fidelidade = :texto_fidelidade, texto_agendamento = :texto_agendamento, msg_agendamento = :msg_agendamento, segmento = '$segmento' WHERE id = '$id_config'");
+$query = $pdo->prepare("UPDATE config SET nome = :nome, email = :email, telefone_whatsapp = :whatsapp, telefone_fixo = :telefone_fixo, endereco = :endereco, logo = :arquivo_logo, icone = :arquivo_icone, logo_rel = :arquivo_logo_rel, tipo_rel = :tipo_rel, instagram = :instagram, tipo_comissao = :tipo_comissao, texto_rodape = :texto_rodape, img_banner_index = :img_banner_index, icone_site = :arquivo_icone_site, imagem_sobre = :img_sobre, texto_sobre = :texto_sobre, mapa = :mapa, quantidade_cartoes = :quantidade_cartoes, texto_fidelidade = :texto_fidelidade, texto_agendamento = :texto_agendamento, msg_agendamento = :msg_agendamento, segmento = :segmento WHERE id = :id_config");
 
 $query->bindValue(":nome", "$nome");
 $query->bindValue(":email", "$email");
@@ -194,6 +194,17 @@ $query->bindValue(":mapa", "$mapa");
 $query->bindValue(":texto_fidelidade", "$texto_fidelidade");
 $query->bindValue(":texto_agendamento", "$texto_agendamento");
 $query->bindValue(":msg_agendamento", "$msg_agendamento");
+$query->bindValue(":arquivo_logo", "$arquivo_logo");
+$query->bindValue(":arquivo_icone", "$arquivo_icone");
+$query->bindValue(":arquivo_logo_rel", "$arquivo_logo_rel");
+$query->bindValue(":tipo_rel", "$tipo_rel");
+$query->bindValue(":tipo_comissao", "$tipo_comissao");
+$query->bindValue(":img_banner_index", "$img_banner_index");
+$query->bindValue(":arquivo_icone_site", "$arquivo_icone_site");
+$query->bindValue(":img_sobre", "$img_sobre");
+$query->bindValue(":quantidade_cartoes", "$quantidade_cartoes");
+$query->bindValue(":segmento", "$segmento");
+$query->bindValue(":id_config", "$id_config");
 
 $query->execute();
 

@@ -28,7 +28,8 @@ if (bb_banco_atual() === bb_banco_controle()) {
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);
 	if($total_reg == 0){
-		$pdo->query("INSERT INTO usuarios SET nome = 'Admin', email = '$email_sistema', cpf = '000.000.000-00', senha = '', senha_crip = '$senha_crip', nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'");
+		$pdo->prepare("INSERT INTO usuarios SET nome = 'Admin', email = :e, cpf = '000.000.000-00', senha = '', senha_crip = :h, nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'")
+			->execute(array(':e' => $email_sistema, ':h' => $senha_crip));
 	}
 }
 

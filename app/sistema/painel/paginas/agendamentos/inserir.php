@@ -48,10 +48,8 @@ if($total_reg > 0 and $res[0]['id'] != $id){
 }
 
 
-$query = $pdo->prepare("INSERT INTO $tabela SET funcionario = '$funcionario', cliente = '$cliente', hora = '$hora', data = '$data', usuario = '$usuario_logado', status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = '$servico'");
-
-$query->bindValue(":obs", "$obs");
-$query->execute();
+$query = $pdo->prepare("INSERT INTO $tabela SET funcionario = :funcionario, cliente = :cliente, hora = :hora, data = :data, usuario = :usuario, status = 'Aguardando', obs = :obs, data_lanc = curDate(), servico = :servico");
+$query->execute(array(':funcionario' => $funcionario, ':cliente' => $cliente, ':hora' => $hora, ':data' => $data, ':usuario' => $usuario_logado, ':obs' => $obs, ':servico' => $servico));
 
 
 echo 'Salvo com Sucesso'; 

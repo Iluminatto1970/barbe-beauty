@@ -61,7 +61,8 @@ $comentarios = 'ocultar';
 
 
 
-$query = $pdo->query("SELECT * FROM usuarios_permissoes where usuario = '$id_usuario'");
+$query = $pdo->prepare("SELECT * FROM usuarios_permissoes where usuario = :usuario");
+$query->execute(array(':usuario' => $id_usuario));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -69,7 +70,8 @@ if($total_reg > 0){
 		foreach ($res[$i] as $key => $value){}
 		$permissao = $res[$i]['permissao'];
 		
-		$query2 = $pdo->query("SELECT * FROM acessos where id = '$permissao'");
+		$query2 = $pdo->prepare("SELECT * FROM acessos where id = :permissao");
+		$query2->execute(array(':permissao' => $permissao));
 		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
 		$nome = $res2[0]['nome'];
 		$chave = $res2[0]['chave'];
@@ -245,12 +247,14 @@ if($home != 'ocultar'){
 }else if($atendimento == 'Sim'){
 	$pag_inicial = 'agenda';
 }else{
-	$query = $pdo->query("SELECT * FROM usuarios_permissoes where usuario = '$id_usuario' order by id asc limit 1");
+	$query = $pdo->prepare("SELECT * FROM usuarios_permissoes where usuario = :usuario order by id asc limit 1");
+	$query->execute(array(':usuario' => $id_usuario));
 	$res = $query->fetchAll(PDO::FETCH_ASSOC);
 	$total_reg = @count($res);
 	if($total_reg > 0){	
 			$permissao = $res[0]['permissao'];		
-			$query2 = $pdo->query("SELECT * FROM acessos where id = '$permissao'");
+			$query2 = $pdo->prepare("SELECT * FROM acessos where id = :permissao");
+		$query2->execute(array(':permissao' => $permissao));
 			$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);		
 			$pag_inicial = $res2[0]['chave'];		
 

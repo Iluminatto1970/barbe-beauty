@@ -28,7 +28,8 @@ $pag_inicial = 'home';
 
 $id_usuario = $_SESSION['id'];
 
-$query = $pdo->query("SELECT * from usuarios where id = '$id_usuario'");
+$query = $pdo->prepare("SELECT * from usuarios where id = :id");
+$query->execute(array(':id' => $id_usuario));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){

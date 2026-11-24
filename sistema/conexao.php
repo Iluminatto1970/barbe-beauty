@@ -358,7 +358,8 @@ if ($query) {
     $total_reg = @count($res);
     if ($total_reg == 0) {
         // Primeira instalacao: cria a config padrao e rele para definir as variaveis
-        $pdo->query("INSERT INTO config SET nome = '$nome_sistema', email = '$email_sistema', telefone_whatsapp = '$whatsapp_sistema', logo = 'logo.png', icone = 'favicon.ico', logo_rel = 'logo_rel.jpg', tipo_rel = 'pdf', tipo_comissao = 'Porcentagem', texto_rodape = 'Edite este texto nas configuracoes do painel administrador', img_banner_index = 'banner.jpg', quantidade_cartoes = 10, texto_agendamento = 'Selecionar Prestador de Servico', msg_agendamento = 'Sim'");
+        $pdo->prepare("INSERT INTO config SET nome = :nome, email = :email, telefone_whatsapp = :whatsapp, logo = 'logo.png', icone = 'favicon.ico', logo_rel = 'logo_rel.jpg', tipo_rel = 'pdf', tipo_comissao = 'Porcentagem', texto_rodape = 'Edite este texto nas configuracoes do painel administrador', img_banner_index = 'banner.jpg', quantidade_cartoes = 10, texto_agendamento = 'Selecionar Prestador de Servico', msg_agendamento = 'Sim'")
+            ->execute(array(':nome' => $nome_sistema, ':email' => $email_sistema, ':whatsapp' => $whatsapp_sistema));
         $query = $pdo->query("SELECT * from config ");
         $res = $query->fetchAll(PDO::FETCH_ASSOC);
         $total_reg = @count($res);

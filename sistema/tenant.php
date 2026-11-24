@@ -248,6 +248,11 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
                 'schema_version' => "INT UNSIGNED NOT NULL DEFAULT 0",
             );
             foreach ($colunas as $coluna => $definicao) {
+                // Identificador de whitelist estrita: nomes e tipos vem do mapa
+                // literal acima, mas validamos antes de montar o DDL.
+                if (!preg_match('/^[a-zA-Z0-9_]+$/', (string) $coluna)) {
+                    continue;
+                }
                 $q = $pdo_controle->query("SHOW COLUMNS FROM tenants LIKE '" . $coluna . "'");
                 if (!$q || !$q->fetch()) {
                     $pdo_controle->exec("ALTER TABLE tenants ADD COLUMN " . $coluna . " " . $definicao);
