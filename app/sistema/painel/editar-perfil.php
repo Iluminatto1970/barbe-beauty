@@ -60,33 +60,17 @@ $caminho = 'img/perfil/' .$nome_img;
 $imagem_temp = @$_FILES['foto']['tmp_name']; 
 
 if(@$_FILES['foto']['name'] != ""){
-	$ext = strtolower(pathinfo($nome_img, PATHINFO_EXTENSION));
-	if (@$_FILES['foto']['size'] > 2 * 1024 * 1024) {
-		echo 'Arquivo muito grande (max 2MB)!';
-		exit();
-	}
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
-	if (!in_array($mime, $allowed, true)) {
-		echo 'Tipo de arquivo não permitido!';
-		exit();
-	}
-	if($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif' or $ext == 'webp'){ 
-	
-			//EXCLUO A FOTO ANTERIOR
-			if($foto != "sem-foto.jpg"){
-				@unlink('img/perfil/'.$foto);
-			}
+	$erro_img = bb_imagem_upload_valida($_FILES['foto']);
+	if ($erro_img !== '') { echo $erro_img; exit(); }
 
-			$foto = $nome_img;
-		
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão de Imagem não permitida!';
-		exit();
+	//EXCLUO A FOTO ANTERIOR
+	if($foto != "sem-foto.jpg"){
+		@unlink('img/perfil/'.$foto);
 	}
+
+	$foto = $nome_img;
+
+	move_uploaded_file($imagem_temp, $caminho);
 }
 
 

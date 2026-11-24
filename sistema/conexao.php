@@ -86,14 +86,9 @@ if (!function_exists('bb_csrf_token')) {
     }
     function bb_csrf_validate($token) {
         if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
-        $stored = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
-        if ($stored === '') return false;
-        // Aceita token vindo de POST/GET ou de cookie (double-submit para AJAX)
-        if ($token === '' || $token === null) {
-            $token = isset($_COOKIE['csrf_token']) ? $_COOKIE['csrf_token'] : '';
-        }
-        if ($token === '' || $token === null) return false;
-        return hash_equals($stored, (string)$token);
+        $stored = isset($_SESSION['csrf_token']) ? (string) $_SESSION['csrf_token'] : '';
+        if ($stored === '' || $token === '' || $token === null) return false;
+        return hash_equals($stored, (string) $token);
     }
     function bb_csrf_check_request() {
         $tok = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : (isset($_GET['csrf_token']) ? $_GET['csrf_token'] : '');
@@ -109,6 +104,48 @@ if (!function_exists('bb_csrf_token')) {
 if (!function_exists('bb_e')) {
     function bb_e($v) {
         return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+// ============================================================
+// UPLOAD DE IMAGEM (Sprint 1 - item 4)
+// ------------------------------------------------------------
+// Valida tamanho, extensao permitida e MIME real (finfo), sem
+// confiar no tipo declarado pelo navegador. Devolve '' quando o
+// arquivo esta ok, ou a mensagem de erro para exibir. O
+// move_uploaded_file continua em cada tela (diretorio e nome
+// final sao dela).
+// ============================================================
+if (!function_exists('bb_imagem_upload_valida')) {
+    function bb_imagem_upload_valida($arquivo, $exts = array('png', 'jpg', 'jpeg', 'gif', 'webp'), $max_bytes = 2097152)
+    {
+        if (!is_array($arquivo) || empty($arquivo['name'])) {
+            return '';
+        }
+        if ($max_bytes > 0 && (int) $arquivo['size'] > $max_bytes) {
+            return 'Arquivo muito grande (max ' . (int) round($max_bytes / 1048576) . 'MB)!';
+        }
+        $ext = strtolower(pathinfo((string) $arquivo['name'], PATHINFO_EXTENSION));
+        $mimes = array(
+            'png'  => array('image/png'),
+            'jpg'  => array('image/jpeg', 'image/pjpeg'),
+            'jpeg' => array('image/jpeg', 'image/pjpeg'),
+            'gif'  => array('image/gif'),
+            'webp' => array('image/webp'),
+        );
+        if (!isset($mimes[$ext]) || !in_array($ext, $exts, true)) {
+            return 'Extensão de Imagem não permitida!';
+        }
+        $mime = '';
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = $finfo ? (string) finfo_file($finfo, $arquivo['tmp_name']) : '';
+            if ($finfo) finfo_close($finfo);
+        }
+        if (!in_array($mime, $mimes[$ext], true)) {
+            return 'Tipo de arquivo não permitido!';
+        }
+        return '';
     }
 }
 
@@ -185,100 +222,80 @@ if (!function_exists('bb_tabela_permitida')) {
 }
 
 // ============================================================
-// RATE LIMIT DE LOGIN (anti brute-force)
+// RATE LIMIT / LOCKOUT (anti brute-force)
+// ------------------------------------------------------------
+// Uma chave (IP ou e-mail) por arquivo em sys_get_temp_dir().
+// bb_rate_limit_* devolve 0 quando liberado, ou os segundos de
+// espera restantes. Login por IP: 5/15min. Por conta: 10/30min.
 // ============================================================
-if (!function_exists('bb_rate_limit_login')) {
-    function bb_rate_limit_login($max = 5, $window = 900) {
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
-        $dir = sys_get_temp_dir() . '/bb_login';
+if (!function_exists('bb_rate_limit_arquivo')) {
+    function bb_rate_limit_arquivo($chave, $dir) {
+        $dir = sys_get_temp_dir() . '/' . $dir;
         if (!is_dir($dir)) @mkdir($dir, 0700, true);
-        $file = $dir . '/' . md5($ip) . '.json';
-        $now = time();
-        $data = array('attempts' => 0, 'first' => $now);
-        if (is_file($file)) {
-            $d = json_decode((string)@file_get_contents($file), true);
-            if (is_array($d)) $data = $d;
+        return $dir . '/' . md5((string) $chave) . '.json';
+    }
+
+    function bb_rate_limit_ler($arquivo, $window) {
+        $agora = time();
+        $dados = array('attempts' => 0, 'first' => $agora);
+        if (is_file($arquivo)) {
+            $lido = json_decode((string) @file_get_contents($arquivo), true);
+            if (is_array($lido)) $dados = $lido;
         }
-        if ($now - (int)$data['first'] > $window) {
-            $data = array('attempts' => 0, 'first' => $now);
+        if ($agora - (int) $dados['first'] > $window) {
+            $dados = array('attempts' => 0, 'first' => $agora);
         }
-        if ((int)$data['attempts'] >= $max) {
-            return (int)($data['first'] + $window - $now);
+        return $dados;
+    }
+
+    function bb_rate_limit_espera($chave, $dir, $max, $window) {
+        $dados = bb_rate_limit_ler(bb_rate_limit_arquivo($chave, $dir), $window);
+        if ((int) $dados['attempts'] >= $max) {
+            return (int) ($dados['first'] + $window - time());
         }
         return 0;
     }
-    function bb_rate_limit_login_fail() {
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
-        $dir = sys_get_temp_dir() . '/bb_login';
-        if (!is_dir($dir)) @mkdir($dir, 0700, true);
-        $file = $dir . '/' . md5($ip) . '.json';
-        $now = time();
-        $data = array('attempts' => 0, 'first' => $now);
-        if (is_file($file)) {
-            $d = json_decode((string)@file_get_contents($file), true);
-            if (is_array($d)) $data = $d;
-        }
-        if ($now - (int)$data['first'] > 900) {
-            $data = array('attempts' => 0, 'first' => $now);
-        }
-        $data['attempts'] = (int)$data['attempts'] + 1;
-        @file_put_contents($file, json_encode($data), LOCK_EX);
+
+    function bb_rate_limit_falha($chave, $dir, $window) {
+        $arquivo = bb_rate_limit_arquivo($chave, $dir);
+        $dados = bb_rate_limit_ler($arquivo, $window);
+        $dados['attempts'] = (int) $dados['attempts'] + 1;
+        @file_put_contents($arquivo, json_encode($dados), LOCK_EX);
+    }
+
+    function bb_rate_limit_limpar($chave, $dir) {
+        @unlink(bb_rate_limit_arquivo($chave, $dir));
+    }
+
+    function bb_rate_limit_ip() {
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+    }
+
+    function bb_rate_limit_login($max = 5, $window = 900) {
+        return bb_rate_limit_espera(bb_rate_limit_ip(), 'bb_login', $max, $window);
+    }
+    function bb_rate_limit_login_fail($window = 900) {
+        bb_rate_limit_falha(bb_rate_limit_ip(), 'bb_login', $window);
     }
     function bb_rate_limit_login_ok() {
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
-        $file = sys_get_temp_dir() . '/bb_login/' . md5($ip) . '.json';
-        @unlink($file);
+        bb_rate_limit_limpar(bb_rate_limit_ip(), 'bb_login');
     }
-}
 
-// BLOQUEIO POR CONTA (anti brute-force por email)
-// ============================================================
-if (!function_exists('bb_rate_limit_conta')) {
     function bb_rate_limit_conta($email, $max = 10, $window = 1800) {
-        if ($email === '') return 0;
-        $dir = sys_get_temp_dir() . '/bb_conta';
-        if (!is_dir($dir)) @mkdir($dir, 0700, true);
-        $file = $dir . '/' . md5(strtolower(trim($email))) . '.json';
-        $now = time();
-        $data = array('attempts' => 0, 'first' => $now);
-        if (is_file($file)) {
-            $d = json_decode((string)@file_get_contents($file), true);
-            if (is_array($d)) $data = $d;
-        }
-        if ($now - (int)$data['first'] > $window) {
-            $data = array('attempts' => 0, 'first' => $now);
-        }
-        if ((int)$data['attempts'] >= $max) {
-            return (int)($data['first'] + $window - $now);
-        }
-        return 0;
+        $email = strtolower(trim((string) $email));
+        return $email === '' ? 0 : bb_rate_limit_espera($email, 'bb_conta', $max, $window);
     }
-    function bb_rate_limit_conta_fail($email) {
-        if ($email === '') return;
-        $dir = sys_get_temp_dir() . '/bb_conta';
-        if (!is_dir($dir)) @mkdir($dir, 0700, true);
-        $file = $dir . '/' . md5(strtolower(trim($email))) . '.json';
-        $now = time();
-        $data = array('attempts' => 0, 'first' => $now);
-        if (is_file($file)) {
-            $d = json_decode((string)@file_get_contents($file), true);
-            if (is_array($d)) $data = $d;
-        }
-        if ($now - (int)$data['first'] > 1800) {
-            $data = array('attempts' => 0, 'first' => $now);
-        }
-        $data['attempts'] = (int)$data['attempts'] + 1;
-        @file_put_contents($file, json_encode($data), LOCK_EX);
+    function bb_rate_limit_conta_fail($email, $window = 1800) {
+        $email = strtolower(trim((string) $email));
+        if ($email !== '') bb_rate_limit_falha($email, 'bb_conta', $window);
     }
     function bb_rate_limit_conta_ok($email) {
-        if ($email === '') return;
-        $file = sys_get_temp_dir() . '/bb_conta/' . md5(strtolower(trim($email))) . '.json';
-        @unlink($file);
+        $email = strtolower(trim((string) $email));
+        if ($email !== '') bb_rate_limit_limpar($email, 'bb_conta');
     }
 }
-
 // ============================================================
-// MULTI-TENANT
+//  MULTI-TENANT
 // ------------------------------------------------------------
 // O banco de controle guarda os estabelecimentos e assinaturas.
 // Quando o dominio acessado pertence a um cliente, a conexao e

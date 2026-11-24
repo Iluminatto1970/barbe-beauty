@@ -2,7 +2,6 @@
 require_once('../conexao.php');
 bb_csrf_check_request();
 
-
 $nome = $_POST['nome_sistema'];
 $email = $_POST['email_sistema'];
 $whatsapp = $_POST['whatsapp_sistema'];
@@ -27,64 +26,23 @@ $arquivo_logo_rel   = bb_arquivo_tenant('logo_rel.jpg');
 $arquivo_icone_site = bb_arquivo_tenant('favicon.png');
 
 //SCRIPT PARA SUBIR FOTO NO SERVIDOR
-$caminho = '../img/' . $arquivo_logo;
-$imagem_temp = @$_FILES['foto-logo']['tmp_name']; 
 if(@$_FILES['foto-logo']['name'] != ""){
-	$ext = pathinfo(@$_FILES['foto-logo']['name'], PATHINFO_EXTENSION);   
-	if (@$_FILES['foto-logo']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if($ext == 'png'){ 
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão da imagem para a Logo é somente *PNG';
-		exit();
-	}
-
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo'], array('png'));
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	move_uploaded_file($_FILES['foto-logo']['tmp_name'], '../img/' . $arquivo_logo);
 }
 
-
-
-$caminho = '../img/' . $arquivo_icone;
-$imagem_temp = @$_FILES['foto-icone']['tmp_name']; 
 if(@$_FILES['foto-icone']['name'] != ""){
-	$ext = pathinfo(@$_FILES['foto-icone']['name'], PATHINFO_EXTENSION);   
-	if (@$_FILES['foto-icone']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if($ext == 'png'){ 
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão da imagem para a ícone é somente *ICO';
-		exit();
-	}
-
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone'], array('png'));
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	move_uploaded_file($_FILES['foto-icone']['tmp_name'], '../img/' . $arquivo_icone);
 }
 
-
-
-$caminho = '../img/' . $arquivo_logo_rel;
-$imagem_temp = @$_FILES['foto-logo-rel']['tmp_name']; 
 if(@$_FILES['foto-logo-rel']['name'] != ""){
-	$ext = pathinfo(@$_FILES['foto-logo-rel']['name'], PATHINFO_EXTENSION);   
-	if (@$_FILES['foto-logo-rel']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	if ($mime !== 'image/jpeg') { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if($ext == 'jpg'){ 
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão da imagem para o Relatório é somente *Jpg';
-		exit();
-	}
-
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo-rel'], array('jpg', 'jpeg'));
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	move_uploaded_file($_FILES['foto-logo-rel']['tmp_name'], '../img/' . $arquivo_logo_rel);
 }
-
 
 $query = $pdo->query("SELECT * FROM config");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -94,30 +52,12 @@ $img_banner_index = $res[0]['img_banner_index'];
 $nome_img = @$_FILES['foto-banner-index']['name'];
 $nome_img = bb_arquivo_tenant(preg_replace('/[ :]+/' , '-' , $nome_img));
 
-$caminho = '../../images/' .$nome_img;
-
-$imagem_temp = @$_FILES['foto-banner-index']['tmp_name']; 
-
 if(@$_FILES['foto-banner-index']['name'] != ""){
-	$ext = pathinfo($nome_img, PATHINFO_EXTENSION);   
-	if (@$_FILES['foto-banner-index']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
-	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif'){ 
-				
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-banner-index']);
+	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$img_banner_index = $nome_img;
-		
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão de Imagem não permitida!';
-		exit();
-	}
+	move_uploaded_file($_FILES['foto-banner-index']['tmp_name'], '../../images/' . $nome_img);
 }
-
-
 
 //validar troca da foto
 $query = $pdo->query("SELECT * FROM config");
@@ -128,52 +68,18 @@ $img_sobre = $res[0]['imagem_sobre'];
 $nome_img = @$_FILES['foto-sobre']['name'];
 $nome_img = bb_arquivo_tenant(preg_replace('/[ :]+/' , '-' , $nome_img));
 
-$caminho = '../../images/' .$nome_img;
-
-$imagem_temp = @$_FILES['foto-sobre']['tmp_name']; 
-
 if(@$_FILES['foto-sobre']['name'] != ""){
-	$ext = pathinfo($nome_img, PATHINFO_EXTENSION);   
-	if (@$_FILES['foto-sobre']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
-	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif'){ 
-				
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-sobre']);
+	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$img_sobre = $nome_img;
-		
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão de Imagem não permitida!';
-		exit();
-	}
+	move_uploaded_file($_FILES['foto-sobre']['tmp_name'], '../../images/' . $nome_img);
 }
 
-
-
-
-
-$caminho = '../../images/' . $arquivo_icone_site;
-$imagem_temp = @$_FILES['foto-icone-site']['tmp_name']; 
 if(@$_FILES['foto-icone-site']['name'] != ""){
-	$ext = pathinfo(@$_FILES['foto-icone-site']['name'], PATHINFO_EXTENSION);   
-	if (@$_FILES['foto-icone-site']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
-	if ($finfo) finfo_close($finfo);
-	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if($ext == 'png'){ 
-		move_uploaded_file($imagem_temp, $caminho);
-	}else{
-		echo 'Extensão da imagem para a ícone é somente *PNG';
-		exit();
-	}
-
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone-site'], array('png'));
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	move_uploaded_file($_FILES['foto-icone-site']['tmp_name'], '../../images/' . $arquivo_icone_site);
 }
-
-
 
 // Atualiza apenas o registro de configuracao usado pelo sistema (primeiro)
 $query_id = $pdo->query("SELECT id FROM config ORDER BY id LIMIT 1");
@@ -226,75 +132,37 @@ $logo_salao     = ($salao_atual && !empty($salao_atual['logo'])) ? $salao_atual[
 $icone_salao    = ($salao_atual && !empty($salao_atual['icone_site'])) ? $salao_atual['icone_site'] : 'salao-favicon.png';
 
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-logo-salao']['name']);
-if (@$_FILES['foto-logo-salao']['name'] != "") {
-	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
-	if (@$_FILES['foto-logo-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-logo-salao']['tmp_name']) : '';
-	if ($finfo) finfo_close($finfo);
-	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if ($ext == 'png') {
-		$logo_salao = $nome_img_salao;
-		move_uploaded_file(@$_FILES['foto-logo-salao']['tmp_name'], '../img/' . $nome_img_salao);
-	} else {
-		echo 'Extensão da imagem para a Logo do Salão é somente *PNG';
-		exit();
-	}
+if(@$_FILES['foto-logo-salao']['name'] != ""){
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo-salao'], array('png'));
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	$logo_salao = $nome_img_salao;
+	move_uploaded_file($_FILES['foto-logo-salao']['tmp_name'], '../img/' . $nome_img_salao);
 }
 
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-icone-salao']['name']);
-if (@$_FILES['foto-icone-salao']['name'] != "") {
-	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
-	if (@$_FILES['foto-icone-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-icone-salao']['tmp_name']) : '';
-	if ($finfo) finfo_close($finfo);
-	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if ($ext == 'png') {
-		$icone_salao = $nome_img_salao;
-		move_uploaded_file(@$_FILES['foto-icone-salao']['tmp_name'], '../../images/' . $nome_img_salao);
-	} else {
-		echo 'Extensão da imagem para o ícone do Site é somente *PNG';
-		exit();
-	}
+if(@$_FILES['foto-icone-salao']['name'] != ""){
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone-salao'], array('png'));
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	$icone_salao = $nome_img_salao;
+	move_uploaded_file($_FILES['foto-icone-salao']['tmp_name'], '../../images/' . $nome_img_salao);
 }
 $img_banner_salao = ($salao_atual && !empty($salao_atual['img_banner_index'])) ? $salao_atual['img_banner_index'] : 'salao-banner.jpg';
 $img_sobre_salao  = ($salao_atual && !empty($salao_atual['imagem_sobre'])) ? $salao_atual['imagem_sobre'] : 'salao-sobre.jpg';
 
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-banner-salao']['name']);
-if (@$_FILES['foto-banner-salao']['name'] != "") {
-	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
-	if (@$_FILES['foto-banner-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-banner-salao']['tmp_name']) : '';
-	if ($finfo) finfo_close($finfo);
-	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
-	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if ($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif') {
-		$img_banner_salao = $nome_img_salao;
-		move_uploaded_file(@$_FILES['foto-banner-salao']['tmp_name'], '../../images/' . $nome_img_salao);
-	} else {
-		echo 'Extensão de Imagem não permitida!';
-		exit();
-	}
+if(@$_FILES['foto-banner-salao']['name'] != ""){
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-banner-salao']);
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	$img_banner_salao = $nome_img_salao;
+	move_uploaded_file($_FILES['foto-banner-salao']['tmp_name'], '../../images/' . $nome_img_salao);
 }
 
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-sobre-salao']['name']);
-if (@$_FILES['foto-sobre-salao']['name'] != "") {
-	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
-	if (@$_FILES['foto-sobre-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
-	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-sobre-salao']['tmp_name']) : '';
-	if ($finfo) finfo_close($finfo);
-	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
-	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
-	if ($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif') {
-		$img_sobre_salao = $nome_img_salao;
-		move_uploaded_file(@$_FILES['foto-sobre-salao']['tmp_name'], '../../images/' . $nome_img_salao);
-	} else {
-		echo 'Extensão de Imagem não permitida!';
-		exit();
-	}
+if(@$_FILES['foto-sobre-salao']['name'] != ""){
+	$erro_img = bb_imagem_upload_valida($_FILES['foto-sobre-salao']);
+	if ($erro_img !== '') { echo $erro_img; exit(); }
+	$img_sobre_salao = $nome_img_salao;
+	move_uploaded_file($_FILES['foto-sobre-salao']['tmp_name'], '../../images/' . $nome_img_salao);
 }
 
 if ($nome_salao !== '') {

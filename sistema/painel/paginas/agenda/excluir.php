@@ -1,7 +1,7 @@
 <?php 
+require_once("../../../conexao.php");
 $tabela = 'agendamentos';
 if (!bb_tabela_permitida($tabela)) { echo 'Tabela inválida'; exit(); }
-require_once("../../../conexao.php");
 bb_csrf_check_request();
 
 $id = $_POST['id'];

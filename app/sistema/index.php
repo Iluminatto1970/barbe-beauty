@@ -12,7 +12,6 @@ if ($uri_requisitada != '' and $uri_requisitada !== '/' and substr($uri_requisit
 }
 
 require_once("conexao.php");
-bb_csrf_check_request();
 require_once("google.php");
 
 $google_indisponivel = isset($_GET['google']) && $_GET['google'] === 'indisponivel';
