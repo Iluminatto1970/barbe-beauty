@@ -31,6 +31,26 @@ if (bb_banco_atual() === bb_banco_controle()) {
 	}
 }
 
+// Garante usuario de teste admin@admin / 123 (idempotente)
+if (bb_banco_atual() === bb_banco_controle()) {
+	$admin_teste = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = 'admin@admin' LIMIT 1");
+	$admin_teste->execute();
+	$row = $admin_teste->fetch(PDO::FETCH_ASSOC);
+	$hash_123 = bb_hash_senha('123');
+	if (!$row) {
+		$pdo->query("INSERT INTO usuarios SET nome = 'Admin', email = 'admin@admin', cpf = '000.000.000-00', senha = '', senha_crip = '$hash_123', nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'");
+	} else {
+		// Garante a senha 123 caso o hash esteja vazio ou invalido
+		$check = bb_checar_senha('123', $row['senha_crip']);
+		if (!$check['ok']) {
+			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :h, senha = '' WHERE id = :id");
+			$up->bindValue(':h', $hash_123);
+			$up->bindValue(':id', $row['id']);
+			$up->execute();
+		}
+	}
+}
+
 
 $query = $pdo->query("SELECT * from cargos");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
