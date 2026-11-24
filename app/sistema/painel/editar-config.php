@@ -31,6 +31,11 @@ $caminho = '../img/' . $arquivo_logo;
 $imagem_temp = @$_FILES['foto-logo']['tmp_name']; 
 if(@$_FILES['foto-logo']['name'] != ""){
 	$ext = pathinfo(@$_FILES['foto-logo']['name'], PATHINFO_EXTENSION);   
+	if (@$_FILES['foto-logo']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
+	if ($finfo) finfo_close($finfo);
+	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if($ext == 'png'){ 
 		move_uploaded_file($imagem_temp, $caminho);
 	}else{
@@ -46,6 +51,11 @@ $caminho = '../img/' . $arquivo_icone;
 $imagem_temp = @$_FILES['foto-icone']['tmp_name']; 
 if(@$_FILES['foto-icone']['name'] != ""){
 	$ext = pathinfo(@$_FILES['foto-icone']['name'], PATHINFO_EXTENSION);   
+	if (@$_FILES['foto-icone']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
+	if ($finfo) finfo_close($finfo);
+	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if($ext == 'png'){ 
 		move_uploaded_file($imagem_temp, $caminho);
 	}else{
@@ -61,6 +71,11 @@ $caminho = '../img/' . $arquivo_logo_rel;
 $imagem_temp = @$_FILES['foto-logo-rel']['tmp_name']; 
 if(@$_FILES['foto-logo-rel']['name'] != ""){
 	$ext = pathinfo(@$_FILES['foto-logo-rel']['name'], PATHINFO_EXTENSION);   
+	if (@$_FILES['foto-logo-rel']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
+	if ($finfo) finfo_close($finfo);
+	if ($mime !== 'image/jpeg') { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if($ext == 'jpg'){ 
 		move_uploaded_file($imagem_temp, $caminho);
 	}else{
@@ -85,6 +100,12 @@ $imagem_temp = @$_FILES['foto-banner-index']['tmp_name'];
 
 if(@$_FILES['foto-banner-index']['name'] != ""){
 	$ext = pathinfo($nome_img, PATHINFO_EXTENSION);   
+	if (@$_FILES['foto-banner-index']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
+	if ($finfo) finfo_close($finfo);
+	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
+	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif'){ 
 				
 	$img_banner_index = $nome_img;
@@ -113,6 +134,12 @@ $imagem_temp = @$_FILES['foto-sobre']['tmp_name'];
 
 if(@$_FILES['foto-sobre']['name'] != ""){
 	$ext = pathinfo($nome_img, PATHINFO_EXTENSION);   
+	if (@$_FILES['foto-sobre']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
+	if ($finfo) finfo_close($finfo);
+	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
+	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif'){ 
 				
 	$img_sobre = $nome_img;
@@ -132,6 +159,11 @@ $caminho = '../../images/' . $arquivo_icone_site;
 $imagem_temp = @$_FILES['foto-icone-site']['tmp_name']; 
 if(@$_FILES['foto-icone-site']['name'] != ""){
 	$ext = pathinfo(@$_FILES['foto-icone-site']['name'], PATHINFO_EXTENSION);   
+	if (@$_FILES['foto-icone-site']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, $imagem_temp) : '';
+	if ($finfo) finfo_close($finfo);
+	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if($ext == 'png'){ 
 		move_uploaded_file($imagem_temp, $caminho);
 	}else{
@@ -185,6 +217,11 @@ $icone_salao    = ($salao_atual && !empty($salao_atual['icone_site'])) ? $salao_
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-logo-salao']['name']);
 if (@$_FILES['foto-logo-salao']['name'] != "") {
 	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
+	if (@$_FILES['foto-logo-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-logo-salao']['tmp_name']) : '';
+	if ($finfo) finfo_close($finfo);
+	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if ($ext == 'png') {
 		$logo_salao = $nome_img_salao;
 		move_uploaded_file(@$_FILES['foto-logo-salao']['tmp_name'], '../img/' . $nome_img_salao);
@@ -197,6 +234,11 @@ if (@$_FILES['foto-logo-salao']['name'] != "") {
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-icone-salao']['name']);
 if (@$_FILES['foto-icone-salao']['name'] != "") {
 	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
+	if (@$_FILES['foto-icone-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-icone-salao']['tmp_name']) : '';
+	if ($finfo) finfo_close($finfo);
+	if ($mime !== 'image/png') { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if ($ext == 'png') {
 		$icone_salao = $nome_img_salao;
 		move_uploaded_file(@$_FILES['foto-icone-salao']['tmp_name'], '../../images/' . $nome_img_salao);
@@ -211,6 +253,12 @@ $img_sobre_salao  = ($salao_atual && !empty($salao_atual['imagem_sobre'])) ? $sa
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-banner-salao']['name']);
 if (@$_FILES['foto-banner-salao']['name'] != "") {
 	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
+	if (@$_FILES['foto-banner-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-banner-salao']['tmp_name']) : '';
+	if ($finfo) finfo_close($finfo);
+	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
+	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if ($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif') {
 		$img_banner_salao = $nome_img_salao;
 		move_uploaded_file(@$_FILES['foto-banner-salao']['tmp_name'], '../../images/' . $nome_img_salao);
@@ -223,6 +271,12 @@ if (@$_FILES['foto-banner-salao']['name'] != "") {
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-sobre-salao']['name']);
 if (@$_FILES['foto-sobre-salao']['name'] != "") {
 	$ext = pathinfo($nome_img_salao, PATHINFO_EXTENSION);
+	if (@$_FILES['foto-sobre-salao']['size'] > 2 * 1024 * 1024) { echo 'Arquivo muito grande (max 2MB)!'; exit(); }
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+	$mime = $finfo ? finfo_file($finfo, @$_FILES['foto-sobre-salao']['tmp_name']) : '';
+	if ($finfo) finfo_close($finfo);
+	$allowed = array('image/png','image/jpeg','image/gif','image/webp');
+	if (!in_array($mime, $allowed, true)) { echo 'Tipo de arquivo não permitido!'; exit(); }
 	if ($ext == 'png' or $ext == 'jpg' or $ext == 'jpeg' or $ext == 'gif') {
 		$img_sobre_salao = $nome_img_salao;
 		move_uploaded_file(@$_FILES['foto-sobre-salao']['tmp_name'], '../../images/' . $nome_img_salao);
