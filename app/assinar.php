@@ -12,16 +12,14 @@ asaas_garantir_colunas($pdo);
 $planos = $pdo->query("SELECT * FROM saas_planos WHERE ativo = 'Sim' ORDER BY valor ASC")->fetchAll(PDO::FETCH_ASSOC);
 $cfg = asaas_config();
 
-// Plano sugerido: o de R$ 49 (valor padrao) ou o mais barato
+// Plano sugerido: o gratuito (menor valor)
 $plano_sugerido = 0;
+$menor_valor = null;
 foreach ($planos as $p) {
-    if (abs((float) $p['valor'] - $cfg['valor']) < 0.01) {
+    if ($menor_valor === null || (float) $p['valor'] < $menor_valor) {
         $plano_sugerido = (int) $p['id'];
-        break;
+        $menor_valor = (float) $p['valor'];
     }
-}
-if ($plano_sugerido === 0 && count($planos) > 0) {
-    $plano_sugerido = (int) $planos[0]['id'];
 }
 
 $erro = isset($_GET['erro']) ? (string) $_GET['erro'] : '';
@@ -72,8 +70,8 @@ $_SESSION['assinar_csrf'] = $csrf;
 <body>
   <div class="assinar-hero">
     <div class="brand" style="margin-bottom:14px">⚙️ <strong>Barbearia PRO</strong><span class="muted">assinatura do sistema</span></div>
-    <h1>Crie sua conta e comece a usar</h1>
-    <p>Cadastre seu estabelecimento, escolha o plano e pague a primeira mensalidade. A cobrança se renova automaticamente todo mês.</p>
+    <h1>Crie sua conta e comece grátis</h1>
+    <p>Comece no plano gratuito com até 30 agendamentos por mês. Quando precisar de mais, o plano PRO libera agendamentos ilimitados por R$ 49/mês — com agenda, clientes, estoque, financeiro e relatórios no mesmo sistema.</p>
   </div>
 
   <div class="wrap" style="padding-top:18px">
@@ -149,16 +147,16 @@ $_SESSION['assinar_csrf'] = $csrf;
                       <?php echo (int) $p['limite_agendamentos'] > 0 ? (int) $p['limite_agendamentos'] . ' agendamentos/mês' : 'Agendamentos ilimitados'; ?>
                     </small>
                   </span>
-                  <span class="plano-preco"><?php echo sa_moeda($p['valor']); ?><span>/mês</span></span>
+                  <span class="plano-preco"><?php echo ((float) $p['valor'] <= 0) ? 'Grátis' : sa_moeda($p['valor']); ?><span><?php echo ((float) $p['valor'] <= 0) ? '' : '/mês'; ?></span></span>
                 </span>
               </label>
             <?php } ?>
           </div>
 
           <div class="acoes-form" style="margin-top:16px">
-            <button type="submit" class="btn primario" style="width:100%">Criar conta e ir para o pagamento</button>
+            <button type="submit" class="btn primario" style="width:100%">Criar minha conta grátis</button>
           </div>
-          <p class="nota">Ao criar a conta você concorda com a cobrança mensal do plano escolhido. O cancelamento pode ser feito a qualquer momento.</p>
+          <p class="nota">O plano gratuito não pede cartão. No plano pago a cobrança é mensal e o cancelamento pode ser feito a qualquer momento.</p>
           <p class="nota">Já tem conta? <a href="sistema/">Entrar no painel</a></p>
         </div>
       </div>

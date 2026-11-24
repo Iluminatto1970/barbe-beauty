@@ -68,10 +68,6 @@ if (strlen($senha) < 6) {
 if ($senha !== $senha2) {
     $voltar('As senhas não conferem.');
 }
-if (!asaas_configurado()) {
-    $voltar('Pagamento indisponível no momento. Tente novamente mais tarde.');
-}
-
 // Plano escolhido
 $q = $pdo->prepare("SELECT * FROM saas_planos WHERE id = :id AND ativo = 'Sim' LIMIT 1");
 $q->bindValue(':id', $plano_id, PDO::PARAM_INT);
@@ -81,8 +77,11 @@ if (!$plano) {
     $voltar('Escolha um plano válido.');
 }
 $valor = (float) $plano['valor'];
-if ($valor <= 0) {
-    $valor = asaas_config()['valor'];
+$gratis = ($valor <= 0);
+
+// Plano gratuito nao passa pelo Asaas
+if (!$gratis && !asaas_configurado()) {
+    $voltar('Pagamento indisponível no momento. Tente novamente mais tarde.');
 }
 
 // Unicidade de slug e e-mail
@@ -105,7 +104,8 @@ $token = bin2hex(random_bytes(24));
 // Cria o estabelecimento aguardando pagamento
 $ins = $pdo->prepare("INSERT INTO tenants
     (slug, nome, email, telefone, plano_id, status, vencimento, senha_crip, token, origem, criado_em)
-    VALUES (:slug, :nome, :email, :telefone, :plano, 'pendente', NULL, :senha, :token, 'autocadastro', NOW())");
+    VALUES (:slug, :nome, :email, :telefone, :plano, :status, NULL, :senha, :token, 'autocadastro', NOW())");
+$ins->bindValue(':status', $gratis ? 'trial' : 'pendente');
 $ins->bindValue(':slug', $slug);
 $ins->bindValue(':nome', $nome);
 $ins->bindValue(':email', $email);
@@ -133,6 +133,13 @@ try {
     bb_tenant_provisionar($pdo, $tenant_id);
 } catch (Exception $e) {
     // Mantem o cadastro; o pagamento/ativacao segue normalmente
+}
+
+// Plano gratuito: conta ja nasce ativa (status trial), sem cobranca
+if ($gratis) {
+    unset($_SESSION['assinar_csrf']);
+    header('Location: assinar-pagamento.php?t=' . urlencode($token));
+    exit;
 }
 
 // Assinatura recorrente no Asaas

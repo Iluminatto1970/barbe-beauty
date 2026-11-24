@@ -553,7 +553,8 @@ CREATE TABLE `usuarios` (
   `atendimento` varchar(5) NOT NULL,
   `tipo_chave` varchar(25) DEFAULT NULL,
   `chave_pix` varchar(50) DEFAULT NULL,
-  `segmento` varchar(20) NOT NULL DEFAULT ''
+  `segmento` varchar(20) NOT NULL DEFAULT '',
+  `precisa_trocar_senha` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
@@ -930,9 +931,8 @@ CREATE TABLE IF NOT EXISTS `saas_planos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `saas_planos` (`id`, `nome`, `valor`, `limite_profissionais`, `limite_agendamentos`, `ativo`) VALUES
-(1, 'Básico', 89.00, 2, 200, 'Sim'),
-(2, 'Profissional', 149.00, 5, 1000, 'Sim'),
-(3, 'Premium', 249.00, 0, 0, 'Sim');
+(1, 'Grátis', 0.00, 0, 30, 'Sim'),
+(2, 'PRO', 49.00, 0, 0, 'Sim');
 
 CREATE TABLE IF NOT EXISTS `tenants` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

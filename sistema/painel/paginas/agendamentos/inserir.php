@@ -3,6 +3,12 @@ $tabela = 'agendamentos';
 require_once("../../../conexao.php");
 bb_csrf_check_request();
 
+// Plano gratuito: bloqueia quando a cota mensal acabou
+if (bb_quota_atingida($pdo)) {
+	echo bb_quota_mensagem();
+	exit();
+}
+
 @session_start();
 $usuario_logado = @$_SESSION['id'];
 

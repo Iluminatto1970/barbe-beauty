@@ -527,6 +527,9 @@ $email_sistema_base      = isset($email_sistema) ? $email_sistema : '';
 
 bb_aplicar_segmento($segmento);
 
+// Plano e cota de agendamentos do SaaS (usa o tenant resolvido acima)
+require_once(__DIR__ . '/planos.php');
+
 // Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX) - apos definicao dos helpers
 if (php_sapi_name() !== 'cli' && !headers_sent()) {
 	$ct = bb_csrf_token();

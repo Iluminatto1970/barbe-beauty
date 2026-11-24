@@ -1,6 +1,12 @@
 <?php
 require_once("../sistema/conexao.php");
 
+// Cota do plano gratuito: sem agendamentos quando o limite do mes acabou
+if (bb_quota_atingida($pdo)) {
+	echo 'As reservas online estão temporariamente indisponíveis. Fale com o estabelecimento pelo WhatsApp.';
+	exit();
+}
+
 $telefone = $_POST['telefone'];
 $nome = $_POST['nome'];
 $funcionario = $_POST['funcionario'];

@@ -176,6 +176,7 @@ $dataMesInicial = $partesInicial[1];
 <body class="cbp-spmenu-push">
 
 	<div class="main-content">
+<?php require_once(__DIR__ . '/quota-banner.php'); ?>
 		<!-- Barra superior apenas no celular/tablet -->
 		<div class="barra-mobile">
 			<button type="button" class="botao-menu" id="btn-menu-mobile" aria-label="Abrir menu" aria-expanded="false">

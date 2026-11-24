@@ -1221,6 +1221,50 @@ for($i=0; $i < $total_reg; $i++){
     </section>
     <!-- end slider section -->
 
+<?php if (bb_banco_atual() === bb_banco_controle()) { ?>
+  <!-- inicio gratis (SaaS) -->
+  <section class="assinar_section" style="padding:70px 0;background:linear-gradient(135deg,#0f1720 0%,#17303a 100%);color:#fff">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <span style="display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#d9b26a;font-weight:700">Gestor completo do estabelecimento</span>
+          <h2 style="color:#fff;font-size:34px;margin:12px 0 14px">Comece grátis hoje</h2>
+          <p style="color:#cbd5e0;font-size:17px;line-height:1.7;margin:0 0 16px">
+            Crie sua conta sem cartão e use até <strong style="color:#fff">30 agendamentos por mês</strong> de graça.
+            Quando o movimento crescer, o plano PRO libera agendamentos ilimitados por <strong style="color:#fff">R$ 49/mês</strong>.
+          </p>
+          <p style="color:#cbd5e0;font-size:15px;line-height:1.7;margin:0 0 22px">
+            E não é só agenda: é o <strong style="color:#fff">gestor completo da sua barbearia ou salão</strong> —
+            clientes e histórico de atendimentos, serviços e profissionais, produtos e estoque,
+            contas a pagar e receber, comissões, relatórios, cartão fidelidade e seu próprio site
+            com agendamento online 24 horas.
+          </p>
+          <a href="assinar.php" style="display:inline-block;padding:14px 26px;border-radius:32px;background:#d9b26a;color:#0f1720;font-weight:700;text-decoration:none;margin:0 8px 10px 0">Criar minha conta grátis</a>
+          <a href="assinar.php" style="display:inline-block;padding:14px 26px;border-radius:32px;border:1px solid rgba(255,255,255,.35);color:#fff;font-weight:600;text-decoration:none">Ver planos</a>
+          <div style="font-size:12px;color:#8fa3b0;margin-top:10px">Sem cartão no plano gratuito · cancele quando quiser</div>
+        </div>
+        <div class="col-lg-5">
+          <div style="display:grid;gap:10px">
+            <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 16px">
+              <strong style="color:#fff">Agenda online 24h</strong>
+              <div style="font-size:13px;color:#b9c6d0">Cliente agenda sozinho, você recebe confirmado.</div>
+            </div>
+            <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 16px">
+              <strong style="color:#fff">Financeiro e comissões</strong>
+              <div style="font-size:13px;color:#b9c6d0">Contas a pagar e receber, caixa e comissão por profissional.</div>
+            </div>
+            <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 16px">
+              <strong style="color:#fff">Estoque, clientes e relatórios</strong>
+              <div style="font-size:13px;color:#b9c6d0">Produtos, fidelidade e números do mês em um só lugar.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- fim gratis -->
+<?php } ?>
+
   <?php } ?>
 
   </div>

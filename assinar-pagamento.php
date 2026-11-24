@@ -30,7 +30,8 @@ if (!$tenant) {
     exit;
 }
 
-$pago = ($tenant['status'] === 'ativo');
+$gratis = ((float) $tenant['plano_valor'] <= 0);
+$pago = in_array($tenant['status'], array('ativo', 'trial'), true);
 $pagamento = null;
 $erro_api = '';
 
@@ -75,14 +76,20 @@ $painel_url = bb_boas_vindas_url($tenant['slug']);
     <?php if ($pago) { ?>
       <div class="ok-icone">✅</div>
       <div class="cabeca">
-        <h1>Pagamento confirmado</h1>
-        <p>Sua conta <strong><?php echo sa_e($tenant['nome']); ?></strong> está ativa.</p>
+        <h1><?php echo $gratis ? 'Conta criada' : 'Pagamento confirmado'; ?></h1>
+        <p>Sua conta <strong><?php echo sa_e($tenant['nome']); ?></strong> está ativa<?php echo $gratis ? ' no plano gratuito' : ''; ?>.</p>
       </div>
       <div class="painel">
         <div class="resumo">
           <div class="linha"><span>Plano</span><span><?php echo sa_e($tenant['plano'] ? $tenant['plano'] : 'Mensal'); ?></span></div>
-          <div class="linha"><span>Mensalidade</span><span><?php echo sa_moeda($valor); ?></span></div>
-          <div class="linha"><span>Próximo vencimento</span><span><?php echo sa_data($tenant['vencimento']); ?></span></div>
+          <?php if ($gratis) { ?>
+            <div class="linha"><span>Mensalidade</span><span>Grátis</span></div>
+            <div class="linha"><span>Limite do plano</span><span>30 agendamentos/mês</span></div>
+            <div class="linha"><span>Plano ilimitado</span><span><?php echo sa_moeda(bb_plano_upgrade_preco()); ?>/mês</span></div>
+          <?php } else { ?>
+            <div class="linha"><span>Mensalidade</span><span><?php echo sa_moeda($valor); ?></span></div>
+            <div class="linha"><span>Próximo vencimento</span><span><?php echo sa_data($tenant['vencimento']); ?></span></div>
+          <?php } ?>
           <div class="linha"><span>Endereço do site</span><span><?php echo sa_e($tenant['slug'] . '.' . SA_DOMINIO_BASE); ?></span></div>
         </div>
       </div>

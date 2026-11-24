@@ -152,4 +152,20 @@ function sa_garantir_tabelas($pdo)
         criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         KEY idx_tenant (tenant_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Planos padrao (idempotente): gratuito com cota e PRO mensal
+    static $planos_ok = false;
+    if (!$planos_ok) {
+        $tem_gratis = (int) $pdo->query("SELECT COUNT(*) FROM saas_planos WHERE ativo = 'Sim' AND valor <= 0")->fetchColumn();
+        if ($tem_gratis === 0) {
+            $pdo->exec("INSERT INTO saas_planos (nome, valor, limite_profissionais, limite_agendamentos, ativo)
+                VALUES ('Grátis', 0.00, 0, 30, 'Sim')");
+        }
+        $tem_pro = (int) $pdo->query("SELECT COUNT(*) FROM saas_planos WHERE ativo = 'Sim' AND valor = 49.00")->fetchColumn();
+        if ($tem_pro === 0) {
+            $pdo->exec("INSERT INTO saas_planos (nome, valor, limite_profissionais, limite_agendamentos, ativo)
+                VALUES ('PRO', 49.00, 0, 0, 'Sim')");
+        }
+        $planos_ok = true;
+    }
 }
