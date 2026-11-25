@@ -33,7 +33,11 @@ if (!function_exists('bb_email_env')) {
             $arquivo = array();
             $caminho = getenv('MAIL_ENV_FILE');
             if (!$caminho) {
-                $caminho = dirname(__DIR__, 2) . '/.secrets/mail.env';
+                // Raiz do projeto: /var/www/beauty/.secrets/mail.env
+                $caminho = dirname(__DIR__) . '/.secrets/mail.env';
+                if (!is_readable($caminho)) {
+                    $caminho = dirname(__DIR__, 2) . '/.secrets/mail.env';
+                }
             }
             if (is_readable($caminho)) {
                 $linhas = @file($caminho, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
