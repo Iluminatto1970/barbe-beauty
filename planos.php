@@ -79,7 +79,7 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Barbearia PRO · sistema completo para barbearias, salões e qualquer estabelecimento de beleza</title>
-  <meta name="description" content="Agenda online, site próprio, clientes, produtos, financeiro, comissões e relatórios em um só sistema. Comece grátis, sem cartão.">
+  <meta name="description" content="Sistema de gestão para barbearias, salões de beleza e qualquer estabelecimento que trabalhe com beleza: agenda online, site próprio, clientes, produtos, financeiro, comissões e relatórios. Comece grátis, sem cartão.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
