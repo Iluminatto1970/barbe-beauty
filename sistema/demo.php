@@ -12,7 +12,7 @@
 @session_start();
 require_once(__DIR__ . '/conexao.php');
 
-if (!bb_instalacao_principal()) {
+if (!bb_demo_disponivel()) {
     echo "<script>window.alert('A demonstração não está disponível neste estabelecimento.')</script>";
     echo "<script>window.location='index.php'</script>";
     exit;
@@ -27,8 +27,9 @@ if ($espera > 0) {
 }
 
 // O banco ficticio precisa estar pronto antes de montar a sessao.
+// A conexao de controle continua separada da conexao do tenant.
 try {
-    $pdo_demo = bb_demo_garantir_banco($pdo);
+    $pdo_demo = bb_demo_garantir_banco(($pdo_controle instanceof PDO) ? $pdo_controle : $pdo);
 } catch (Exception $e) {
     echo "<script>window.alert('A demonstração está temporariamente indisponível.')</script>";
     echo "<script>window.location='index.php'</script>";

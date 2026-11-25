@@ -140,6 +140,7 @@ function sa_garantir_tabelas($pdo)
         vencimento DATE DEFAULT NULL,
         criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         db_name VARCHAR(64) DEFAULT NULL,
+        site_demo TINYINT(1) NOT NULL DEFAULT 0,
         boas_vindas_em DATETIME DEFAULT NULL,
         cpf_cnpj VARCHAR(20) DEFAULT NULL,
         schema_version INT UNSIGNED NOT NULL DEFAULT 0,

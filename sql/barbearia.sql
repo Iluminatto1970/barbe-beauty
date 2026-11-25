@@ -946,6 +946,7 @@ CREATE TABLE IF NOT EXISTS `tenants` (
   `vencimento` date DEFAULT NULL,
   `criado_em` datetime NOT NULL DEFAULT current_timestamp(),
   `db_name` varchar(64) DEFAULT NULL,
+  `site_demo` tinyint(1) NOT NULL DEFAULT 0,
   `boas_vindas_em` datetime DEFAULT NULL,
   `schema_version` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),

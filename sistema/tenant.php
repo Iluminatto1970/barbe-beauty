@@ -275,6 +275,7 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
         try {
             $colunas = array(
                 'db_name'        => "VARCHAR(64) NULL DEFAULT NULL",
+                'site_demo'      => "TINYINT(1) NOT NULL DEFAULT 0",
                 'boas_vindas_em' => "DATETIME NULL DEFAULT NULL",
                 'schema_version' => "INT UNSIGNED NOT NULL DEFAULT 0",
             );

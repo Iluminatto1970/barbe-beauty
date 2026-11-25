@@ -18,8 +18,17 @@ $google_indisponivel = isset($_GET['google']) && $_GET['google'] === 'indisponiv
 $google_erro = isset($_GET['google']) && $_GET['google'] === 'erro';
 
 //INSERIR UM USUÁRIO ADMINISTRADOR CASO NÃO EXISTA
-//Somente na instalacao principal: cada cliente recebe o admin no provisionamento
+//Somente na instalacao principal: cada cliente recebe o admin no provisionamento.
+//O banco de controle separado nao tem tabela de usuarios; nesse caso, nada a fazer.
+$bb_control_com_usuarios = false;
 if (bb_banco_atual() === bb_banco_controle()) {
+	try {
+		$bb_control_com_usuarios = (bool) $pdo->query("SHOW TABLES LIKE 'usuarios'")->fetchColumn();
+	} catch (Exception $e) {
+		$bb_control_com_usuarios = false;
+	}
+}
+if ($bb_control_com_usuarios) {
 	$senha = '123';
 	$senha_crip = bb_hash_senha($senha);
 
@@ -33,7 +42,7 @@ if (bb_banco_atual() === bb_banco_controle()) {
 }
 
 // Garante conta de teste admin@admin / 123 (idempotente)
-if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
+if ($bb_control_com_usuarios && bb_permitir_usuarios_teste()) {
 	$hash_123 = bb_hash_senha('123');
 	foreach (array('admin@admin') as $email_teste) {
 		$st = $pdo->prepare("SELECT id, senha_crip, demo FROM usuarios WHERE email = :e LIMIT 1");
@@ -58,7 +67,7 @@ if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
 // localhost. Com outro Administrador ativo ela segue ativa apenas como
 // demonstracao (leitura); se for o unico admin, e desativada, para nao deixar
 // o sistema com uma credencial publica de poder total.
-if (bb_banco_atual() === bb_banco_controle() && !bb_permitir_usuarios_teste()) {
+if ($bb_control_com_usuarios && !bb_permitir_usuarios_teste()) {
 	$st_demo = $pdo->prepare("SELECT id, demo FROM usuarios WHERE email = 'admin@admin' AND ativo = 'Sim' LIMIT 1");
 	$st_demo->execute();
 	$demo = $st_demo->fetch(PDO::FETCH_ASSOC);
@@ -79,11 +88,16 @@ if (bb_banco_atual() === bb_banco_controle() && !bb_permitir_usuarios_teste()) {
 	}
 }
 
-$query = $pdo->query("SELECT * from cargos");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_reg = @count($res);
-if($total_reg == 0){
-	$pdo->query("INSERT INTO cargos SET nome = 'Administrador'");
+// O banco de controle separado nao possui a tabela de cargos.
+try {
+	$query = $pdo->query("SELECT * from cargos");
+	$res = $query->fetchAll(PDO::FETCH_ASSOC);
+	$total_reg = @count($res);
+	if($total_reg == 0){
+		$pdo->query("INSERT INTO cargos SET nome = 'Administrador'");
+	}
+} catch (Exception $e) {
+	// sem tabela de cargos no controle; nada a inicializar
 }
 
 
@@ -242,11 +256,10 @@ if($total_reg == 0){
                             </div>
 
                             <?php
-                            // Area de cadastro de novos estabelecimentos: existe apenas
-                            // na instalacao principal, ou seja, quando a requisicao e
-                            // servida pelo banco de controle. No banco de um cliente o
-                            // site e o painel sao dele, sem oferta do SaaS.
-                            if (bb_instalacao_principal()) {
+                            // Area de cadastro de novos estabelecimentos: existe na
+                            // instalacao principal e no dominio marcado para demonstracao.
+                            // No banco de um cliente comum nao ha oferta do SaaS.
+                            if (bb_demo_disponivel()) {
                                 $bb_login_gratis = null;
                                 $bb_login_pago = null;
                                 try {

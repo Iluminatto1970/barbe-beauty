@@ -175,6 +175,20 @@ if (!function_exists('bb_site_demo')) {
     }
 }
 
+// A demonstracao existe na instalacao principal e em estabelecimentos
+// marcados com site_demo = 1. O painel normal continua no banco real do
+// tenant; somente o site publico (e a sessao demo) usam o banco ficticio.
+if (!function_exists('bb_demo_disponivel')) {
+    function bb_demo_disponivel()
+    {
+        global $tenant_atual;
+        if (!empty($GLOBALS['bb_instalacao_principal'])) {
+            return true;
+        }
+        return ($tenant_atual && !empty($tenant_atual['site_demo']));
+    }
+}
+
 // ============================================================
 // MODO DEMONSTRACAO (Sprint: conta demo simula Admin, sem escrever)
 // ------------------------------------------------------------
@@ -753,7 +767,7 @@ $bb_host_req = bb_host_atual();
 if (bb_requisicao_de_controle($bb_caminho_req)) {
     // Painel SaaS e autocadastro existem somente no dominio principal
     $bb_tenant_host = bb_tenant_resolver($pdo_controle, $bb_host_req);
-    if ($bb_tenant_host && bb_tenant_banco($bb_tenant_host) !== $banco) {
+    if ($bb_tenant_host && bb_tenant_banco($bb_tenant_host) !== $banco && empty($bb_tenant_host['site_demo'])) {
         http_response_code(404);
         echo 'Nao encontrado.';
         exit;
@@ -776,7 +790,7 @@ if (bb_requisicao_de_controle($bb_caminho_req)) {
 // principal, so o site publico e a sessao demo do painel usam o banco
 // ficticio; o login e o painel normal continuam no banco real.
 $bb_instalacao_principal = ($bb_tenant_db_atual === $banco);
-if ($bb_instalacao_principal && !bb_requisicao_de_controle($bb_caminho_req)) {
+if (bb_demo_disponivel() && !bb_requisicao_de_controle($bb_caminho_req)) {
     // Funciona com o sistema na raiz ou em subpasta (XAMPP, /barbearia).
     $bb_em_sistema = (bool) preg_match('~(^|/)sistema(/|$)~', $bb_caminho_req);
     $bb_em_painel = (bool) preg_match('~(^|/)sistema/painel(/|$)~', $bb_caminho_req);
@@ -851,8 +865,33 @@ $nome_sistema      = 'Barbearia PRO';
 $email_sistema     = 'admin@admin';
 $whatsapp_sistema  = '(11) 9999-9999';
 $segmento          = 'barbearia';
+$tipo_rel          = 'pdf';
+$telefone_fixo_sistema = '';
+$endereco_sistema  = '';
+$logo_rel          = 'logo_rel.jpg';
+$logo_sistema      = 'logo.png';
+$icone_sistema     = 'favicon.ico';
+$instagram_sistema = '';
+$tipo_comissao     = 'Porcentagem';
+$texto_rodape      = 'Edite este texto nas configuracoes do painel administrativo';
+$img_banner_index  = 'banner.jpg';
+$icone_site        = 'favicon.png';
+$texto_sobre       = '';
+$imagem_sobre      = 'foto_barbearia.jpg';
+$mapa              = '';
+$quantidade_cartoes = 10;
+$texto_fidelidade  = '';
+$texto_agendamento = 'Selecionar Prestador de Servico';
+$msg_agendamento   = 'Sim';
+$tel_whatsapp      = bb_tel_whatsapp_numero($whatsapp_sistema);
 
-$query = $pdo->query("SELECT * from config ");
+// O banco de controle nao tem as tabelas de um estabelecimento. Quando
+// a requisicao e do SaaS (planos/assinatura), segue com os defaults acima.
+try {
+    $query = $pdo->query("SELECT * from config ");
+} catch (Exception $e) {
+    $query = false;
+}
 if ($query) {
     $res = $query->fetchAll(PDO::FETCH_ASSOC);
     $total_reg = @count($res);
