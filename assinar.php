@@ -61,6 +61,10 @@ $_SESSION['assinar_csrf'] = $csrf;
     }
     .formas input { accent-color: var(--accent); }
     .nota { font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .slug-status { display: block; margin-top: 6px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+    .slug-status[data-estado="livre"] { color: var(--ok); }
+    .slug-status[data-estado="reservado"], .slug-status[data-estado="em_uso"] { color: var(--danger); }
+    .slug-status[data-estado="curto"], .slug-status[data-estado="longo"], .slug-status[data-estado="formato"] { color: var(--warn); }
     .duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 560px) { .duas-colunas { grid-template-columns: 1fr; } }
     .rodape-assinar { text-align: center; color: var(--muted); font-size: 12px; padding: 26px 20px 40px; }
@@ -93,8 +97,9 @@ $_SESSION['assinar_csrf'] = $csrf;
             </div>
             <div class="campo">
               <label for="slug">Endereço do seu site</label>
-              <input type="text" id="slug" name="slug" required maxlength="40" pattern="[a-z0-9\-]+" placeholder="barbearia-estilo" value="<?php echo sa_e(isset($_GET['slug']) ? $_GET['slug'] : ''); ?>">
+              <input type="text" id="slug" name="slug" required maxlength="40" pattern="[a-z0-9\-]+" placeholder="barbearia-estilo" aria-describedby="slug-dica slug-status" value="<?php echo sa_e(isset($_GET['slug']) ? $_GET['slug'] : ''); ?>">
               <small class="muted" id="slug-dica">barbearia-estilo.<?php echo sa_e(SA_DOMINIO_BASE); ?></small>
+              <small class="slug-status" id="slug-status" role="status" aria-live="polite"></small>
             </div>
           </div>
 
@@ -175,11 +180,18 @@ $_SESSION['assinar_csrf'] = $csrf;
 
   <script>
     (function () {
+      var form = document.querySelector('form[action="assinar-salvar.php"]');
       var nome = document.getElementById('nome');
       var slug = document.getElementById('slug');
       var dica = document.getElementById('slug-dica');
+      var status = document.getElementById('slug-status');
       var base = <?php echo json_encode(SA_DOMINIO_BASE); ?>;
       var editou = false;
+      var timer = null;
+      var pedido = 0;
+      var estado = '';
+      var conferido = '';
+      var controlador = null;
 
       function limpar(texto) {
         return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -188,17 +200,85 @@ $_SESSION['assinar_csrf'] = $csrf;
 
       if (!slug || !nome) { return; }
 
+      function pintar(novo, texto) {
+        estado = novo;
+        if (!status) { return; }
+        status.setAttribute('data-estado', novo);
+        status.textContent = texto || '';
+      }
+
+      // Mesma regra do servidor: quem decide livre/reservado/em uso e bb_slug_avaliar
+      function conferir(valor) {
+        if (valor.length < 3) {
+          conferido = valor;
+          pintar(valor === '' ? '' : 'curto', valor === '' ? '' : 'O endereço precisa ter ao menos 3 caracteres.');
+          return;
+        }
+
+        pedido += 1;
+        var meu = pedido;
+        if (controlador) { controlador.abort(); }
+        controlador = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        pintar('conferindo', 'Verificando se está livre…');
+
+        fetch('assinar-slug.php?slug=' + encodeURIComponent(valor), {
+          cache: 'no-store',
+          signal: controlador ? controlador.signal : undefined
+        })
+          .then(function (r) {
+            if (!r.ok) { throw new Error('http ' + r.status); }
+            return r.json();
+          })
+          .then(function (dados) {
+            if (meu !== pedido || slug.value !== valor) { return; }
+            conferido = valor;
+            var host = dados.host || (valor + '.' + base);
+            if (dica) { dica.textContent = host; }
+            if (dados.estado === 'livre') {
+              pintar('livre', '✓ ' + host + ' está livre.');
+            } else {
+              pintar(dados.estado, dados.motivo || 'Este endereço não pode ser usado.');
+            }
+          })
+          .catch(function (erro) {
+            if (erro && erro.name === 'AbortError') { return; }
+            if (meu !== pedido) { return; }
+            conferido = '';
+            pintar('', 'Não foi possível verificar agora. O endereço será validado ao enviar.');
+          });
+      }
+
+      function agendar(valor) {
+        clearTimeout(timer);
+        timer = setTimeout(function () { conferir(valor); }, 350);
+      }
+
       slug.addEventListener('input', function () {
         editou = true;
         this.value = limpar(this.value);
-        dica.textContent = (this.value || 'seu-endereco') + '.' + base;
+        if (dica) { dica.textContent = (this.value || 'seu-endereco') + '.' + base; }
+        agendar(this.value);
       });
 
       nome.addEventListener('input', function () {
         if (editou) { return; }
         slug.value = limpar(this.value);
-        dica.textContent = (slug.value || 'seu-endereco') + '.' + base;
+        if (dica) { dica.textContent = (slug.value || 'seu-endereco') + '.' + base; }
+        agendar(slug.value);
       });
+
+      // Nao deixa enviar com um problema que o servidor ja apontou
+      if (form) {
+        form.addEventListener('submit', function (evento) {
+          var bloqueios = ['curto', 'longo', 'formato', 'reservado', 'em_uso'];
+          if (slug.value !== '' && conferido === slug.value && bloqueios.indexOf(estado) !== -1) {
+            evento.preventDefault();
+            slug.focus();
+          }
+        }, true);
+      }
+
+      if (slug.value) { agendar(slug.value); }
     })();
   </script>
 </body>

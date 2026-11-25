@@ -651,28 +651,47 @@ if (!function_exists('bb_slug_formato_ok')) {
     }
 }
 
-if (!function_exists('bb_slug_motivo')) {
-    // Devolve '' quando o slug pode ser usado, ou a mensagem do motivo.
+if (!function_exists('bb_slug_avaliar')) {
+    // Regra unica do slug: devolve estado + mensagem.
+    // Estados: livre, curto, longo, formato, reservado, em_uso, indisponivel.
     // $tenant_id ignora o proprio estabelecimento (edicao no super admin).
-    function bb_slug_motivo($pdo, $slug, $tenant_id = 0)
+    function bb_slug_avaliar($pdo, $slug, $tenant_id = 0)
     {
         $slug = strtolower(trim((string) $slug));
         $tenant_id = (int) $tenant_id;
+        $base = strtolower((string) BB_DOMINIO_BASE);
+
+        $resultado = array(
+            'slug'   => $slug,
+            'host'   => $slug !== '' ? $slug . '.' . $base : '',
+            'estado' => 'livre',
+            'motivo' => '',
+        );
 
         if ($slug === '' || strlen($slug) < 3) {
-            return 'O endereço do site precisa ter ao menos 3 caracteres.';
+            $resultado['estado'] = 'curto';
+            $resultado['motivo'] = 'O endereço do site precisa ter ao menos 3 caracteres.';
+            return $resultado;
         }
         if (strlen($slug) > 40) {
-            return 'O endereço do site pode ter no máximo 40 caracteres.';
+            $resultado['estado'] = 'longo';
+            $resultado['motivo'] = 'O endereço do site pode ter no máximo 40 caracteres.';
+            return $resultado;
         }
         if (!bb_slug_formato_ok($slug)) {
-            return 'Use apenas letras, números e hífen, começando e terminando com letra ou número.';
+            $resultado['estado'] = 'formato';
+            $resultado['motivo'] = 'Use apenas letras, números e hífen, começando e terminando com letra ou número.';
+            return $resultado;
         }
         if (in_array($slug, bb_slug_reservados(), true)) {
-            return 'Este endereço é reservado. Escolha outro.';
+            $resultado['estado'] = 'reservado';
+            $resultado['motivo'] = 'Este endereço é reservado. Escolha outro.';
+            return $resultado;
         }
         if (!($pdo instanceof PDO)) {
-            return 'Não foi possível validar o endereço agora. Tente novamente.';
+            $resultado['estado'] = 'indisponivel';
+            $resultado['motivo'] = 'Não foi possível validar o endereço agora. Tente novamente.';
+            return $resultado;
         }
 
         try {
@@ -681,22 +700,36 @@ if (!function_exists('bb_slug_motivo')) {
             $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
             $q->execute();
             if ($q->fetchColumn()) {
-                return 'Este endereço já está em uso. Escolha outro.';
+                $resultado['estado'] = 'em_uso';
+                $resultado['motivo'] = 'Este endereço já está em uso. Escolha outro.';
+                return $resultado;
             }
 
             // Host ja registrado (subdominio antigo ou dominio proprio) de outro cliente
-            $host = $slug . '.' . strtolower((string) BB_DOMINIO_BASE);
             $q = $pdo->prepare("SELECT tenant_id FROM tenant_dominios WHERE hostname = :host LIMIT 1");
-            $q->bindValue(':host', $host);
+            $q->bindValue(':host', $resultado['host']);
             $q->execute();
             $dono = $q->fetchColumn();
             if ($dono !== false && $dono !== null && (int) $dono !== $tenant_id) {
-                return 'Este endereço já está em uso. Escolha outro.';
+                $resultado['estado'] = 'em_uso';
+                $resultado['motivo'] = 'Este endereço já está em uso. Escolha outro.';
+                return $resultado;
             }
         } catch (Exception $e) {
-            return 'Não foi possível validar o endereço agora. Tente novamente.';
+            $resultado['estado'] = 'indisponivel';
+            $resultado['motivo'] = 'Não foi possível validar o endereço agora. Tente novamente.';
+            return $resultado;
         }
 
-        return '';
+        return $resultado;
+    }
+}
+
+if (!function_exists('bb_slug_motivo')) {
+    // Devolve '' quando o slug pode ser usado, ou a mensagem do motivo.
+    function bb_slug_motivo($pdo, $slug, $tenant_id = 0)
+    {
+        $avaliacao = bb_slug_avaliar($pdo, $slug, $tenant_id);
+        return $avaliacao['motivo'];
     }
 }

@@ -45,10 +45,22 @@ function sa_data($data)
 
 function sa_slug($texto)
 {
-    $texto = iconv('UTF-8', 'ASCII//TRANSLIT', (string) $texto);
-    $texto = strtolower($texto);
+    // Transliteracao propria: o iconv('UTF-8','ASCII//TRANSLIT') falha no
+    // Windows (devolve false) e apagava o endereco inteiro.
+    $texto = function_exists('mb_strtolower') ? mb_strtolower((string) $texto, 'UTF-8') : strtolower((string) $texto);
+    $texto = strtr($texto, array(
+        'á' => 'a', 'à' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'ă' => 'a', 'ą' => 'a',
+        'ç' => 'c', 'ć' => 'c', 'č' => 'c', 'ď' => 'd', 'đ' => 'd',
+        'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e', 'ě' => 'e', 'ę' => 'e',
+        'í' => 'i', 'ì' => 'i', 'î' => 'i', 'ï' => 'i',
+        'ń' => 'n', 'ñ' => 'n', 'ň' => 'n',
+        'ó' => 'o', 'ò' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ő' => 'o',
+        'ř' => 'r', 'š' => 's', 'ś' => 's', 'ť' => 't',
+        'ú' => 'u', 'ù' => 'u', 'û' => 'u', 'ü' => 'u', 'ů' => 'u',
+        'ý' => 'y', 'ÿ' => 'y', 'ž' => 'z', 'ź' => 'z', 'ż' => 'z',
+    ));
     $texto = preg_replace('/[^a-z0-9]+/', '-', $texto);
-    return trim($texto, '-');
+    return trim((string) $texto, '-');
 }
 
 function sa_status_badge($status)
