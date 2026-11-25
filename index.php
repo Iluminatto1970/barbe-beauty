@@ -1,4 +1,22 @@
-<?php require_once("cabecalho.php") ?>
+<?php
+// ============================================================
+// LANDING ANTES DO SITE
+// ------------------------------------------------------------
+// A primeira visita a home ve a landing (landing.php). O botao
+// "Entrar no site" passa por ?site=1, grava o cookie bb_landing e
+// libera o site normal nas proximas visitas. Para rever a landing
+// a qualquer momento basta abrir /landing.php ou ?landing=1.
+// ============================================================
+if (isset($_GET['site'])) {
+    setcookie('bb_landing', '1', time() + 31536000, '/');
+    header('Location: /', true, 302);
+    exit;
+}
+if (!isset($_COOKIE['bb_landing']) || isset($_GET['landing'])) {
+    require __DIR__ . '/landing.php';
+    exit;
+}
+require_once("cabecalho.php") ?>
 
 
 <style type="text/css">
