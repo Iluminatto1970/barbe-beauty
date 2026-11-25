@@ -13,7 +13,7 @@
 --
 -- Toda mudanca de estrutura DEVE entrar tambem em
 -- sql/migracoes/NNN_descricao.sql (idempotente), para chegar aos
--- bancos que ja existem. Ver app/sistema/migracoes.php.
+-- bancos que ja existem. Ver sistema/migracoes.php.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `acessos` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

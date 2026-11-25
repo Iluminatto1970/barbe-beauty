@@ -7,10 +7,10 @@
 // cada estabelecimento.
 //
 // Uso:
-//   php app/sistema/migrar.php                 (todos os bancos)
-//   php app/sistema/migrar.php --simular       (so lista o que falta)
-//   php app/sistema/migrar.php --tenant=beauty (um estabelecimento)
-//   php app/sistema/migrar.php --forcar        (reexecuta tudo)
+//   php sistema/migrar.php                 (todos os bancos)
+//   php sistema/migrar.php --simular       (so lista o que falta)
+//   php sistema/migrar.php --tenant=beauty (um estabelecimento)
+//   php sistema/migrar.php --forcar        (reexecuta tudo)
 //
 // Variaveis de ambiente: DB_HOST, DB_PORT, DB_NAME, DB_USER,
 // DB_PASSWORD (ou MYSQL_URL/DATABASE_URL), TENANT_DB_PREFIX.
@@ -69,7 +69,7 @@ foreach (array_slice($argv, 1) as $argumento) {
     } elseif (strpos($argumento, '--tenant=') === 0) {
         $opcoes['tenant'] = trim(substr($argumento, 9));
     } elseif ($argumento === '--ajuda' || $argumento === '--help' || $argumento === '-h') {
-        echo "Uso: php app/sistema/migrar.php [--tenant=slug|id] [--simular] [--forcar]\n";
+        echo "Uso: php sistema/migrar.php [--tenant=slug|id] [--simular] [--forcar]\n";
         exit(0);
     } else {
         fwrite(STDERR, 'Opcao desconhecida: ' . $argumento . "\n");

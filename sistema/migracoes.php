@@ -17,7 +17,7 @@
 //   - sem DELIMITER/procedures: os comandos sao separados por ";".
 //
 // O historico fica na tabela schema_versoes de cada banco.
-// Execucao: php app/sistema/migrar.php
+// Execucao: php sistema/migrar.php
 // ============================================================
 
 if (!defined('BB_MIGRACOES_TABELA')) {
@@ -26,7 +26,7 @@ if (!defined('BB_MIGRACOES_TABELA')) {
 
 if (!function_exists('bb_migracoes_raiz')) {
     // Raiz do projeto em qualquer layout:
-    //   repositorio: app/sistema/... + sql/...      (dois niveis acima)
+    //   repositorio: sistema/... + sql/...      (dois niveis acima)
     //   deploy web:  sistema/... + sql/...          (um nivel acima)
     function bb_migracoes_raiz()
     {

@@ -2,7 +2,7 @@
  * Comissões — portadas do sistema legado PHP (Barbearia PRO).
  *
  * Fontes:
- *  - `app/sistema/painel/paginas/agenda/inserir-servico.php` e
+ *  - `sistema/painel/paginas/agenda/inserir-servico.php` e
  *    `servicos_agenda/salvar.php` — fórmula do valor da comissão
  *  - `config.tipo_comissao` — 'Porcentagem' | 'R$' (valores reais do banco)
  *  - `servicos.comissao` — decimal(8,2): percentual (%) ou valor fixo (R$)

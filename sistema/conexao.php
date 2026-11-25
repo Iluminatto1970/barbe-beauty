@@ -185,14 +185,18 @@ if (!function_exists('bb_checar_senha')) {
 
 if (!function_exists('bb_permitir_usuarios_teste')) {
     // Permite criar conta de teste admin@admin/123 apenas em
-    // ambiente local/dev. Em producao (DB remoto ou SEED_TEST_USERS=0) fica
-    // desativado por seguranca. Override explicito via env SEED_TEST_USERS.
+    // ambiente local/dev. Em producao fica sempre desativado. A env
+    // SEED_TEST_USERS so pode DESLIGAR o seed: mesmo ligada, host e cliente
+    // precisam ser locais (evita semear producao por variavel de ambiente).
     function bb_permitir_usuarios_teste()
     {
         $flag = getenv('SEED_TEST_USERS');
         if ($flag !== false && $flag !== '') {
             $v = strtolower(trim((string) $flag));
-            return in_array($v, array('1', 'true', 'yes', 'on'), true);
+            if (!in_array($v, array('1', 'true', 'yes', 'on'), true)) {
+                return false; // desligado explicitamente
+            }
+            // Ligada: segue para a checagem de host/cliente locais abaixo.
         }
         // Auto-detect local dev: apenas quando a requisicao vem de localhost
         // (HTTP_HOST e REMOTE_ADDR locais). Producao (dominio/IP externo) nao

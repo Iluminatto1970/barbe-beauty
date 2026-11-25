@@ -51,6 +51,23 @@ if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
 }
 
 
+// Seguranca: a conta demo admin@admin/123 nunca fica ativa fora de localhost.
+// Se existir na instalacao principal e houver outro Administrador ativo, ela e
+// desativada e marcada para troca de senha (nunca deixa o sistema sem admin).
+if (bb_banco_atual() === bb_banco_controle() && !bb_permitir_usuarios_teste()) {
+	$st_demo = $pdo->prepare("SELECT id FROM usuarios WHERE email = 'admin@admin' AND ativo = 'Sim' LIMIT 1");
+	$st_demo->execute();
+	$demo = $st_demo->fetch(PDO::FETCH_ASSOC);
+	if ($demo) {
+		$st_outros = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE nivel = 'Administrador' AND ativo = 'Sim' AND id <> :id");
+		$st_outros->execute(array(':id' => $demo['id']));
+		if ((int) $st_outros->fetchColumn() > 0) {
+			$pdo->prepare("UPDATE usuarios SET ativo = 'Não', precisa_trocar_senha = 1 WHERE id = :id")
+				->execute(array(':id' => $demo['id']));
+		}
+	}
+}
+
 $query = $pdo->query("SELECT * from cargos");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);

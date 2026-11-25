@@ -56,3 +56,6 @@ blob-report/
 
 # Backups de banco gerados por scripts/backup-bancos.sh
 backups/
+
+# Copia espelho antiga (removida: docroot unico na raiz)
+/app/

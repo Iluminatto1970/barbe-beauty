@@ -31,7 +31,7 @@ set DB_NAME=barbearia
 set DB_USER=root
 set DB_PASSWORD=
 set SEED_TEST_USERS=1
-start "barbearia-php" /min "%RUNTIME%\php\php.exe" -S 127.0.0.1:8080 -t "%PROJETO%app" "%RUNTIME%\router.php"
+start "barbearia-php" /min "%RUNTIME%\php\php.exe" -S 127.0.0.1:8080 -t "%PROJETO%." "%RUNTIME%\router.php"
 
 timeout /t 3 /nobreak >nul
 start http://localhost:8080/

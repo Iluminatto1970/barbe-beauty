@@ -9,7 +9,7 @@ banco/HTTP aqui; só funções puras.
 | Módulo | Regras portadas | Fonte no legado |
 |---|---|---|
 | `scheduling.ts` | dias trabalhados, slots, disponibilidade, reserva (conflito) | `app/ajax/listar-horarios.php`, `app/ajax/agendar.php`, tabelas `dias`/`horarios`/`agendamentos` |
-| `commission.ts` | cálculo de comissão (Porcentagem / R$) | `app/sistema/painel/paginas/agenda/inserir-servico.php`, `config.tipo_comissao`, `servicos.comissao` |
+| `commission.ts` | cálculo de comissão (Porcentagem / R$) | `sistema/painel/paginas/agenda/inserir-servico.php`, `config.tipo_comissao`, `servicos.comissao` |
 | `service-completion.ts` | fluxo "concluir serviço": receber + comissão (se pago na hora) + fidelidade + data de retorno | `agenda/inserir-servico.php` (canônica) e `servicos_agenda/salvar.php` |
 | `finance.ts` | contas a pagar/receber: criação/edição, baixas, baixa de receber gera comissão, totais e vencidas | `receber/{salvar,baixar,listar}.php`, `pagar/{salvar,baixar,listar}.php` |
 | `password.ts` | verificação de senha em cascata MD5 → bcrypt (migração do legado): `verificarSenha` + `deveMigrar` + `gerarHashBcrypt` | `usuarios.senha_crip` (MD5 hex, ex.: `202cb962…` = md5('123')) |
