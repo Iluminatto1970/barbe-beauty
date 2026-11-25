@@ -69,6 +69,19 @@ if ($rec_metodo === 'POST' && $rec_acao === 'redefinir') {
     $confirma = (string) (isset($_POST['senha_conf']) ? $_POST['senha_conf'] : '');
     $registro = bb_rec_buscar($pdo, $rec_token);
 
+    // Link de conta demo (token antigo) tambem nao troca a senha publica.
+    if ($registro) {
+        try {
+            $q_demo = $pdo->prepare("SELECT demo FROM usuarios WHERE id = :id LIMIT 1");
+            $q_demo->execute(array(':id' => (int) $registro['usuario_id']));
+            if ((int) $q_demo->fetchColumn() === 1) {
+                $registro = false;
+            }
+        } catch (Exception $e) {
+            // sem a coluna demo: segue o fluxo normal
+        }
+    }
+
     if (!$registro) {
         $rec_erro = 'Este link expirou ou já foi usado. Peça um novo link abaixo.';
     } else {
@@ -110,14 +123,18 @@ if ($rec_metodo === 'POST' && $rec_acao === 'pedir') {
     } else {
         $usuario = false;
         try {
-            $q = $pdo->prepare("SELECT id, nome, email, ativo FROM usuarios WHERE email = :e LIMIT 1");
+            $q = $pdo->prepare("SELECT id, nome, email, ativo, demo FROM usuarios WHERE email = :e LIMIT 1");
             $q->execute(array(':e' => $rec_email));
             $usuario = $q->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             $usuario = false;
         }
 
-        if ($usuario && strtolower((string) $usuario['ativo']) === 'sim') {
+        // Conta demo tem acesso publico e senha que nao pode ser trocada:
+        // nao gera link de recuperacao (resposta continua generica).
+        $usuario_eh_demo = $usuario && isset($usuario['demo']) && (int) $usuario['demo'] === 1;
+
+        if ($usuario && strtolower((string) $usuario['ativo']) === 'sim' && !$usuario_eh_demo) {
             $novo = bb_rec_criar($pdo, (int) $usuario['id'], 1);
             if (!$novo) {
                 error_log('[barbearia-senha] nao foi possivel gerar token para usuario ' . (int) $usuario['id']);

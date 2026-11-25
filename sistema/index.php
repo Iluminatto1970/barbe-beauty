@@ -189,6 +189,29 @@ if($total_reg == 0){
                                 </button>
                             <?php echo bb_csrf_field(); ?></form>
 
+                            <?php
+                            // Entrada na demonstracao: aparece quando o banco tem
+                            // uma conta marcada como demo (somente leitura).
+                            $bb_tem_demo = false;
+                            try {
+                                $bb_tem_demo = (bool) $pdo->query("SELECT 1 FROM usuarios WHERE demo = 1 AND ativo = 'Sim' LIMIT 1")->fetchColumn();
+                            } catch (Exception $e) {
+                                $bb_tem_demo = false;
+                            }
+                            if ($bb_tem_demo) { ?>
+                            <div style="margin:0 0 18px;padding:14px 16px;border-radius:10px;background:rgba(240,205,127,.10);border:1px solid rgba(240,205,127,.45);text-align:center">
+                                <p style="margin:0 0 4px;font-size:13px;color:#f0cd7f;font-weight:600;letter-spacing:.4px">
+                                    <i class="fa fa-eye mr-1"></i> Modo demonstração
+                                </p>
+                                <p style="margin:0 0 10px;font-size:12.5px;color:#d5d9df;line-height:1.55">
+                                    Entre como Administrador, veja as telas com os dados do estabelecimento e teste o painel. Nenhuma alteração é salva.
+                                </p>
+                                <a class="btn btn-block" href="demo.php" style="background:#f0cd7f;color:#1b1b1b;font-weight:700;border-radius:8px;padding:10px 14px;text-decoration:none">
+                                    <i class="fa fa-play-circle mr-2"></i>Entrar na demonstração
+                                </a>
+                            </div>
+                            <?php } ?>
+
                             <?php if (bb_google_configurado()) { ?>
                                 <a class="btn btn-block mb-3" href="google-login.php"
                                    style="display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#3c4043;border:1px solid #dadce0;border-radius:6px;padding:11px 14px;font-weight:600;text-decoration:none;">

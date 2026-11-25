@@ -7,6 +7,12 @@ if (@$_SESSION['id'] == "") {
     exit();
 }
 
+// Conta de demonstracao tem acesso publico: a senha nao pode ser trocada.
+if (bb_usuario_demo()) {
+    echo "<script>window.location='painel'</script>";
+    exit();
+}
+
 // Verifica flag
 $st = $pdo->prepare("SELECT precisa_trocar_senha, senha_crip FROM usuarios WHERE id = :id LIMIT 1");
 $st->execute(array(':id' => $_SESSION['id']));
