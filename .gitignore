@@ -59,3 +59,6 @@ backups/
 
 # Copia espelho antiga (removida: docroot unico na raiz)
 /app/
+
+# Capturas locais de verificacao visual
+screenshots/
