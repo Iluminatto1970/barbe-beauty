@@ -84,6 +84,12 @@ if (!function_exists('bb_migracoes_listar')) {
                 continue;
             }
             $versao = (int) $m[1];
+            // Versao duplicada nunca sobrescreve: o banco registra uma unica
+            // migracao por versao, entao a segunda ficaria para sempre sem
+            // aplicar (foi o que aconteceu com a coluna usuarios.demo).
+            if (isset($lista[$versao])) {
+                continue;
+            }
             $lista[$versao] = array(
                 'versao'  => $versao,
                 'arquivo' => $nome,
