@@ -252,10 +252,33 @@ if (!function_exists('bb_e')) {
 // definidos por cada tela.
 // ============================================================
 if (!function_exists('bb_imagem_upload_valida')) {
-    function bb_imagem_upload_valida($arquivo, $exts = array('png', 'jpg', 'jpeg', 'gif', 'webp'), $max_bytes = 2097152)
+    function bb_imagem_upload_valida($arquivo, $exts = array('png', 'jpg', 'jpeg', 'gif', 'webp'), $max_bytes = 10485760)
     {
         if (!is_array($arquivo) || empty($arquivo['name'])) {
             return '';
+        }
+
+        // Erro do proprio PHP no envio (arquivo maior que o limite do servidor,
+        // envio interrompido etc). Sem isso o nome ia para o banco sem arquivo.
+        $erro_php = isset($arquivo['error']) ? (int) $arquivo['error'] : UPLOAD_ERR_OK;
+        if ($erro_php !== UPLOAD_ERR_OK) {
+            $mapa = array(
+                UPLOAD_ERR_INI_SIZE   => 'A imagem passa do limite de envio do servidor (' . (int) round($max_bytes / 1048576) . 'MB).',
+                UPLOAD_ERR_FORM_SIZE  => 'A imagem passa do limite de envio permitido.',
+                UPLOAD_ERR_PARTIAL    => 'O envio da imagem não terminou. Tente novamente.',
+                UPLOAD_ERR_NO_TMP_DIR => 'O servidor não tem pasta temporária para o envio.',
+                UPLOAD_ERR_CANT_WRITE => 'O servidor não conseguiu gravar a imagem.',
+                UPLOAD_ERR_EXTENSION  => 'O envio da imagem foi bloqueado pelo servidor.',
+            );
+            return isset($mapa[$erro_php]) ? $mapa[$erro_php] : 'Falha no envio da imagem. Tente novamente.';
+        }
+
+        $tmp = isset($arquivo['tmp_name']) ? (string) $arquivo['tmp_name'] : '';
+        if ($tmp === '' || !is_uploaded_file($tmp)) {
+            return 'Falha no envio da imagem. Tente novamente.';
+        }
+        if ((int) $arquivo['size'] <= 0) {
+            return 'O arquivo enviado está vazio.';
         }
         if ($max_bytes > 0 && (int) $arquivo['size'] > $max_bytes) {
             return 'Arquivo muito grande (max ' . (int) round($max_bytes / 1048576) . 'MB)!';
@@ -294,9 +317,42 @@ if (!function_exists('bb_imagem_upload_valida')) {
 // Sem GD, ou se a compressao falhar, o arquivo e apenas movido, como
 // antes: nunca perdemos o upload.
 // ============================================================
+if (!function_exists('bb_imagem_caminho_real')) {
+    // Os scripts antigos gravam com caminho relativo ao PROPRIO arquivo
+    // ("img/perfil/x.png" ou "../../img/perfil/x.png"), mas no PHP-FPM o
+    // diretorio atual e o docroot. Aqui o caminho e resolvido a partir do
+    // arquivo que chamou, para o upload nunca cair numa pasta inexistente.
+    function bb_imagem_caminho_real($destino)
+    {
+        $destino = (string) $destino;
+        if ($destino === '') {
+            return $destino;
+        }
+        if ($destino[0] === '/' || $destino[0] === '\\' || preg_match('/^[A-Za-z]:[\\\/]/', $destino)) {
+            return $destino;
+        }
+        if (is_dir(dirname($destino))) {
+            return $destino;
+        }
+
+        $pilha = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
+        foreach ($pilha as $quadro) {
+            if (empty($quadro['file']) || $quadro['file'] === __FILE__) {
+                continue;
+            }
+            $tentativa = dirname($quadro['file']) . '/' . $destino;
+            if (is_dir(dirname($tentativa))) {
+                return $tentativa;
+            }
+        }
+        return $destino;
+    }
+}
+
 if (!function_exists('bb_imagem_arquivo_mover')) {
     function bb_imagem_arquivo_mover($origem, $destino)
     {
+        $destino = bb_imagem_caminho_real($destino);
         if (is_uploaded_file($origem)) {
             return move_uploaded_file($origem, $destino);
         }
@@ -431,7 +487,7 @@ if (!function_exists('bb_imagem_salvar_upload')) {
     function bb_imagem_salvar_upload($origem, $destino, $max_lado = 1600, $qualidade = 82)
     {
         $origem = (string) $origem;
-        $destino = (string) $destino;
+        $destino = bb_imagem_caminho_real($destino);
         if ($origem === '' || $destino === '' || !is_file($origem)) {
             return false;
         }

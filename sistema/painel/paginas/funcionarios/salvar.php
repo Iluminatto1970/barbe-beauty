@@ -68,7 +68,7 @@ if($total_reg > 0){
 $nome_img = date('d-m-Y H:i:s') .'-'.@$_FILES['foto']['name'];
 $nome_img = preg_replace('/[ :]+/' , '-' , $nome_img);
 
-$caminho = '../../img/perfil/' .$nome_img;
+$caminho = __DIR__ . '/../../img/perfil/' .$nome_img;
 
 $imagem_temp = @$_FILES['foto']['tmp_name']; 
 
@@ -76,14 +76,19 @@ if(@$_FILES['foto']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 
+	// Grava a foto nova antes de trocar o cadastro: se o envio falhar, o
+	// usuario continua com a foto antiga em vez de uma referencia quebrada.
+	if (!bb_imagem_salvar_upload($imagem_temp, $caminho, 800) || !is_file($caminho)) {
+		echo 'Não foi possível salvar a foto. Tente novamente com um JPG ou PNG de até 10MB.';
+		exit();
+	}
+
 	//EXCLUO A FOTO ANTERIOR
-	if($foto != "sem-foto.jpg"){
-		@unlink('../../img/perfil/'.$foto);
+	if($foto != "" && $foto != "sem-foto.jpg" && is_file(__DIR__ . '/../../img/perfil/'.$foto)){
+		@unlink(__DIR__ . '/../../img/perfil/'.$foto);
 	}
 
 	$foto = $nome_img;
-
-	bb_imagem_salvar_upload($imagem_temp, $caminho, 800);
 }
 
 
