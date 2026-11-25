@@ -90,13 +90,48 @@ if (!function_exists('bb_csrf_token')) {
         if ($stored === '' || $token === '' || $token === null) return false;
         return hash_equals($stored, (string) $token);
     }
+    function bb_csrf_login_url() {
+        // Tela de login do painel (mesmo host/segmento da requisicao)
+        $base = isset($GLOBALS['url_sistema']) ? rtrim((string) $GLOBALS['url_sistema'], '/') : '';
+        return $base . '/sistema/?sessao=expirada';
+    }
     function bb_csrf_check_request() {
         $tok = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : (isset($_GET['csrf_token']) ? $_GET['csrf_token'] : '');
-        if (!bb_csrf_validate($tok)) {
-            http_response_code(403);
-            echo 'CSRF token invalido ou ausente.';
+        if (bb_csrf_validate($tok)) {
+            return;
+        }
+
+        // Token vencido/sessao expirada: descarta o token velho e volta para
+        // o login em vez de deixar o usuario preso no texto de erro.
+        unset($_SESSION['csrf_token'], $_COOKIE['csrf_token']);
+        if (!headers_sent()) {
+            setcookie('csrf_token', '', time() - 3600, '/', '', false, false);
+        }
+        $destino = bb_csrf_login_url();
+
+        // Acao do painel via AJAX: responde 401 com o destino; o painel
+        // redireciona no ajaxComplete (js do index do painel).
+        $ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || (isset($_SERVER['HTTP_ACCEPT']) && stripos((string) $_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+        if ($ajax) {
+            if (!headers_sent()) {
+                http_response_code(401);
+                header('Content-Type: application/json; charset=utf-8');
+                header('X-BB-Login: 1');
+                header('Cache-Control: no-store, max-age=0');
+            }
+            echo json_encode(array(
+                'ok'    => false,
+                'erro'  => 'Sessão expirada. Entre novamente.',
+                'login' => $destino,
+            ));
             exit();
         }
+
+        if (!headers_sent()) {
+            header('Location: ' . $destino, true, 303);
+        }
+        exit();
     }
 }
 

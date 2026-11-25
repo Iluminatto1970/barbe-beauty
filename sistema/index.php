@@ -143,6 +143,11 @@ if($total_reg == 0){
                 <div class="col-md-6 col-lg-5">
                     <div class="login_container">
                         <div class="login_form">
+                            <?php if (isset($_GET['sessao']) && $_GET['sessao'] === 'expirada') { ?>
+                                <div class="alert alert-warning py-2 px-3" style="font-size:13px">
+                                    Sua sessão expirou. Entre novamente para continuar.
+                                </div>
+                            <?php } ?>
                             <div class="heading_container text-center mb-4">
                                  <h2 class="text-white">Acesso ao Sistema</h2>
                                  <p class="text-white-50">

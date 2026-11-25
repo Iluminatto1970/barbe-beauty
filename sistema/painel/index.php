@@ -533,7 +533,18 @@ $dataMesInicial = $partesInicial[1];
 	<!-- Bootstrap Core JavaScript -->
 	<script src="js/bootstrap.js"> </script>
 	<!-- //Bootstrap Core JavaScript -->
-	
+
+	<script>
+		// Sessao expirada / token CSRF vencido: as acoes do painel respondem
+		// 401 (header X-BB-Login) e o usuario volta para a tela de login,
+		// em vez de ver o erro no formulario.
+		$(document).ajaxComplete(function (evento, xhr) {
+			if (xhr && (xhr.status === 401 || xhr.getResponseHeader('X-BB-Login') === '1')) {
+				window.location = <?php echo json_encode($url_sistema . 'sistema/?sessao=expirada'); ?>;
+			}
+		});
+	</script>
+
 </body>
 </html>
 
