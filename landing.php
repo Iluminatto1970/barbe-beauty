@@ -201,7 +201,7 @@ function lp_iniciais($nome)
     }
     .lp-card:hover { transform: translateY(-6px); border-color: rgba(217,178,106,.45); }
     /* padding-top mantem a moldura 4:3 mesmo sem imagem (avatar de iniciais) */
-    .lp-card-img { position: relative; padding-top: 75%; background: #0d1518; overflow: hidden; }
+    .lp-card-img { position: relative; align-self: stretch; width: 100%; padding-top: 75%; background: #0d1518; overflow: hidden; }
     .lp-card-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .lp-card-corpo { padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
     .lp-card-corpo h3 { font-size: 20px; }
