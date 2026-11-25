@@ -817,13 +817,49 @@ if (bb_tenant_site_indisponivel()) {
 }
 
 if ($bb_tenant_db_atual !== $banco) {
+    // O painel do cliente fala com o banco dele pela credencial DELE
+    // (bb_t<id>, GRANT so no proprio schema): SQL injetado no site de um
+    // estabelecimento nao alcanca o banco dos outros. A credencial
+    // compartilhada acima so serve para o banco de controle.
+    $bb_cred_tenant = null;
+    if (!$bb_site_demo) {
+        $bb_cred_tenant = bb_tenant_db_credenciais($tenant_atual);
+        if (!$bb_cred_tenant) {
+            // Tenant provisionado antes deste recurso: cria a credencial agora.
+            $bb_cred_tenant = bb_tenant_db_preparar($pdo_controle, $tenant_atual);
+        }
+    }
+
+    $bb_erro_bd = null;
     try {
         if ($bb_site_demo) {
             $pdo = bb_demo_garantir_banco($pdo_controle);
+        } elseif ($bb_cred_tenant) {
+            $pdo = bb_pdo_tenant($bb_cred_tenant);
         } else {
             $pdo = new PDO("mysql:dbname=" . $bb_tenant_db_atual . ";host=$servidor;port=$porta;charset=utf8", "$usuario", "$senha");
         }
     } catch (Exception $e) {
+        $bb_erro_bd = $e;
+        $pdo = null;
+
+        // Credencial dedicada ausente/desatualizada nao pode derrubar o site
+        // do cliente: tenta a compartilhada e deixa o registro para o operador
+        // (nenhuma senha vai para o log).
+        if ($bb_cred_tenant) {
+            error_log('tenant-db: credencial do estabelecimento ' . (int) $tenant_id_atual
+                . ' falhou (' . $e->getMessage() . '); usando a credencial compartilhada ate o proximo provisionamento.');
+            try {
+                $pdo = new PDO("mysql:dbname=" . $bb_tenant_db_atual . ";host=$servidor;port=$porta;charset=utf8", "$usuario", "$senha");
+                $bb_erro_bd = null;
+            } catch (Exception $e2) {
+                $bb_erro_bd = $e2;
+                $pdo = null;
+            }
+        }
+    }
+
+    if (!$pdo) {
         if ($bb_site_demo) {
             // Sem banco ficticio nao existe demonstracao: nunca cai no
             // banco de controle, que tem os dados reais.
@@ -836,7 +872,7 @@ if ($bb_tenant_db_atual !== $banco) {
             exit;
         }
         if (getenv('SHOW_DB_ERROR') === '1') {
-            echo 'Nao conectado ao banco de dados do estabelecimento! <br><br>' . $e->getMessage();
+            echo 'Nao conectado ao banco de dados do estabelecimento! <br><br>' . ($bb_erro_bd ? $bb_erro_bd->getMessage() : '');
         } else {
             echo 'Este estabelecimento ainda nao esta configurado. Fale com o suporte.';
         }

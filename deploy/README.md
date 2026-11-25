@@ -79,5 +79,6 @@ ssh vps 'readlink -f /var/www/beauty; tail -5 /var/www/releases/deploy.log'
 
 ## Outros runbooks
 
+- `tenant-db.md` — usuário MySQL exclusivo por estabelecimento (GRANT restrito).
 - `caddy/README.md` — Caddyfile e reload do Caddy.
 - `ssh/README.md` — acesso SSH (usuário `deploy`, rollback de lockout).

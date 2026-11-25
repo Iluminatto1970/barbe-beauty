@@ -20,6 +20,9 @@ if (!defined('BB_DOMINIO_BASE')) {
 // Estrutura canonica e migracoes versionadas por banco
 require_once(__DIR__ . '/migracoes.php');
 
+// Credencial MySQL exclusiva de cada estabelecimento
+require_once(__DIR__ . '/tenant-db.php');
+
 if (!function_exists('bb_normalizar_host')) {
     function bb_normalizar_host($host)
     {
@@ -275,6 +278,7 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
         try {
             $colunas = array(
                 'db_name'        => "VARCHAR(64) NULL DEFAULT NULL",
+                'db_user'        => "VARCHAR(64) NULL DEFAULT NULL",
                 'site_demo'      => "TINYINT(1) NOT NULL DEFAULT 0",
                 'boas_vindas_em' => "DATETIME NULL DEFAULT NULL",
                 'schema_version' => "INT UNSIGNED NOT NULL DEFAULT 0",
@@ -302,7 +306,7 @@ if (!function_exists('bb_tenant_provisionar')) {
     // Idempotente: pode ser chamada varias vezes sem duplicar dados.
     function bb_tenant_provisionar($pdo_controle, $tenant_id)
     {
-        $resultado = array('ok' => false, 'db' => '', 'erro' => '', 'versao' => 0);
+        $resultado = array('ok' => false, 'db' => '', 'erro' => '', 'versao' => 0, 'usuario' => '', 'aviso' => '');
 
         $tenant_id = (int) $tenant_id;
         if ($tenant_id <= 0) {
@@ -463,8 +467,28 @@ if (!function_exists('bb_tenant_provisionar')) {
             $pdo_tenant->exec("INSERT INTO cargos (nome)
                 SELECT 'Administrador' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM cargos)");
 
-            $pdo_controle->prepare("UPDATE tenants SET db_name = :db, schema_version = :versao WHERE id = :id")
-                ->execute(array(':db' => $db_nome, ':versao' => (int) $migracao['versao'], ':id' => $tenant_id));
+            // Credencial MySQL exclusiva: GRANT apenas no schema deste
+            // estabelecimento, para um cliente comprometido nao alcancar os
+            // bancos dos outros. Sem privilegio para criar o usuario, o site
+            // continua no ar com a credencial compartilhada e o aviso fica
+            // registrado (php scripts/tenant-db-usuarios.php resolve).
+            $usuario_db = '';
+            $criacao_usuario = bb_tenant_db_criar_usuario($pdo_controle, $db_nome, $tenant_id);
+            if ($criacao_usuario['ok']) {
+                $usuario_db = $criacao_usuario['usuario'];
+                $resultado['usuario'] = $usuario_db;
+            } else {
+                $resultado['aviso'] = 'usuario MySQL do estabelecimento nao criado: ' . $criacao_usuario['erro'];
+                error_log('tenant-db: ' . $resultado['aviso']);
+            }
+
+            $pdo_controle->prepare("UPDATE tenants SET db_name = :db, schema_version = :versao, db_user = COALESCE(:db_user, db_user) WHERE id = :id")
+                ->execute(array(
+                    ':db'      => $db_nome,
+                    ':versao'  => (int) $migracao['versao'],
+                    ':db_user' => ($usuario_db !== '' ? $usuario_db : null),
+                    ':id'      => $tenant_id,
+                ));
 
             $resultado['ok'] = true;
             $resultado['versao'] = (int) $migracao['versao'];
