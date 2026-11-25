@@ -215,9 +215,10 @@ if($total_reg == 0){
 
                             <?php
                             // Area de cadastro de novos estabelecimentos: existe apenas
-                            // na instalacao principal (no dominio de um cliente, o site
-                            // e o painel sao dele).
-                            if (bb_host_controle(bb_host_atual())) {
+                            // na instalacao principal, ou seja, quando a requisicao e
+                            // servida pelo banco de controle. No banco de um cliente o
+                            // site e o painel sao dele, sem oferta do SaaS.
+                            if (bb_banco_atual() === bb_banco_controle()) {
                                 $bb_login_gratis = null;
                                 $bb_login_pago = null;
                                 try {
