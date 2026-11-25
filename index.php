@@ -1251,7 +1251,7 @@ for($i=0; $i < $total_reg; $i++){
     </section>
     <!-- end slider section -->
 
-<?php if (bb_banco_atual() === bb_banco_controle()) { ?>
+<?php if (bb_site_demo()) { ?>
   <!-- inicio gratis (SaaS) -->
   <section class="assinar_section" style="padding:70px 0;background:linear-gradient(135deg,#0f1720 0%,#17303a 100%);color:#fff">
     <div class="container">

@@ -204,7 +204,7 @@ if($total_reg == 0){
                                     <i class="fa fa-eye mr-1"></i> Modo demonstração
                                 </p>
                                 <p style="margin:0 0 10px;font-size:12.5px;color:#d5d9df;line-height:1.55">
-                                    Entre como Administrador, veja as telas com os dados do estabelecimento e teste o painel. Nenhuma alteração é salva.
+                                    Entre como Administrador e explore o painel com dados fictícios. Nenhuma alteração é salva e nenhum registro real é exibido.
                                 </p>
                                 <a class="btn btn-block" href="demo.php" style="background:#f0cd7f;color:#1b1b1b;font-weight:700;border-radius:8px;padding:10px 14px;text-decoration:none">
                                     <i class="fa fa-play-circle mr-2"></i>Entrar na demonstração
@@ -246,7 +246,7 @@ if($total_reg == 0){
                             // na instalacao principal, ou seja, quando a requisicao e
                             // servida pelo banco de controle. No banco de um cliente o
                             // site e o painel sao dele, sem oferta do SaaS.
-                            if (bb_banco_atual() === bb_banco_controle()) {
+                            if (bb_instalacao_principal()) {
                                 $bb_login_gratis = null;
                                 $bb_login_pago = null;
                                 try {

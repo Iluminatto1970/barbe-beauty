@@ -158,7 +158,9 @@ if (!function_exists('bb_requisicao_de_controle')) {
             return true;
         }
         $arquivo = basename($caminho);
-        if (preg_match('/^assinar(-[a-z0-9-]+)?\.php$/i', $arquivo)) {
+        // Assinatura e pagina de planos sao do SaaS (banco de controle),
+        // nunca da demonstracao nem do banco de um cliente.
+        if (preg_match('/^(assinar(-[a-z0-9-]+)?|planos)\.php$/i', $arquivo)) {
             return true;
         }
         return false;

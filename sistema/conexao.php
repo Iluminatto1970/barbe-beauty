@@ -136,16 +136,29 @@ if (!function_exists('bb_csrf_token')) {
 }
 
 // ============================================================
-// INSTALACAO DE DEMONSTRACAO
+// INSTALACAO PRINCIPAL E DEMONSTRACAO
 // ------------------------------------------------------------
-// A instalacao principal (banco de controle) e o site de demonstracao:
-// mostra o selo, o agendamento simulado e a conta demo do painel. Cada
-// cliente tem o proprio banco, entao ve e agenda de verdade.
+// A instalacao principal (banco de controle) tem dois contextos:
+//
+//   site publico ....... demonstracao, em banco ficticio proprio;
+//   login e painel ..... banco real do estabelecimento;
+//   sessao demo ........ painel em banco ficticio (somente leitura).
+//
+// Assim o visitante nunca ve clientes ou agendamentos reais, e o
+// proprietario continua entrando no painel de verdade. Cada
+// cliente (tenant) segue com o proprio banco e agenda real.
 // ============================================================
+if (!function_exists('bb_instalacao_principal')) {
+    function bb_instalacao_principal()
+    {
+        return !empty($GLOBALS['bb_instalacao_principal']);
+    }
+}
+
 if (!function_exists('bb_site_demo')) {
     function bb_site_demo()
     {
-        return bb_banco_atual() === bb_banco_controle();
+        return !empty($GLOBALS['bb_site_demo']);
     }
 }
 
@@ -689,9 +702,12 @@ if (!function_exists('bb_rate_limit_arquivo')) {
 // trocada para o banco de dados daquele cliente.
 // ============================================================
 require_once(__DIR__ . '/tenant.php');
+require_once(__DIR__ . '/demo-banco.php');
 
 $bb_banco_controle = $banco;
 $bb_tenant_db_atual = $banco;
+$bb_instalacao_principal = true;
+$bb_site_demo = false;
 $tenant_atual = null;
 $tenant_id_atual = 0;
 
@@ -733,6 +749,31 @@ if (bb_requisicao_de_controle($bb_caminho_req)) {
     }
 }
 
+// No dominio do cliente o banco e o dele (nunca demo). Na instalacao
+// principal, so o site publico e a sessao demo do painel usam o banco
+// ficticio; o login e o painel normal continuam no banco real.
+$bb_instalacao_principal = ($bb_tenant_db_atual === $banco);
+if ($bb_instalacao_principal && !bb_requisicao_de_controle($bb_caminho_req)) {
+    // Funciona com o sistema na raiz ou em subpasta (XAMPP, /barbearia).
+    $bb_em_sistema = (bool) preg_match('~(^|/)sistema(/|$)~', $bb_caminho_req);
+    $bb_em_painel = (bool) preg_match('~(^|/)sistema/painel(/|$)~', $bb_caminho_req);
+    $bb_sessao_demo = false;
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        @session_start();
+    }
+    if (!empty($_SESSION['bb_demo'])) {
+        $bb_sessao_demo = true;
+    }
+
+    // Site publico: sempre demo. Painel: demo apenas na sessao iniciada
+    // pelo botao "Entrar na demonstracao" (bb_demo). Login, recuperacao
+    // de senha e painel normal seguem no banco real.
+    if ((!$bb_em_sistema && !$bb_em_painel) || ($bb_em_painel && $bb_sessao_demo)) {
+        $bb_site_demo = true;
+        $bb_tenant_db_atual = bb_demo_banco_nome();
+    }
+}
+
 // Estabelecimento suspenso ou cancelado: site e painel fora do ar
 if (bb_tenant_site_indisponivel()) {
     bb_tenant_responder_indisponivel();
@@ -740,8 +781,23 @@ if (bb_tenant_site_indisponivel()) {
 
 if ($bb_tenant_db_atual !== $banco) {
     try {
-        $pdo = new PDO("mysql:dbname=" . $bb_tenant_db_atual . ";host=$servidor;port=$porta;charset=utf8", "$usuario", "$senha");
+        if ($bb_site_demo) {
+            $pdo = bb_demo_garantir_banco($pdo_controle);
+        } else {
+            $pdo = new PDO("mysql:dbname=" . $bb_tenant_db_atual . ";host=$servidor;port=$porta;charset=utf8", "$usuario", "$senha");
+        }
     } catch (Exception $e) {
+        if ($bb_site_demo) {
+            // Sem banco ficticio nao existe demonstracao: nunca cai no
+            // banco de controle, que tem os dados reais.
+            if (!headers_sent()) {
+                http_response_code(503);
+                header('Content-Type: text/plain; charset=utf-8');
+                header('Cache-Control: no-store, max-age=0');
+            }
+            echo 'A demonstração está temporariamente indisponível.';
+            exit;
+        }
         if (getenv('SHOW_DB_ERROR') === '1') {
             echo 'Nao conectado ao banco de dados do estabelecimento! <br><br>' . $e->getMessage();
         } else {

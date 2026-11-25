@@ -1,5 +1,12 @@
 <?php
 require_once("../sistema/conexao.php");
+
+// Demonstracao: nao grava nada no banco ficticio.
+if (bb_site_demo()) {
+	echo 'Cadastro simulado com Sucesso';
+	exit();
+}
+
 $tabela = 'clientes';
 
 $nome = $_POST['nome'];
