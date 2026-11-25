@@ -103,6 +103,7 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 			</div>
 
 			<form id="form-agenda" method="post" style="margin-top: -25px !important">
+			<?php echo bb_csrf_field(); ?>
 			<div class="footer_form footer-col">
 				
 				<!-- Step 1: Dados Pessoais -->

@@ -1517,17 +1517,18 @@ for($i=0; $i < $total_reg; $i++){
         <div class="col-md-6">
           <div class="form_container">
             <form id="form-email">
+              <?php echo bb_csrf_field(); ?>
               <div>
-                <input type="text" name="nome" placeholder="Seu Nome" required/>
+                <input type="text" name="nome" maxlength="100" placeholder="Seu Nome" required/>
               </div>
               <div>
-                <input type="text" name="telefone" id="telefone" placeholder="Seu Telefone" required />
+                <input type="text" name="telefone" id="telefone" maxlength="20" placeholder="Seu Telefone" required />
               </div>
               <div>
-                <input type="email" name="email" placeholder="Seu Email" required />
+                <input type="email" name="email" maxlength="120" placeholder="Seu Email" required />
               </div>
               <div>
-                <input type="text" name="mensagem" class="message-box" placeholder="Mensagem" required />
+                <input type="text" name="mensagem" maxlength="1000" class="message-box" placeholder="Mensagem" required />
               </div>
               <div class="btn_box">
                 <button class="service_btn" type="submit">

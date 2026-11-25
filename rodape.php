@@ -47,8 +47,9 @@
                 CADASTRE-SE
               </h4>
               <form id="form_cadastro">
-                <input type="text" name="telefone" id="telefone_rodape" placeholder="Seu Telefone DDD + número" />
-                <input type="text" name="nome" placeholder="Seu Nome" />
+                <?php echo bb_csrf_field(); ?>
+                <input type="text" name="telefone" id="telefone_rodape" maxlength="20" placeholder="Seu Telefone DDD + número" />
+                <input type="text" name="nome" maxlength="100" placeholder="Seu Nome" />
                 <button type="submit" class="service_btn" style="width: 100%; min-height: 48px; border-radius: 25px; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;">
                   <i class="fa fa-user-plus"></i> Cadastrar
                 </button>

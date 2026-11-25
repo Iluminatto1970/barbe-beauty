@@ -135,6 +135,19 @@ if (!function_exists('bb_csrf_token')) {
     }
 }
 
+// Resposta simples para endpoints publicos (texto puro, sem redirect).
+if (!function_exists('bb_resposta_texto')) {
+    function bb_resposta_texto($status, $mensagem) {
+        if (!headers_sent()) {
+            http_response_code((int) $status);
+            header('Content-Type: text/plain; charset=utf-8');
+            header('Cache-Control: no-store, max-age=0');
+        }
+        echo $mensagem;
+        exit();
+    }
+}
+
 // ============================================================
 // INSTALACAO PRINCIPAL E DEMONSTRACAO
 // ------------------------------------------------------------
@@ -692,6 +705,16 @@ if (!function_exists('bb_rate_limit_arquivo')) {
     function bb_rate_limit_conta_ok($email) {
         $email = strtolower(trim((string) $email));
         if ($email !== '') bb_rate_limit_limpar($email, 'bb_conta');
+    }
+
+    // Limite para formularios publicos (cadastro, agendamento, contato).
+    function bb_rate_limit_publico_espera($escopo, $max, $window) {
+        $escopo = preg_replace('/[^a-z0-9_]/i', '', (string) $escopo);
+        return bb_rate_limit_espera(bb_rate_limit_ip(), 'bb_pub_' . $escopo, $max, $window);
+    }
+    function bb_rate_limit_publico_conta($escopo, $window) {
+        $escopo = preg_replace('/[^a-z0-9_]/i', '', (string) $escopo);
+        bb_rate_limit_falha(bb_rate_limit_ip(), 'bb_pub_' . $escopo, $window);
     }
 }
 // ============================================================
