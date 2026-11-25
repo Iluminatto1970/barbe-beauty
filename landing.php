@@ -459,6 +459,9 @@ function lp_iniciais($nome)
       <span>&copy; <?php echo date('Y'); ?> <?php echo lp_e($lp_nome); ?>. Todos os direitos reservados.</span>
       <span><a href="index.php?site=1">Entrar no site</a> · <a href="sistema" target="_blank" rel="noopener">Área do estabelecimento</a></span>
     </div>
+    <div class="lp-wrap" style="margin-top:14px">
+      <span>Sistema Barbearia PRO — feito para barbearias, salões de beleza e qualquer estabelecimento que trabalhe com beleza.</span>
+    </div>
   </footer>
 
 </body>
