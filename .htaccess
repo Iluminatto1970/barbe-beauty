@@ -1,4 +1,10 @@
 RewriteEngine On
+
+# Nunca servir metadados do git nem arquivos de configuracao, dump,
+# documentacao ou script (o docroot e a raiz do projeto).
+RewriteRule ^\.(git|env|secrets|freebuff) - [F,L]
+RewriteRule \.(md|sql|gz|zip|log|ya?ml|sh|bat|ini)$ - [F,L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
