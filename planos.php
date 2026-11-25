@@ -234,12 +234,33 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
     .plano .btn { width: 100%; margin-top: 20px; }
 
     .tabela-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line); }
     th { background: #101010; font-size: 12.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
     tbody tr:last-child td { border-bottom: 0; }
     td.yes { color: var(--ok); font-weight: 600; }
-    td.no { color: #6b7280; }
+    td.no { color: #9ca3af; }
+    /* Celular: cada linha vira um bloco com o rotulo da coluna, sem rolagem lateral */
+    @media (max-width: 700px) {
+      .tabela-wrap { border: 0; overflow: visible; }
+      thead { display: none; }
+      tbody tr {
+        display: block; border: 1px solid var(--line); border-radius: 12px;
+        background: var(--panel); padding: 12px 14px; margin-bottom: 10px;
+      }
+      tbody tr:last-child { margin-bottom: 0; }
+      tbody td { display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+        padding: 5px 0; border: 0; font-size: 13.5px; text-align: right; }
+      tbody td:first-child { display: block; text-align: left; font-weight: 600;
+        border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 6px; }
+      tbody td[data-label]:before { content: attr(data-label); color: var(--muted);
+        font-size: 11.5px; letter-spacing: .3px; text-transform: uppercase; }
+    }
+    @media (max-width: 560px) {
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .hero-actions .btn { width: 100%; }
+      .hero-note { gap: 6px; }
+    }
 
     details {
       border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--panel);
@@ -507,32 +528,42 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
           <h2>Comparação rápida</h2>
           <p>O que muda entre o gratuito e os planos pagos.</p>
         </div>
+        <?php
+        $bbv_nome_pago = $bbv_plano_pago ? $bbv_plano_pago['nome'] : 'PRO';
+        $bbv_agend_pago = ($bbv_plano_pago && (int) $bbv_plano_pago['limite_agendamentos'] > 0)
+            ? (string) (int) $bbv_plano_pago['limite_agendamentos']
+            : 'Ilimitado';
+        $bbv_prof_pago = ($bbv_plano_pago && (int) $bbv_plano_pago['limite_profissionais'] > 0)
+            ? (string) (int) $bbv_plano_pago['limite_profissionais']
+            : 'Ilimitado';
+        $bbv_comparativo = array(
+            array('Agendamentos por mês', $bbv_limite_gratis !== null ? (string) (int) $bbv_limite_gratis : 'Ilimitado', $bbv_agend_pago, ''),
+            array('Profissionais', $bbv_limite_prof_gratis !== null ? (string) (int) $bbv_limite_prof_gratis : 'Ilimitado', $bbv_prof_pago, ''),
+            array('Site próprio com agendamento', 'Incluído', 'Incluído', 'yes'),
+            array('Agenda, clientes e serviços', 'Incluído', 'Incluído', 'yes'),
+            array('Produtos, estoque e financeiro', 'Incluído', 'Incluído', 'yes'),
+            array('Comissões e relatórios em PDF', 'Incluído', 'Incluído', 'yes'),
+            array('Cartão de fidelidade', 'Incluído', 'Incluído', 'yes'),
+            array('Cartão de crédito no cadastro', 'Não precisa', 'Opcional no checkout', 'no'),
+        );
+        ?>
         <div class="tabela-wrap">
           <table>
             <thead>
               <tr>
                 <th>Recurso</th>
                 <th>Grátis</th>
-                <th><?php echo $bbv_plano_pago ? htmlspecialchars($bbv_plano_pago['nome']) : 'PRO'; ?></th>
+                <th><?php echo htmlspecialchars($bbv_nome_pago); ?></th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Agendamentos por mês</td>
-                <td><?php echo $bbv_limite_gratis !== null ? (int) $bbv_limite_gratis : 'Ilimitado'; ?></td>
-                <td><?php echo $bbv_plano_pago && (int) $bbv_plano_pago['limite_agendamentos'] > 0 ? (int) $bbv_plano_pago['limite_agendamentos'] : 'Ilimitado'; ?></td>
-              </tr>
-              <tr>
-                <td>Profissionais</td>
-                <td><?php echo $bbv_limite_prof_gratis !== null ? (int) $bbv_limite_prof_gratis : 'Ilimitado'; ?></td>
-                <td><?php echo $bbv_plano_pago && (int) $bbv_plano_pago['limite_profissionais'] > 0 ? (int) $bbv_plano_pago['limite_profissionais'] : 'Ilimitado'; ?></td>
-              </tr>
-              <tr><td>Site próprio com agendamento</td><td class="yes">Incluído</td><td class="yes">Incluído</td></tr>
-              <tr><td>Agenda, clientes e serviços</td><td class="yes">Incluído</td><td class="yes">Incluído</td></tr>
-              <tr><td>Produtos, estoque e financeiro</td><td class="yes">Incluído</td><td class="yes">Incluído</td></tr>
-              <tr><td>Comissões e relatórios em PDF</td><td class="yes">Incluído</td><td class="yes">Incluído</td></tr>
-              <tr><td>Cartão de fidelidade</td><td class="yes">Incluído</td><td class="yes">Incluído</td></tr>
-              <tr><td>Cartão de crédito no cadastro</td><td class="no">Não precisa</td><td class="no">Opcional no checkout</td></tr>
+              <?php foreach ($bbv_comparativo as $bbv_linha) { ?>
+                <tr>
+                  <td><?php echo htmlspecialchars($bbv_linha[0]); ?></td>
+                  <td class="<?php echo htmlspecialchars($bbv_linha[3]); ?>" data-label="Grátis"><?php echo htmlspecialchars($bbv_linha[1]); ?></td>
+                  <td class="<?php echo htmlspecialchars($bbv_linha[3]); ?>" data-label="<?php echo htmlspecialchars($bbv_nome_pago); ?>"><?php echo htmlspecialchars($bbv_linha[2]); ?></td>
+                </tr>
+              <?php } ?>
             </tbody>
           </table>
         </div>
