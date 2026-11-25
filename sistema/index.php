@@ -212,6 +212,55 @@ if($total_reg == 0){
                                     <i class="fa fa-key mr-1"></i>Esqueceu sua senha?
                                 </a>
                             </div>
+
+                            <?php
+                            // Area de cadastro de novos estabelecimentos: existe apenas
+                            // na instalacao principal (no dominio de um cliente, o site
+                            // e o painel sao dele).
+                            if (bb_host_controle(bb_host_atual())) {
+                                $bb_login_gratis = null;
+                                $bb_login_pago = null;
+                                try {
+                                    $bb_login_q = $pdo->query("SELECT * FROM saas_planos WHERE ativo = 'Sim' ORDER BY valor ASC");
+                                    if ($bb_login_q) {
+                                        foreach ($bb_login_q->fetchAll(PDO::FETCH_ASSOC) as $bb_login_p) {
+                                            if ((float) $bb_login_p['valor'] <= 0) {
+                                                if ($bb_login_gratis === null) {
+                                                    $bb_login_gratis = $bb_login_p;
+                                                }
+                                            } elseif ($bb_login_pago === null) {
+                                                $bb_login_pago = $bb_login_p;
+                                            }
+                                        }
+                                    }
+                                } catch (Exception $e) {
+                                    // tabela ausente: usa os textos padrao
+                                }
+                                $bb_login_limite = ($bb_login_gratis && (int) $bb_login_gratis['limite_agendamentos'] > 0)
+                                    ? (int) $bb_login_gratis['limite_agendamentos']
+                                    : null;
+                                $bb_login_preco = $bb_login_pago ? (float) $bb_login_pago['valor'] : 49.00;
+                            ?>
+                            <div style="margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14)">
+                                <p class="text-center text-white-50" style="font-size:12px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px">
+                                    Ainda não tem conta?
+                                </p>
+                                <a class="btn btn-login btn-block" href="../assinar.php" style="text-decoration:none">
+                                    <i class="fa fa-plus-circle mr-2"></i>Criar meu estabelecimento grátis
+                                </a>
+                                <div class="text-center" style="margin-top:12px;font-size:12px;color:#9ca3af;line-height:1.7">
+                                    <strong style="color:#f0cd7f"><?php echo htmlspecialchars($bb_login_gratis ? $bb_login_gratis['nome'] : 'Grátis'); ?>:</strong>
+                                    <?php echo $bb_login_limite !== null
+                                        ? 'até ' . (int) $bb_login_limite . ' agendamentos por mês, sem cartão.'
+                                        : 'agendamentos ilimitados, sem cartão.'; ?><br>
+                                    <strong style="color:#f0cd7f"><?php echo htmlspecialchars($bb_login_pago ? $bb_login_pago['nome'] : 'PRO'); ?>:</strong>
+                                    <?php echo 'R$ ' . number_format($bb_login_preco, 2, ',', '.'); ?>/mês com agendamentos ilimitados.
+                                </div>
+                                <div class="text-center" style="margin-top:10px">
+                                    <a href="../planos.php" style="font-size:12px;color:#9ca3af;text-decoration:underline">Ver planos e todos os recursos</a>
+                                </div>
+                            </div>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>

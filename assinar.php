@@ -168,6 +168,7 @@ $_SESSION['assinar_csrf'] = $csrf;
             <button type="submit" class="btn primario" style="width:100%">Criar minha conta grátis</button>
           </div>
           <p class="nota">O plano gratuito não pede cartão. No plano pago a cobrança é mensal e o cancelamento pode ser feito a qualquer momento.</p>
+          <p class="nota"><a href="planos.php">Ver todos os recursos e comparar os planos</a></p>
           <p class="nota">Já tem conta? <a href="sistema/">Entrar no painel</a></p>
         </div>
       </div>
