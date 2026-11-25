@@ -242,14 +242,14 @@ if($total_reg == 0){
                                     : null;
                                 $bb_login_preco = $bb_login_pago ? (float) $bb_login_pago['valor'] : 49.00;
                             ?>
-                            <div style="margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14)">
-                                <p class="text-center text-white-50" style="font-size:12px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px">
+                            <div style="margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14)">
+                                <p class="text-center" style="font-size:11.5px;letter-spacing:.9px;text-transform:uppercase;margin-bottom:12px;color:#9ca3af">
                                     Ainda não tem conta?
                                 </p>
-                                <a class="btn btn-login btn-block" href="../assinar.php" style="text-decoration:none">
-                                    <i class="fa fa-plus-circle mr-2"></i>Criar meu estabelecimento grátis
+                                <a class="btn btn-login btn-block" href="../assinar.php" style="text-decoration:none;font-size:13px;white-space:normal">
+                                    <i class="fa fa-plus-circle mr-2"></i>Criar minha conta grátis
                                 </a>
-                                <div class="text-center" style="margin-top:12px;font-size:12px;color:#9ca3af;line-height:1.7">
+                                <div style="margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;font-size:12.5px;color:#d6dbe1;line-height:1.65;text-align:left">
                                     <strong style="color:#f0cd7f"><?php echo htmlspecialchars($bb_login_gratis ? $bb_login_gratis['nome'] : 'Grátis'); ?>:</strong>
                                     <?php echo $bb_login_limite !== null
                                         ? 'até ' . (int) $bb_login_limite . ' agendamentos por mês, sem cartão.'
@@ -257,8 +257,8 @@ if($total_reg == 0){
                                     <strong style="color:#f0cd7f"><?php echo htmlspecialchars($bb_login_pago ? $bb_login_pago['nome'] : 'PRO'); ?>:</strong>
                                     <?php echo 'R$ ' . number_format($bb_login_preco, 2, ',', '.'); ?>/mês com agendamentos ilimitados.
                                 </div>
-                                <div class="text-center" style="margin-top:10px">
-                                    <a href="../planos.php" style="font-size:12px;color:#9ca3af;text-decoration:underline">Ver planos e todos os recursos</a>
+                                <div class="text-center" style="margin-top:12px">
+                                    <a href="../planos.php" style="font-size:12.5px;color:#c3c9d1;text-decoration:underline">Ver planos e todos os recursos</a>
                                 </div>
                             </div>
                             <?php } ?>
