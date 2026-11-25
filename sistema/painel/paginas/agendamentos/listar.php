@@ -10,16 +10,24 @@ if($data == ""){
 	$data = date('Y-m-d');
 }
 
-if($funcionario == ""){
-	echo '<small>Selecione um Funcionário!</small>';
-	exit();
+// Sem funcionário escolhido = agenda geral (todos os profissionais),
+// para que nenhum agendamento feito pelo site fique "escondido".
+$todos_funcionarios = ($funcionario === "" || $funcionario === null || (int)$funcionario === 0);
+if($todos_funcionarios and $data < date('Y-m-d')){
+	$data = date('Y-m-d');
 }
 
 echo <<<HTML
 <small>
 HTML;
-$query = $pdo->prepare("SELECT * FROM agendamentos where funcionario = :v1 and data = :v2 ORDER BY hora asc");
-$query->execute(array(':v1' => $funcionario, ':v2' => $data));
+if($todos_funcionarios){
+	// Agenda geral: do dia escolhido para frente
+	$query = $pdo->prepare("SELECT * FROM agendamentos where data >= :v1 ORDER BY data asc, hora asc LIMIT 60");
+	$query->execute(array(':v1' => $data));
+}else{
+	$query = $pdo->prepare("SELECT * FROM agendamentos where funcionario = :v1 and data = :v2 ORDER BY hora asc");
+	$query->execute(array(':v1' => $funcionario, ':v2' => $data));
+}
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
@@ -38,6 +46,18 @@ $servico = $res[$i]['servico'];
 
 $dataF = implode('/', array_reverse(explode('-', $data)));
 $horaF = date("H:i", strtotime($hora));
+
+$rotulo_dia_html = '';
+$nome_func_html = '';
+if($todos_funcionarios){
+	$rotulo_dia_html = ' <span style="font-weight:normal; color:#666; font-size:12px">' . $dataF . '</span>';
+	$query3 = $pdo->prepare("SELECT nome FROM usuarios where id = :v1");
+	$query3->execute(array(':v1' => $funcionario));
+	$nome_func = (string)$query3->fetchColumn();
+	if($nome_func != ''){
+		$nome_func_html = ' · ' . htmlspecialchars($nome_func, ENT_QUOTES, 'UTF-8');
+	}
+}
 
 
 if($status == 'Concluído'){		
@@ -151,7 +171,7 @@ echo <<<HTML
         			 <img class="icon-rounded-vermelho" src="img/{$imagem}" width="45px" height="45px">
         		</div>
         		<div class="col-md-9">
-        			<h5><strong>{$horaF}</strong> <a href="#" onclick="fecharServico('{$id}', '{$cliente}', '{$servico}', '{$valor_serv}', '{$funcionario}', '{$nome_serv}')" title="Finalizar Serviço" class="{$classe_status}"> <img class="icon-rounded-vermelho" src="img/check-square.png" width="15px" height="15px"></a> <a href="#" onclick="confirmarAgendamento('{$id}')" title="Confirmar agendamento" class="{$classe_confirmar}"> <img class="icon-rounded-vermelho" src="img/icone-relogio-verde.png" width="15px" height="15px"></a></h5>
+        			<h5><strong>{$horaF}</strong>{$rotulo_dia_html} <a href="#" onclick="fecharServico('{$id}', '{$cliente}', '{$servico}', '{$valor_serv}', '{$funcionario}', '{$nome_serv}')" title="Finalizar Serviço" class="{$classe_status}"> <img class="icon-rounded-vermelho" src="img/check-square.png" width="15px" height="15px"></a> <a href="#" onclick="confirmarAgendamento('{$id}')" title="Confirmar agendamento" class="{$classe_confirmar}"> <img class="icon-rounded-vermelho" src="img/icone-relogio-verde.png" width="15px" height="15px"></a></h5>
 
         			
         		</div>
@@ -163,7 +183,7 @@ echo <<<HTML
                     <div class="stats esc" align="center">
                       <span>
                       
-                        <small> <span class="{$ocultar_cartoes}" style=""><img class="icon-rounded-vermelho" src="img/presente.jpg" width="20px" height="20px"></span> {$nome_cliente} (<i><span style="color:#061f9c">{$nome_serv}</span></i>)</small></span>
+                        <small> <span class="{$ocultar_cartoes}" style=""><img class="icon-rounded-vermelho" src="img/presente.jpg" width="20px" height="20px"></span> {$nome_cliente}{$nome_func_html} (<i><span style="color:#061f9c">{$nome_serv}</span></i>)</small></span>
                     </div>
                 </div>
         	</div>
@@ -171,7 +191,7 @@ HTML;
 }
 
 }else{
-	echo 'Nenhum horário para essa Data!';
+	echo $todos_funcionarios ? 'Nenhum agendamento a partir dessa data!' : 'Nenhum horário para essa Data!';
 }
 
 ?>

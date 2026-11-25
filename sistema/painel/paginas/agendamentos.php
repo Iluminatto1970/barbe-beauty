@@ -20,7 +20,7 @@ if(@$agendamentos == 'ocultar'){
 	<div class="col-md-3">
 		<div class="form-group">			
 			<select class="form-control sel2" id="funcionario" name="funcionario" style="width:100%;" onchange="mudarFuncionario()"> 
-				<option value="">Selecione um Funcionário</option>
+				<option value="0" selected>Todos os Funcionários</option>
 				<?php 
 				$query = $pdo->query("SELECT * FROM usuarios where atendimento = 'Sim' ORDER BY id desc");
 				$res = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -289,6 +289,14 @@ if(@$agendamentos == 'ocultar'){
 <script type="text/javascript">var pag = "<?=$pag?>"</script>
 <script src="js/ajax.js"></script>
 
+<script type="text/javascript">
+	// Já mostra a agenda do dia ao abrir a página (antes só aparecia
+	// "Selecione um Funcionário!", escondendo os agendamentos do site).
+	$(document).ready(function(){
+		listar();
+	});
+</script>
+
 
 <!-- calendar -->
 <script type="text/javascript" src="js/monthly.js"></script>
@@ -445,10 +453,16 @@ if(@$agendamentos == 'ocultar'){
 
 
 <script type="text/javascript">
-	function listarHorarios(){
+		function listarHorarios(){
 
 		var funcionario = $('#funcionario').val();	
-		var data = $('#data_agenda').val();	
+		var data = $('#data_agenda').val();
+
+		// Sem funcionário não há horário a oferecer
+		if(funcionario === '' || funcionario === '0'){
+			$('#listar-horarios').html('<small>Selecione um Funcionário</small>');
+			return;
+		}
 
 		
 		$.ajax({
