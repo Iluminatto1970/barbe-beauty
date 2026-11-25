@@ -27,10 +27,12 @@ $lp_instagram = isset($instagram_sistema) ? (string) $instagram_sistema : '';
 $lp_sobre = isset($texto_sobre) ? trim(strip_tags((string) $texto_sobre)) : '';
 $lp_dourado = ($lp_seg === 'salao') ? '#c9a0a6' : '#d9b26a';
 
-if ($lp_sobre === '') {
+// Quando o estabelecimento ainda nao trocou o texto padrao do painel,
+// a landing usa um texto proprio em vez de mostrar o placeholder.
+if ($lp_sobre === '' || stripos($lp_sobre, 'Este texto pode ser alterado no painel') !== false) {
     $lp_sobre = ($lp_seg === 'salao')
-        ? 'Beleza, cuidado e atendimento personalizado em cada detalhe.'
-        : 'Tradição, estilo e atendimento de primeira em cada corte.';
+        ? 'Cabelo, unhas e estética com profissionais experientes e um atendimento pensado para você.'
+        : 'Cortes clássicos e modernos, barba feita no detalhe e um atendimento que respeita o seu tempo.';
 }
 
 // ---- Dados exibidos na landing ----
