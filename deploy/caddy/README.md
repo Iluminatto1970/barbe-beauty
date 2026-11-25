@@ -23,9 +23,12 @@ quem serve o domínio é o Caddy (nginx/apache estão inativos).
 ## Publicar (na VPS)
 
 ```bash
-scp deploy/caddy/Caddyfile root@vps:/etc/caddy/Caddyfile
-ssh vps 'caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy'
+scp deploy/caddy/Caddyfile deploy@vps:/etc/caddy/Caddyfile
+ssh vps 'caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy'
 ```
+
+O acesso é pelo usuário `deploy` (somente chave), que tem ACL de escrita no
+`Caddyfile` e sudoers para `systemctl reload caddy` — ver `../ssh/README.md`.
 
 Valide antes de recarregar: `caddy validate` precisa dizer
 `Valid configuration`. Reload é sem downtime e não derruba o TLS.
