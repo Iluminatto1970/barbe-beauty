@@ -38,7 +38,8 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 	.cal-legenda-cor.lotado{ background:#fdecea; border:1px solid #f0b9b4; }
 
 	/* Botao de envio do agendamento no WhatsApp */
-	.btn-whatsapp{ display:inline-block; margin-top:14px; background:#25d366; color:#fff !important; padding:12px 22px; border-radius:30px; font-weight:bold; text-decoration:none !important; font-size:15px; box-shadow:0 4px 12px rgba(0,0,0,.2); }
+	.btn-whatsapp{ display:block; width:100%; max-width:420px; margin:16px auto 0; text-align:center; background:#25d366; color:#fff !important; padding:15px 24px; border-radius:30px; font-weight:bold; text-decoration:none !important; font-size:16px; box-shadow:0 6px 18px rgba(0,0,0,.28); }
+	#dica-whatsapp-agendamento{ text-align:center; }
 	.btn-whatsapp:hover{ background:#1ebe5b; color:#fff !important; }
 </style>
 
@@ -2092,18 +2093,32 @@ function criarConfetti() {
 	// ===== Envio do agendamento pelo WhatsApp =====
 	var urlWhatsAppAtual = '';
 
-	function montarUrlWhatsApp(funcionario, servico, data, hora, cliente, observacao){
+	function montarUrlWhatsApp(funcionario, servico, data, hora, cliente, observacao, telefone){
 		var texto = '*Novo Agendamento*\n'
 			+ 'Funcionário: ' + funcionario + '\n'
 			+ 'Serviço: ' + servico + '\n'
 			+ 'Data: ' + data + '\n'
 			+ 'Hora: ' + hora + '\n'
 			+ 'Cliente: ' + cliente
+			+ (telefone ? '\nTelefone: ' + telefone : '')
 			+ (observacao ? '\nObs: ' + observacao : '')
 			+ '\nStatus: Aguardando confirmação';
 
 		urlWhatsAppAtual = 'https://wa.me/<?php echo $tel_whatsapp ?>?text=' + encodeURIComponent(texto);
 		return urlWhatsAppAtual;
+	}
+
+	// Variavel preenchida pelo PHP: o estabelecimento quer receber a mensagem?
+	var BB_MSG_AGENDAMENTO = "<?php echo ($msg_agendamento == 'Sim') ? 'Sim' : 'Nao'; ?>";
+
+	// Nada de window.open depois do ajax: o navegador bloqueia popup fora do
+	// clique do cliente (era por isso que a mensagem nunca saia). O envio fica
+	// num botao bem visivel, que abre o WhatsApp com a mensagem pronta.
+	function avisarEstabelecimentoWhatsApp(){
+		if(BB_MSG_AGENDAMENTO !== 'Sim' || !urlWhatsAppAtual){ return; }
+		mostrarBotaoWhatsApp();
+		var botao = document.getElementById('btn-whatsapp-agendamento');
+		if(botao && botao.scrollIntoView){ botao.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
 	}
 
 	function mostrarBotaoWhatsApp(){
@@ -2112,11 +2127,13 @@ function criarConfetti() {
 
 		var anterior = document.getElementById('btn-whatsapp-agendamento');
 		if(anterior){ anterior.remove(); }
+		var dicaAnterior = document.getElementById('dica-whatsapp-agendamento');
+		if(dicaAnterior){ dicaAnterior.remove(); }
 
 		var dica = document.createElement('p');
 		dica.id = 'dica-whatsapp-agendamento';
 		dica.style.cssText = 'color:#fff; font-size:13px; margin:10px 0 0 0;';
-		dica.textContent = 'Confirme o envio da mensagem no WhatsApp para o estabelecimento receber seu agendamento.';
+		dica.textContent = 'Falta só um passo: envie a mensagem no WhatsApp para o estabelecimento receber seu agendamento.';
 
 		var botao = document.createElement('a');
 		botao.id = 'btn-whatsapp-agendamento';
@@ -2124,7 +2141,7 @@ function criarConfetti() {
 		botao.target = '_blank';
 		botao.rel = 'noopener';
 		botao.className = 'btn-whatsapp';
-		botao.innerHTML = '<i class="fa fa-whatsapp" aria-hidden="true"></i> Enviar no WhatsApp';
+		botao.innerHTML = '<i class="fa fa-whatsapp" aria-hidden="true"></i> Enviar agendamento no WhatsApp';
 
 		caixa.appendChild(dica);
 		caixa.appendChild(botao);
@@ -2286,12 +2303,9 @@ function criarConfetti() {
 
 					if(msg_agendamento == 'Sim'){
 
-				let a= document.createElement('a');
-			          a.target= '_blank';
-			          a.href= montarUrlWhatsApp(nome_func, nome_serv, dataFormatada, horaFormatada, nome, obs);
-			          mostrarBotaoWhatsApp();
-			          window.open(urlWhatsAppAtual, '_blank');
-			          return;		
+					montarUrlWhatsApp(nome_func, nome_serv, dataFormatada, horaFormatada, nome, obs, $('#telefone').val());
+					avisarEstabelecimentoWhatsApp();
+					return;
 
 			      }
 
@@ -2338,12 +2352,9 @@ function criarConfetti() {
 
 					if(msg_agendamento == 'Sim'){
 
-				let a= document.createElement('a');
-			          a.target= '_blank';
-			          a.href= montarUrlWhatsApp(nome_func, nome_serv, dataFormatada, horaFormatada, nome, obs);
-			          mostrarBotaoWhatsApp();
-			          window.open(urlWhatsAppAtual, '_blank');
-			          return;		
+					montarUrlWhatsApp(nome_func, nome_serv, dataFormatada, horaFormatada, nome, obs, $('#telefone').val());
+					avisarEstabelecimentoWhatsApp();
+					return;
 
 			      }
 

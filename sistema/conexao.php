@@ -730,6 +730,22 @@ if ($bb_tenant_db_atual !== $banco) {
     }
 }
 
+if (!function_exists('bb_tel_whatsapp_numero')) {
+    // Numero no formato do wa.me: so digitos e com o 55 na frente (uma vez).
+    // Configuracao com "+55 (81) 98660-7510" antes virava 555581...
+    function bb_tel_whatsapp_numero($numero)
+    {
+        $digitos = preg_replace('/\D+/', '', (string) $numero);
+        if ($digitos === '') {
+            return '';
+        }
+        if (strlen($digitos) >= 12 && substr($digitos, 0, 2) === '55') {
+            return $digitos;
+        }
+        return '55' . $digitos;
+    }
+}
+
 // VARIAVEIS DO SISTEMA (fallback usado somente na primeira instalacao)
 $nome_sistema      = 'Barbearia PRO';
 $email_sistema     = 'admin@admin';
@@ -773,7 +789,7 @@ if ($query) {
         // Segmento do negocio: 'barbearia' (padrao) ou 'salao' (troca o tema do site)
         $segmento          = (isset($res[0]['segmento']) && $res[0]['segmento'] !== '') ? $res[0]['segmento'] : 'barbearia';
 
-        $tel_whatsapp = '55' . preg_replace('/[ ()-]+/', '', $whatsapp_sistema);
+        $tel_whatsapp = bb_tel_whatsapp_numero($whatsapp_sistema);
     }
 }
 
@@ -822,7 +838,7 @@ if (!function_exists('bb_aplicar_segmento')) {
             $texto_rodape       = $texto_rodape_base;
             $texto_agendamento  = $texto_agendamento_base;
             $whatsapp_sistema   = $whatsapp_sistema_base;
-            $tel_whatsapp       = '55' . preg_replace('/[ ()-]+/', '', $whatsapp_sistema);
+            $tel_whatsapp       = bb_tel_whatsapp_numero($whatsapp_sistema);
             $endereco_sistema   = $endereco_sistema_base;
             $instagram_sistema  = $instagram_sistema_base;
             $icone_site         = $icone_site_base;
@@ -847,7 +863,7 @@ if (!function_exists('bb_aplicar_segmento')) {
         if (!empty($salao['texto_agendamento'])) $texto_agendamento = $salao['texto_agendamento'];
         if (!empty($salao['whatsapp'])) {
             $whatsapp_sistema = $salao['whatsapp'];
-            $tel_whatsapp     = '55' . preg_replace('/[ ()-]+/', '', $whatsapp_sistema);
+            $tel_whatsapp     = bb_tel_whatsapp_numero($whatsapp_sistema);
         }
         if (!empty($salao['endereco']))          $endereco_sistema  = $salao['endereco'];
         if (!empty($salao['instagram']))         $instagram_sistema = $salao['instagram'];
