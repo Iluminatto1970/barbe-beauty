@@ -100,6 +100,105 @@ if (!function_exists('bb_csrf_token')) {
     }
 }
 
+// ============================================================
+// MODO DEMONSTRACAO (Sprint: conta demo simula Admin, sem escrever)
+// ------------------------------------------------------------
+// A conta marcada com usuarios.demo = 1 entra como Administrador e
+// consulta tudo, mas nao altera nada: as acoes de escrita do painel
+// respondem 403. Quem e demo vem do login (sessao) e e reconferido
+// no banco quando a sessao antiga nao tem a marca.
+// ============================================================
+if (!function_exists('bb_usuario_demo')) {
+    function bb_usuario_demo()
+    {
+        if (PHP_SAPI === 'cli') {
+            return false;
+        }
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+        if (isset($_SESSION['bb_demo'])) {
+            return (int) $_SESSION['bb_demo'] === 1;
+        }
+        $id = isset($_SESSION['id']) ? (int) $_SESSION['id'] : 0;
+        if ($id <= 0) {
+            return false;
+        }
+        global $pdo;
+        if (!($pdo instanceof PDO)) {
+            return false;
+        }
+        try {
+            $st = $pdo->prepare("SELECT demo FROM usuarios WHERE id = :id LIMIT 1");
+            $st->execute(array(':id' => $id));
+            $valor = $st->fetchColumn();
+        } catch (Exception $e) {
+            return false; // coluna ainda nao migrada: nao bloqueia o uso
+        }
+        $_SESSION['bb_demo'] = ((int) $valor === 1) ? 1 : 0;
+        return (int) $valor === 1;
+    }
+}
+
+if (!function_exists('bb_demo_proteger_requisicao')) {
+    // Chamada por conexao.php em toda requisicao. So age no painel e
+    // apenas em escrita: leituras (listagens, filtros, relatorios) passam.
+    function bb_demo_proteger_requisicao()
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+        if (empty($_SESSION['id']) || !bb_usuario_demo()) {
+            return;
+        }
+
+        $script = isset($_SERVER['SCRIPT_FILENAME']) ? str_replace('\\', '/', (string) $_SERVER['SCRIPT_FILENAME']) : '';
+        if ($script === '') {
+            return;
+        }
+        $dir = str_replace('\\', '/', dirname($script));
+        if (strpos($dir, '/sistema/painel') === false) {
+            return; // telas publicas do site seguem normais
+        }
+
+        $arquivo = basename($script);
+        $metodo = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : 'GET';
+
+        // Leitura: relatorios em PDF, listagens e consultas AJAX.
+        if (preg_match('/^(rel_[a-z0-9_]+\.php|render\.php|listar[a-z0-9_-]*\.php|calcular\.php|quota-banner\.php)$/i', $arquivo)) {
+            return;
+        }
+
+        // Escrita: nomes de acao do painel (as vezes por GET) ou qualquer POST.
+        $acao = (bool) preg_match('/^(salvar|excluir|inserir|confirmar|mudar-status|baixar|alertar|limpar-permissoes|add-permiss)/i', $arquivo);
+        if (!$acao && $metodo !== 'POST') {
+            return;
+        }
+
+        $msg = 'Modo demonstracao: esta acao esta desabilitada nesta conta.';
+        if (!headers_sent()) {
+            http_response_code(403);
+        }
+        $ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || (isset($_SERVER['HTTP_ACCEPT']) && stripos((string) $_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+        if ($ajax) {
+            if (!headers_sent()) {
+                header('Content-Type: application/json; charset=utf-8');
+            }
+            echo json_encode(array('ok' => false, 'erro' => $msg));
+        } else {
+            if (!headers_sent()) {
+                header('Content-Type: text/plain; charset=utf-8');
+            }
+            echo $msg;
+        }
+        exit();
+    }
+}
+
 // Helper de escape XSS (Sprint 1 - item 3)
 if (!function_exists('bb_e')) {
     function bb_e($v) {
@@ -533,6 +632,9 @@ bb_aplicar_segmento($segmento);
 
 // Plano e cota de agendamentos do SaaS (usa o tenant resolvido acima)
 require_once(__DIR__ . '/planos.php');
+
+// Conta demo: simula Administrador, nunca escreve
+bb_demo_proteger_requisicao();
 
 // Cookie CSRF (nao-HttpOnly para leitura via JS/AJAX) - apos definicao dos helpers
 if (php_sapi_name() !== 'cli' && !headers_sent()) {

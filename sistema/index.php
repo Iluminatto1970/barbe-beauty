@@ -36,32 +36,43 @@ if (bb_banco_atual() === bb_banco_controle()) {
 if (bb_banco_atual() === bb_banco_controle() && bb_permitir_usuarios_teste()) {
 	$hash_123 = bb_hash_senha('123');
 	foreach (array('admin@admin') as $email_teste) {
-		$st = $pdo->prepare("SELECT id, senha_crip FROM usuarios WHERE email = :e LIMIT 1");
+		$st = $pdo->prepare("SELECT id, senha_crip, demo FROM usuarios WHERE email = :e LIMIT 1");
 		$st->bindValue(':e', $email_teste);
 		$st->execute();
 		$row = $st->fetch(PDO::FETCH_ASSOC);
 		if (!$row) {
-			$pdo->prepare("INSERT INTO usuarios SET nome = 'Admin', email = :e, cpf = '000.000.000-00', senha = '', senha_crip = :h, nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg'")
+			$pdo->prepare("INSERT INTO usuarios SET nome = 'Admin', email = :e, cpf = '000.000.000-00', senha = '', senha_crip = :h, nivel = 'Administrador', data = curDate(), ativo = 'Sim', foto = 'sem-foto.jpg', demo = 1")
 				->execute(array(':e' => $email_teste, ':h' => $hash_123));
 		} elseif (!bb_checar_senha('123', $row['senha_crip'])['ok']) {
-			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :h, senha = '' WHERE id = :id");
+			$up = $pdo->prepare("UPDATE usuarios SET senha_crip = :h, senha = '', demo = 1 WHERE id = :id");
 			$up->execute(array(':h' => $hash_123, ':id' => $row['id']));
+		} elseif ((int) $row['demo'] !== 1) {
+			// Conta de teste/demo nunca tem poder de escrita, mesmo se ja existir
+			$pdo->prepare("UPDATE usuarios SET demo = 1 WHERE id = :id")->execute(array(':id' => $row['id']));
 		}
 	}
 }
 
 
-// Seguranca: a conta demo admin@admin/123 nunca fica ativa fora de localhost.
-// Se existir na instalacao principal e houver outro Administrador ativo, ela e
-// desativada e marcada para troca de senha (nunca deixa o sistema sem admin).
+// Seguranca: a conta demo admin@admin/123 nunca tem poder de escrita fora de
+// localhost. Com outro Administrador ativo ela segue ativa apenas como
+// demonstracao (leitura); se for o unico admin, e desativada, para nao deixar
+// o sistema com uma credencial publica de poder total.
 if (bb_banco_atual() === bb_banco_controle() && !bb_permitir_usuarios_teste()) {
-	$st_demo = $pdo->prepare("SELECT id FROM usuarios WHERE email = 'admin@admin' AND ativo = 'Sim' LIMIT 1");
+	$st_demo = $pdo->prepare("SELECT id, demo FROM usuarios WHERE email = 'admin@admin' AND ativo = 'Sim' LIMIT 1");
 	$st_demo->execute();
 	$demo = $st_demo->fetch(PDO::FETCH_ASSOC);
 	if ($demo) {
 		$st_outros = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE nivel = 'Administrador' AND ativo = 'Sim' AND id <> :id");
 		$st_outros->execute(array(':id' => $demo['id']));
 		if ((int) $st_outros->fetchColumn() > 0) {
+			// Ha outro Administrador: a demo fica ativa, porem somente leitura.
+			if ((int) $demo['demo'] !== 1) {
+				$pdo->prepare("UPDATE usuarios SET demo = 1 WHERE id = :id")
+					->execute(array(':id' => $demo['id']));
+			}
+		} else {
+			// Unico Administrador: desativar evita credencial publica com poder total.
 			$pdo->prepare("UPDATE usuarios SET ativo = 'Não', precisa_trocar_senha = 1 WHERE id = :id")
 				->execute(array(':id' => $demo['id']));
 		}

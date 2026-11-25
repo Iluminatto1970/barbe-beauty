@@ -72,6 +72,8 @@ if ($total_reg > 0) {
 		$_SESSION['nome'] = $res[0]['nome'];
 		// Amarra a sessao ao banco do estabelecimento resolvido pelo dominio
 		$_SESSION['bb_tenant_db'] = bb_banco_atual();
+		// Conta de demonstracao: entra como Administrador, mas sem poder de escrita
+		$_SESSION['bb_demo'] = (isset($res[0]['demo']) && (int) $res[0]['demo'] === 1) ? 1 : 0;
 
 		// Sunset MD5: forca troca de senha se migrado de MD5
 		$precisa = (int)@$res[0]['precisa_trocar_senha'];

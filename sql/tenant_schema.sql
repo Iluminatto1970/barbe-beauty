@@ -253,6 +253,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `chave_pix` varchar(50) DEFAULT NULL,
   `segmento` varchar(20) NOT NULL DEFAULT '',
   `precisa_trocar_senha` tinyint(1) NOT NULL DEFAULT 0,
+  `demo` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 CREATE TABLE IF NOT EXISTS `usuarios_permissoes` (

@@ -554,7 +554,8 @@ CREATE TABLE `usuarios` (
   `tipo_chave` varchar(25) DEFAULT NULL,
   `chave_pix` varchar(50) DEFAULT NULL,
   `segmento` varchar(20) NOT NULL DEFAULT '',
-  `precisa_trocar_senha` tinyint(1) NOT NULL DEFAULT 0
+  `precisa_trocar_senha` tinyint(1) NOT NULL DEFAULT 0,
+  `demo` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --

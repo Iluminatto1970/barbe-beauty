@@ -27,10 +27,14 @@ if ($bloqueio !== '') {
 }
 
 // Sunset MD5: forca troca de senha para usuarios migrados de MD5 legado
-$st_flag = $pdo->prepare("SELECT precisa_trocar_senha FROM usuarios WHERE id = :id LIMIT 1");
+$st_flag = $pdo->prepare("SELECT precisa_trocar_senha, demo FROM usuarios WHERE id = :id LIMIT 1");
 $st_flag->execute(array(':id' => $_SESSION['id']));
 $row_flag = $st_flag->fetch(PDO::FETCH_ASSOC);
-if ($row_flag && (int)$row_flag['precisa_trocar_senha'] === 1) {
+if ($row_flag) {
+	$_SESSION['bb_demo'] = ((int) $row_flag['demo'] === 1) ? 1 : 0;
+}
+// Conta demo usa senha padrao e nao escreve: nao faz sentido exigir troca
+if ($row_flag && (int)$row_flag['precisa_trocar_senha'] === 1 && !bb_usuario_demo()) {
 	echo "<script>window.location='../trocar-senha.php'</script>";
 	exit();
 }
