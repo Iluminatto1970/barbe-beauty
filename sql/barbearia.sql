@@ -932,7 +932,7 @@ CREATE TABLE IF NOT EXISTS `saas_planos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `saas_planos` (`id`, `nome`, `valor`, `limite_profissionais`, `limite_agendamentos`, `ativo`) VALUES
-(1, 'Grátis', 0.00, 0, 30, 'Sim'),
+(1, 'Grátis', 0.00, 0, 20, 'Sim'),
 (2, 'PRO', 49.00, 0, 0, 'Sim');
 
 CREATE TABLE IF NOT EXISTS `tenants` (

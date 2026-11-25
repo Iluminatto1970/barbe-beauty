@@ -54,9 +54,9 @@ if (!function_exists('bb_quota_plano')) {
 
         $quota = array(
             'plano'     => 'Grátis',
-            'limite'    => 30,
+            'limite'    => 20,
             'usados'    => 0,
-            'restantes' => 30,
+            'restantes' => 20,
             'ilimitado' => false,
             'preco'     => bb_plano_upgrade_preco($pdo_controle),
         );

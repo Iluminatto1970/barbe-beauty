@@ -1230,7 +1230,7 @@ for($i=0; $i < $total_reg; $i++){
           <span style="display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#d9b26a;font-weight:700">Gestor completo do estabelecimento</span>
           <h2 style="color:#fff;font-size:34px;margin:12px 0 14px">Comece grátis hoje</h2>
           <p style="color:#cbd5e0;font-size:17px;line-height:1.7;margin:0 0 16px">
-            Crie sua conta sem cartão e use até <strong style="color:#fff">30 agendamentos por mês</strong> de graça.
+            Crie sua conta sem cartão e use até <strong style="color:#fff">20 agendamentos por mês</strong> de graça.
             Quando o movimento crescer, o plano PRO libera agendamentos ilimitados por <strong style="color:#fff">R$ 49/mês</strong>.
           </p>
           <p style="color:#cbd5e0;font-size:15px;line-height:1.7;margin:0 0 22px">

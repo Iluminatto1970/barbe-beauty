@@ -84,7 +84,7 @@ $painel_url = bb_boas_vindas_url($tenant['slug']);
           <div class="linha"><span>Plano</span><span><?php echo sa_e($tenant['plano'] ? $tenant['plano'] : 'Mensal'); ?></span></div>
           <?php if ($gratis) { ?>
             <div class="linha"><span>Mensalidade</span><span>Grátis</span></div>
-            <div class="linha"><span>Limite do plano</span><span>30 agendamentos/mês</span></div>
+            <div class="linha"><span>Limite do plano</span><span><?php echo (int) bb_quota_plano()['limite']; ?> agendamentos/mês</span></div>
             <div class="linha"><span>Plano ilimitado</span><span><?php echo sa_moeda(bb_plano_upgrade_preco()); ?>/mês</span></div>
           <?php } else { ?>
             <div class="linha"><span>Mensalidade</span><span><?php echo sa_moeda($valor); ?></span></div>

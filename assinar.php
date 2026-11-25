@@ -75,7 +75,7 @@ $_SESSION['assinar_csrf'] = $csrf;
   <div class="assinar-hero">
     <div class="brand" style="margin-bottom:14px">⚙️ <strong>Barbearia PRO</strong><span class="muted">assinatura do sistema</span></div>
     <h1>Crie sua conta e comece grátis</h1>
-    <p>Comece no plano gratuito com até 30 agendamentos por mês. Quando precisar de mais, o plano PRO libera agendamentos ilimitados por R$ 49/mês — com agenda, clientes, estoque, financeiro e relatórios no mesmo sistema.</p>
+    <p>Comece no plano gratuito com até 20 agendamentos por mês. Quando precisar de mais, o plano PRO libera agendamentos ilimitados por R$ 49/mês — com agenda, clientes, estoque, financeiro e relatórios no mesmo sistema.</p>
   </div>
 
   <div class="wrap" style="padding-top:18px">
