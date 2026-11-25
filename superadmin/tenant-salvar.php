@@ -35,13 +35,10 @@ if ($senha !== '' && strlen($senha) < 6) {
     exit;
 }
 
-// Slug unico
-$q = $pdo->prepare("SELECT id FROM tenants WHERE slug = :slug AND id <> :id LIMIT 1");
-$q->bindValue(':slug', $slug);
-$q->bindValue(':id', $id);
-$q->execute();
-if ($q->fetch()) {
-    header('Location: tenants.php?erro=' . urlencode('este subdomínio já está em uso'));
+// Slug: rotulo DNS valido, nao reservado e sem colisao com cliente/host existente
+$motivo_slug = bb_slug_motivo($pdo, $slug, $id);
+if ($motivo_slug !== '') {
+    header('Location: tenants.php?erro=' . urlencode($motivo_slug) . '&id=' . $id);
     exit;
 }
 
@@ -81,12 +78,12 @@ $hostname = $slug . '.' . SA_DOMINIO_BASE;
 $pdo->prepare("DELETE FROM tenant_dominios WHERE tenant_id = :id AND tipo = 'subdominio'")
     ->execute(array(':id' => $id));
 
+// Nunca reatribui hostname de outro estabelecimento (ver bb_slug_motivo)
 $q = $pdo->prepare("INSERT INTO tenant_dominios (hostname, tenant_id, tipo, verificado_em)
                     VALUES (:host, :id, 'subdominio', NOW())
-                    ON DUPLICATE KEY UPDATE tenant_id = :id2, tipo = 'subdominio'");
+                    ON DUPLICATE KEY UPDATE tipo = IF(tenant_id = VALUES(tenant_id), 'subdominio', tipo)");
 $q->bindValue(':host', $hostname);
 $q->bindValue(':id', $id);
-$q->bindValue(':id2', $id);
 $q->execute();
 
 // Cria/atualiza o banco de dados do estabelecimento (idempotente)

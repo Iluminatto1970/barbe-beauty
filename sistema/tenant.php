@@ -601,3 +601,102 @@ if (!function_exists('bb_tenant_responder_indisponivel')) {
         exit;
     }
 }
+
+// ============================================================
+// SLUG DO SUBDOMINIO (autocadastro e super admin)
+// ------------------------------------------------------------
+// Um slug vira rotulo DNS: {slug}.{BB_DOMINIO_BASE}. Ele precisa ser
+// valido como rotulo, nao pode ser nome reservado do sistema e nao pode
+// colidir com outro estabelecimento nem com um host ja registrado.
+// ============================================================
+if (!function_exists('bb_slug_reservados')) {
+    function bb_slug_reservados()
+    {
+        $lista = array(
+            // infraestrutura e e-mail
+            'www', 'www2', 'mail', 'email', 'emails', 'smtp', 'imap', 'pop', 'pop3', 'webmail', 'mx',
+            'ftp', 'sftp', 'dns', 'ns', 'ns1', 'ns2', 'ns3', 'autodiscover', 'autoconfig', 'localhost',
+            'root', 'srv', 'vpn', 'proxy', 'gateway', 'edge', 'cdn', 'static', 'assets', 'img', 'images', 'media',
+            // aplicacao e paines internos
+            'api', 'apis', 'app', 'apps', 'admin', 'administrador', 'superadmin', 'sistema', 'painel',
+            'painel-admin', 'login', 'logout', 'cadastro', 'cadastrar', 'registrar', 'conta', 'contas',
+            // comercial, cobranca e suporte
+            'assinar', 'assinatura', 'assinaturas', 'pagamento', 'pagamentos', 'checkout', 'cobranca',
+            'cobrancas', 'fatura', 'faturas', 'billing', 'plano', 'planos', 'saas', 'webhook', 'webhooks',
+            'asaas', 'suporte', 'ajuda', 'help', 'docs', 'status', 'blog', 'loja', 'store', 'crm', 'erp',
+            // ambientes de teste
+            'dev', 'test', 'teste', 'tests', 'staging', 'homolog', 'homologacao', 'demo', 'sandbox'
+        );
+        // O rotulo do proprio dominio base tambem fica fora
+        // (ex.: iluminatto.iluminatto.online nao pode existir).
+        $base = strtolower((string) BB_DOMINIO_BASE);
+        $rotulo_base = strtolower(trim(explode('.', $base)[0]));
+        if ($rotulo_base !== '') {
+            $lista[] = $rotulo_base;
+        }
+        return $lista;
+    }
+}
+
+if (!function_exists('bb_slug_formato_ok')) {
+    // Rotulo DNS valido: 3 a 40 caracteres, letras/numeros/hifen,
+    // sem comecar nem terminar com hifen.
+    function bb_slug_formato_ok($slug)
+    {
+        $slug = strtolower(trim((string) $slug));
+        if (strlen($slug) < 3 || strlen($slug) > 40) {
+            return false;
+        }
+        return (bool) preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $slug);
+    }
+}
+
+if (!function_exists('bb_slug_motivo')) {
+    // Devolve '' quando o slug pode ser usado, ou a mensagem do motivo.
+    // $tenant_id ignora o proprio estabelecimento (edicao no super admin).
+    function bb_slug_motivo($pdo, $slug, $tenant_id = 0)
+    {
+        $slug = strtolower(trim((string) $slug));
+        $tenant_id = (int) $tenant_id;
+
+        if ($slug === '' || strlen($slug) < 3) {
+            return 'O endereço do site precisa ter ao menos 3 caracteres.';
+        }
+        if (strlen($slug) > 40) {
+            return 'O endereço do site pode ter no máximo 40 caracteres.';
+        }
+        if (!bb_slug_formato_ok($slug)) {
+            return 'Use apenas letras, números e hífen, começando e terminando com letra ou número.';
+        }
+        if (in_array($slug, bb_slug_reservados(), true)) {
+            return 'Este endereço é reservado. Escolha outro.';
+        }
+        if (!($pdo instanceof PDO)) {
+            return 'Não foi possível validar o endereço agora. Tente novamente.';
+        }
+
+        try {
+            $q = $pdo->prepare("SELECT id FROM tenants WHERE slug = :slug AND id <> :id LIMIT 1");
+            $q->bindValue(':slug', $slug);
+            $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+            $q->execute();
+            if ($q->fetchColumn()) {
+                return 'Este endereço já está em uso. Escolha outro.';
+            }
+
+            // Host ja registrado (subdominio antigo ou dominio proprio) de outro cliente
+            $host = $slug . '.' . strtolower((string) BB_DOMINIO_BASE);
+            $q = $pdo->prepare("SELECT tenant_id FROM tenant_dominios WHERE hostname = :host LIMIT 1");
+            $q->bindValue(':host', $host);
+            $q->execute();
+            $dono = $q->fetchColumn();
+            if ($dono !== false && $dono !== null && (int) $dono !== $tenant_id) {
+                return 'Este endereço já está em uso. Escolha outro.';
+            }
+        } catch (Exception $e) {
+            return 'Não foi possível validar o endereço agora. Tente novamente.';
+        }
+
+        return '';
+    }
+}

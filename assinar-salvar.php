@@ -56,9 +56,10 @@ if ($slug === '' || strlen($slug) < 3) {
     $voltar('O endereço do site precisa ter ao menos 3 caracteres.');
 }
 
-$reservados = array('www', 'mail', 'smtp', 'ftp', 'api', 'app', 'admin', 'superadmin', 'sistema', 'painel', 'assinar', 'dev', 'teste', 'suporte', 'status', 'blog', 'loja');
-if (in_array($slug, $reservados, true)) {
-    $voltar('Este endereço é reservado. Escolha outro.');
+// Rotulo DNS valido, nome nao reservado e sem colisao com cliente/host existente
+$motivo_slug = bb_slug_motivo($pdo, $slug, 0);
+if ($motivo_slug !== '') {
+    $voltar($motivo_slug);
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -94,14 +95,7 @@ if (!$gratis && !asaas_configurado()) {
     $voltar('Pagamento indisponível no momento. Tente novamente mais tarde.');
 }
 
-// Unicidade de slug e e-mail
-$q = $pdo->prepare("SELECT id FROM tenants WHERE slug = :slug LIMIT 1");
-$q->bindValue(':slug', $slug);
-$q->execute();
-if ($q->fetchColumn()) {
-    $voltar('Este endereço já está em uso. Escolha outro.');
-}
-
+// Unicidade de e-mail (o slug ja foi validado em bb_slug_motivo)
 $q = $pdo->prepare("SELECT id FROM tenants WHERE email = :email LIMIT 1");
 $q->bindValue(':email', $email);
 $q->execute();
@@ -124,18 +118,27 @@ $ins->bindValue(':telefone', $telefone);
 $ins->bindValue(':plano', $plano_id, PDO::PARAM_INT);
 $ins->bindValue(':senha', bb_hash_senha($senha));
 $ins->bindValue(':token', $token);
-$ins->execute();
+try {
+    $ins->execute();
+} catch (PDOException $e) {
+    // Corrida: outra pessoa registrou o mesmo slug entre a validacao e o INSERT
+    if ((string) $e->getCode() === '23000') {
+        $voltar('Este endereço acabou de ser registrado por outra pessoa. Escolha outro.');
+    }
+    $voltar('Não foi possível concluir o cadastro agora. Tente novamente.');
+}
 
 $tenant_id = (int) $pdo->lastInsertId();
 
 // Subdominio do cliente
 $hostname = $slug . '.' . SA_DOMINIO_BASE;
+// Nunca "rouba" um hostname existente: o UPDATE so mexe no tipo, e apenas
+// quando a linha ja e deste mesmo estabelecimento.
 $dom = $pdo->prepare("INSERT INTO tenant_dominios (hostname, tenant_id, tipo, verificado_em)
     VALUES (:host, :id, 'subdominio', NOW())
-    ON DUPLICATE KEY UPDATE tenant_id = :id2");
+    ON DUPLICATE KEY UPDATE tipo = IF(tenant_id = VALUES(tenant_id), 'subdominio', tipo)");
 $dom->bindValue(':host', $hostname);
 $dom->bindValue(':id', $tenant_id, PDO::PARAM_INT);
-$dom->bindValue(':id2', $tenant_id, PDO::PARAM_INT);
 $dom->execute();
 
 // Prepara o banco de dados do estabelecimento (idempotente).
