@@ -200,8 +200,9 @@ function lp_iniciais($nome)
       transition: transform .25s ease, border-color .25s ease;
     }
     .lp-card:hover { transform: translateY(-6px); border-color: rgba(217,178,106,.45); }
-    .lp-card-img { position: relative; aspect-ratio: 4 / 3; background: #0d1518; overflow: hidden; }
-    .lp-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    /* padding-top mantem a moldura 4:3 mesmo sem imagem (avatar de iniciais) */
+    .lp-card-img { position: relative; padding-top: 75%; background: #0d1518; overflow: hidden; }
+    .lp-card-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .lp-card-corpo { padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
     .lp-card-corpo h3 { font-size: 20px; }
     .lp-card-corpo p { color: var(--lp-fraco); font-size: 14px; margin: 0; }
@@ -209,13 +210,13 @@ function lp_iniciais($nome)
 
     /* profissionais */
     .lp-prof { text-align: center; align-items: center; }
-    .lp-prof-foto { aspect-ratio: 1 / 1; }
+    .lp-prof-foto { padding-top: 100%; }
     .lp-prof-foto img { object-position: center 20%; }
     .lp-avatar {
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif; font-size: 44px; color: #fff;
-      width: 100%; height: 100%; background: linear-gradient(135deg, #1b2a30, #0d1518);
-      letter-spacing: 2px;
+      position: absolute; inset: 0; font-family: 'Playfair Display', serif;
+      font-size: 44px; color: #fff; letter-spacing: 2px;
+      background: linear-gradient(135deg, #1b2a30, #0d1518);
     }
     .lp-prof .lp-card-corpo { align-items: center; text-align: center; }
     .lp-prof-cargo { color: var(--lp-dourado); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
