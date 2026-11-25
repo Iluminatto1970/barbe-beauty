@@ -47,7 +47,7 @@ if(@$_FILES['foto']['name'] != ""){
 
 			$foto = $nome_img;
 		
-		move_uploaded_file($imagem_temp, $caminho);
+		bb_imagem_salvar_upload($imagem_temp, $caminho, 800);
 	}else{
 		echo 'Extensão de Imagem não permitida!';
 		exit();

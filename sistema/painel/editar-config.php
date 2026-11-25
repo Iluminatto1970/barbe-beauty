@@ -29,19 +29,19 @@ $arquivo_icone_site = bb_arquivo_tenant('favicon.png');
 if(@$_FILES['foto-logo']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
-	move_uploaded_file($_FILES['foto-logo']['tmp_name'], '../img/' . $arquivo_logo);
+	bb_imagem_salvar_upload($_FILES['foto-logo']['tmp_name'], '../img/' . $arquivo_logo, 512);
 }
 
 if(@$_FILES['foto-icone']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
-	move_uploaded_file($_FILES['foto-icone']['tmp_name'], '../img/' . $arquivo_icone);
+	bb_imagem_salvar_upload($_FILES['foto-icone']['tmp_name'], '../img/' . $arquivo_icone, 512);
 }
 
 if(@$_FILES['foto-logo-rel']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo-rel'], array('jpg', 'jpeg'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
-	move_uploaded_file($_FILES['foto-logo-rel']['tmp_name'], '../img/' . $arquivo_logo_rel);
+	bb_imagem_salvar_upload($_FILES['foto-logo-rel']['tmp_name'], '../img/' . $arquivo_logo_rel, 1200);
 }
 
 $query = $pdo->query("SELECT * FROM config");
@@ -56,7 +56,7 @@ if(@$_FILES['foto-banner-index']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-banner-index']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$img_banner_index = $nome_img;
-	move_uploaded_file($_FILES['foto-banner-index']['tmp_name'], '../../images/' . $nome_img);
+	bb_imagem_salvar_upload($_FILES['foto-banner-index']['tmp_name'], '../../images/' . $nome_img, 1920);
 }
 
 //validar troca da foto
@@ -72,13 +72,13 @@ if(@$_FILES['foto-sobre']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-sobre']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$img_sobre = $nome_img;
-	move_uploaded_file($_FILES['foto-sobre']['tmp_name'], '../../images/' . $nome_img);
+	bb_imagem_salvar_upload($_FILES['foto-sobre']['tmp_name'], '../../images/' . $nome_img, 1600);
 }
 
 if(@$_FILES['foto-icone-site']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone-site'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
-	move_uploaded_file($_FILES['foto-icone-site']['tmp_name'], '../../images/' . $arquivo_icone_site);
+	bb_imagem_salvar_upload($_FILES['foto-icone-site']['tmp_name'], '../../images/' . $arquivo_icone_site, 512);
 }
 
 // Atualiza apenas o registro de configuracao usado pelo sistema (primeiro)
@@ -136,7 +136,7 @@ if(@$_FILES['foto-logo-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo-salao'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$logo_salao = $nome_img_salao;
-	move_uploaded_file($_FILES['foto-logo-salao']['tmp_name'], '../img/' . $nome_img_salao);
+	bb_imagem_salvar_upload($_FILES['foto-logo-salao']['tmp_name'], '../img/' . $nome_img_salao, 512);
 }
 
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-icone-salao']['name']);
@@ -144,7 +144,7 @@ if(@$_FILES['foto-icone-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone-salao'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$icone_salao = $nome_img_salao;
-	move_uploaded_file($_FILES['foto-icone-salao']['tmp_name'], '../../images/' . $nome_img_salao);
+	bb_imagem_salvar_upload($_FILES['foto-icone-salao']['tmp_name'], '../../images/' . $nome_img_salao, 512);
 }
 $img_banner_salao = ($salao_atual && !empty($salao_atual['img_banner_index'])) ? $salao_atual['img_banner_index'] : 'salao-banner.jpg';
 $img_sobre_salao  = ($salao_atual && !empty($salao_atual['imagem_sobre'])) ? $salao_atual['imagem_sobre'] : 'salao-sobre.jpg';
@@ -154,7 +154,7 @@ if(@$_FILES['foto-banner-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-banner-salao']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$img_banner_salao = $nome_img_salao;
-	move_uploaded_file($_FILES['foto-banner-salao']['tmp_name'], '../../images/' . $nome_img_salao);
+	bb_imagem_salvar_upload($_FILES['foto-banner-salao']['tmp_name'], '../../images/' . $nome_img_salao, 1920);
 }
 
 $nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-sobre-salao']['name']);
@@ -162,7 +162,7 @@ if(@$_FILES['foto-sobre-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-sobre-salao']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
 	$img_sobre_salao = $nome_img_salao;
-	move_uploaded_file($_FILES['foto-sobre-salao']['tmp_name'], '../../images/' . $nome_img_salao);
+	bb_imagem_salvar_upload($_FILES['foto-sobre-salao']['tmp_name'], '../../images/' . $nome_img_salao, 1600);
 }
 
 if ($nome_salao !== '') {

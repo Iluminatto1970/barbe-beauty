@@ -212,8 +212,9 @@ if (!function_exists('bb_e')) {
 // Valida tamanho, extensao permitida e MIME real (finfo), sem
 // confiar no tipo declarado pelo navegador. Devolve '' quando o
 // arquivo esta ok, ou a mensagem de erro para exibir. O
-// move_uploaded_file continua em cada tela (diretorio e nome
-// final sao dela).
+// Quem grava o arquivo e bb_imagem_salvar_upload (mais abaixo),
+// que comprime/resize a imagem; o diretorio e o nome final sao
+// definidos por cada tela.
 // ============================================================
 if (!function_exists('bb_imagem_upload_valida')) {
     function bb_imagem_upload_valida($arquivo, $exts = array('png', 'jpg', 'jpeg', 'gif', 'webp'), $max_bytes = 2097152)
@@ -245,6 +246,177 @@ if (!function_exists('bb_imagem_upload_valida')) {
             return 'Tipo de arquivo não permitido!';
         }
         return '';
+    }
+}
+
+// ============================================================
+// COMPRESSAO DE IMAGEM NO UPLOAD
+// ------------------------------------------------------------
+// Fotos de celular chegam com 10-20 MP e 5-8 MB. Guardar assim lotava
+// o disco da VPS, entao todo upload passa por aqui: redimensiona o
+// maior lado e recodifica com qualidade alta (sem perda visivel).
+// PDF/ZIP/RAR (comprovantes) e GIF (pode ser animado) seguem intactos.
+// Sem GD, ou se a compressao falhar, o arquivo e apenas movido, como
+// antes: nunca perdemos o upload.
+// ============================================================
+if (!function_exists('bb_imagem_arquivo_mover')) {
+    function bb_imagem_arquivo_mover($origem, $destino)
+    {
+        if (is_uploaded_file($origem)) {
+            return move_uploaded_file($origem, $destino);
+        }
+        if (@rename($origem, $destino)) {
+            return true;
+        }
+        return @copy($origem, $destino);
+    }
+}
+
+if (!function_exists('bb_imagem_memoria')) {
+    // Sobe o memory_limit para lidar com fotos grandes (best effort)
+    function bb_imagem_memoria()
+    {
+        $limite = trim((string) ini_get('memory_limit'));
+        if ($limite === '' || $limite === '-1') {
+            return;
+        }
+        $multiplicador = 1;
+        $unidade = strtolower(substr($limite, -1));
+        if ($unidade === 'g') {
+            $multiplicador = 1073741824;
+        } elseif ($unidade === 'm') {
+            $multiplicador = 1048576;
+        } elseif ($unidade === 'k') {
+            $multiplicador = 1024;
+        }
+        $bytes = (int) $limite * $multiplicador;
+        if ($bytes > 0 && $bytes < 268435456) {
+            @ini_set('memory_limit', '256M');
+        }
+    }
+}
+
+if (!function_exists('bb_imagem_reduzir')) {
+    // Recodifica a imagem no destino. Devolve false quando nao vale a pena
+    // (formato nao suportado, GD ausente, arquivo maior que o original).
+    function bb_imagem_reduzir($origem, $destino, $max_lado, $qualidade, $tipo)
+    {
+        if (!function_exists('imagecreatefromstring')) {
+            return false;
+        }
+        $conteudo = @file_get_contents($origem);
+        if ($conteudo === false) {
+            return false;
+        }
+
+        bb_imagem_memoria();
+
+        $img = @imagecreatefromstring($conteudo);
+        unset($conteudo);
+        if (!$img) {
+            return false;
+        }
+
+        $largura = imagesx($img);
+        $altura = imagesy($img);
+        if ($largura < 1 || $altura < 1) {
+            imagedestroy($img);
+            return false;
+        }
+
+        // Reduz apenas quando passa do maior lado permitido
+        $escala = 1.0;
+        $max_lado = (int) $max_lado;
+        if ($max_lado > 0) {
+            $maior = max($largura, $altura);
+            if ($maior > $max_lado) {
+                $escala = $max_lado / $maior;
+            }
+        }
+
+        $nova_largura = max(1, (int) round($largura * $escala));
+        $nova_altura = max(1, (int) round($altura * $escala));
+
+        $saida = $img;
+        if ($nova_largura !== $largura || $nova_altura !== $altura) {
+            $saida = imagecreatetruecolor($nova_largura, $nova_altura);
+            if (!$saida) {
+                imagedestroy($img);
+                return false;
+            }
+            if ($tipo === IMAGETYPE_PNG || $tipo === IMAGETYPE_WEBP) {
+                imagealphablending($saida, false);
+                imagesavealpha($saida, true);
+                imagefill($saida, 0, 0, imagecolorallocatealpha($saida, 0, 0, 0, 127));
+            } else {
+                imagefill($saida, 0, 0, imagecolorallocate($saida, 255, 255, 255));
+            }
+            imagecopyresampled($saida, $img, 0, 0, 0, 0, $nova_largura, $nova_altura, $largura, $altura);
+        }
+
+        $temporario = $destino . '.bbtmp';
+        $gravou = false;
+        if ($tipo === IMAGETYPE_JPEG) {
+            $gravou = @imagejpeg($saida, $temporario, (int) $qualidade);
+        } elseif ($tipo === IMAGETYPE_PNG) {
+            // 9 = compressao maxima do PNG (sem perda)
+            $gravou = @imagepng($saida, $temporario, 9);
+        } elseif ($tipo === IMAGETYPE_WEBP && function_exists('imagewebp')) {
+            $gravou = @imagewebp($saida, $temporario, (int) $qualidade);
+        }
+
+        if ($saida !== $img) {
+            imagedestroy($saida);
+        }
+        imagedestroy($img);
+
+        if (!$gravou || !is_file($temporario)) {
+            @unlink($temporario);
+            return false;
+        }
+
+        // Se a recodificacao ficou maior (PNG pequeno, por exemplo), mantem o original
+        if (filesize($temporario) >= filesize($origem)) {
+            @unlink($temporario);
+            return false;
+        }
+
+        if (!@rename($temporario, $destino)) {
+            @unlink($temporario);
+            return false;
+        }
+        @chmod($destino, 0644);
+        return true;
+    }
+}
+
+if (!function_exists('bb_imagem_salvar_upload')) {
+    // Salva o upload no destino comprimindo imagens (JPEG/PNG/WebP).
+    // $max_lado = maior dimensao final em pixels (0 = nao redimensiona).
+    function bb_imagem_salvar_upload($origem, $destino, $max_lado = 1600, $qualidade = 82)
+    {
+        $origem = (string) $origem;
+        $destino = (string) $destino;
+        if ($origem === '' || $destino === '' || !is_file($origem)) {
+            return false;
+        }
+
+        $info = @getimagesize($origem);
+        if (is_array($info) && !empty($info[2])) {
+            $tipo = (int) $info[2];
+            $pixels = (int) $info[0] * (int) $info[1];
+
+            // Limite de seguranca contra estouro de memoria no GD
+            if ($pixels > 0 && $pixels <= 25000000
+                && in_array($tipo, array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP), true)) {
+                if (bb_imagem_reduzir($origem, $destino, (int) $max_lado, (int) $qualidade, $tipo)) {
+                    return true;
+                }
+            }
+        }
+
+        // PDF/ZIP/RAR, GIF (pode ser animado) e casos sem GD: grava como veio
+        return bb_imagem_arquivo_mover($origem, $destino);
     }
 }
 
