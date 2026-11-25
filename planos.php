@@ -178,6 +178,7 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
     .strip span { font-size: 12.5px; color: var(--muted); }
 
     section { padding: 66px 0; }
+    section[id], div[id] { scroll-margin-top: 84px; }
     .section-head { max-width: 620px; margin: 0 auto 34px; text-align: center; }
     .section-head h2 { font-family: "Playfair Display", Georgia, serif; font-size: clamp(26px, 3vw, 36px); margin: 0 0 10px; font-weight: 600; }
     .section-head p { color: var(--muted); margin: 0; }
@@ -212,12 +213,13 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
     }
     .nota strong { color: var(--gold-light); }
 
-    .planos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
-    @media (max-width: 980px) { .planos-grid { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; } }
+    .planos-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; align-items: stretch; }
     .plano {
       position: relative; border: 1px solid var(--line); border-radius: 16px; padding: 26px;
       background: var(--panel); display: flex; flex-direction: column;
+      flex: 1 1 300px; max-width: 374px;
     }
+    @media (max-width: 700px) { .plano { flex: 1 1 100%; max-width: 460px; } }
     .plano.popular { border-color: var(--gold); box-shadow: 0 18px 50px rgba(212, 175, 55, .12); }
     .plano .tag {
       position: absolute; top: -12px; left: 24px; background: var(--gold); color: #171204;
