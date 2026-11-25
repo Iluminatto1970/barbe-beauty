@@ -1,6 +1,14 @@
 <?php 
 require_once("cabecalho.php");
 $data_atual = date('Y-m-d');
+// ------------------------------------------------------------
+// MODO DEMONSTRACAO
+// ------------------------------------------------------------
+// A pagina de agendamento funciona como uma demonstracao: o visitante
+// percorre todas as etapas, o calendario/horarios/servicos vem do banco
+// real, mas ao confirmar nada e gravado (nem cliente, nem agendamento).
+// A regra vive em ajax/agendar.php, que recebe o campo demo=1.
+$agendamento_demo = true;
 // Cor de destaque do segmento (barbearia = teal, salao = ameixa rosado)
 $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 ?>
@@ -41,6 +49,12 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 	.btn-whatsapp{ display:block; width:100%; max-width:420px; margin:16px auto 0; text-align:center; background:#25d366; color:#fff !important; padding:15px 24px; border-radius:30px; font-weight:bold; text-decoration:none !important; font-size:16px; box-shadow:0 6px 18px rgba(0,0,0,.28); }
 	#dica-whatsapp-agendamento{ text-align:center; }
 	.btn-whatsapp:hover{ background:#1ebe5b; color:#fff !important; }
+
+	/* Aviso de demonstracao */
+	.demo-aviso{ display:flex; gap:12px; align-items:flex-start; background:rgba(0,0,0,.28); border:1px dashed rgba(255,255,255,.45); border-radius:12px; padding:14px 18px; margin:0 auto 26px; max-width:760px; color:#fff; text-align:left; }
+	.demo-aviso i{ font-size:18px; line-height:1.4; }
+	.demo-aviso strong{ display:block; font-size:15px; margin-bottom:2px; }
+	.demo-aviso span{ font-size:13px; color:rgba(255,255,255,.88); line-height:1.5; }
 </style>
 
 </div>
@@ -48,6 +62,16 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 <div class="footer_section" style="background: <?php echo $cor_tema ?>; ">
 	<div class="container" >
 		<div class="footer_content " >
+			<?php if ($agendamento_demo) { ?>
+			<div class="demo-aviso" role="status">
+				<i class="fa fa-flask" aria-hidden="true"></i>
+				<div>
+					<strong>Modo demonstração</strong>
+					<span>Percorra as etapas e simule um agendamento à vontade. Nenhum dado é enviado nem salvo: é só uma demonstração de como funciona a agenda online.</span>
+				</div>
+			</div>
+			<?php } ?>
+
 			<!-- Progress Steps -->
 			<div class="steps-container" style="margin-bottom: 30px;">
 				<div class="step-progress">
@@ -79,6 +103,7 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 			</div>
 
 			<form id="form-agenda" method="post" style="margin-top: -25px !important">
+			<input type="hidden" name="demo" value="<?php echo $agendamento_demo ? '1' : '0'; ?>" />
 			<div class="footer_form footer-col">
 				
 				<!-- Step 1: Dados Pessoais -->
@@ -2259,6 +2284,8 @@ function criarConfetti() {
 
 <script>
 
+	var AGENDAMENTO_DEMO = <?php echo $agendamento_demo ? 'true' : 'false'; ?>;
+
 	$("#form-agenda").submit(function (event) {
 		event.preventDefault();
 
@@ -2280,7 +2307,7 @@ function criarConfetti() {
 				// Aplicar estilo de sucesso
 				$('#mensagem').removeClass().addClass('mensagem-container');
 				$('#mensagem').html('<div class="mensagem-sucesso"><span class="icone-sucesso">🎉</span><span class="texto-sucesso">✅ ' + mensagem + '</span></div>');
-				$('#mensagem').append('<div class="mensagem-sucesso" style="margin-top:6px"><span class="texto-sucesso">⏳ Seu horário ficou <b>aguardando confirmação</b> do profissional.</span></div>');
+				$('#mensagem').append('<div class="mensagem-sucesso" style="margin-top:6px"><span class="texto-sucesso">' + (AGENDAMENTO_DEMO ? '🧪 Agendamento simulado: nada foi registrado, era só uma demonstração.' : '⏳ Seu horário ficou <b>aguardando confirmação</b> do profissional.') + '</span></div>');
 				
 				// A mensagem de sucesso permanece visivel, junto do botao do WhatsApp
 				$('#mensagem').stop(true, true).fadeIn(0);
@@ -2310,7 +2337,7 @@ function criarConfetti() {
 
 					var msg_agendamento = "<?=$msg_agendamento?>";
 
-					if(msg_agendamento == 'Sim'){
+					if(msg_agendamento == 'Sim' && !AGENDAMENTO_DEMO){
 
 					montarUrlWhatsApp(nome_func, nome_serv, dataFormatada, horaFormatada, nome, obs, $('#telefone').val());
 					avisarEstabelecimentoWhatsApp();
@@ -2329,7 +2356,7 @@ function criarConfetti() {
 				// Aplicar estilo de sucesso
 				$('#mensagem').removeClass().addClass('mensagem-container');
 				$('#mensagem').html('<div class="mensagem-sucesso"><span class="icone-sucesso">✏️</span><span class="texto-sucesso">✅ ' + mensagem + '</span></div>');
-				$('#mensagem').append('<div class="mensagem-sucesso" style="margin-top:6px"><span class="texto-sucesso">⏳ Alterações enviadas: o horário volta para <b>aguardando confirmação</b>.</span></div>');
+				$('#mensagem').append('<div class="mensagem-sucesso" style="margin-top:6px"><span class="texto-sucesso">' + (AGENDAMENTO_DEMO ? '🧪 Alteração simulada: nada foi registrado, era só uma demonstração.' : '⏳ Alterações enviadas: o horário volta para <b>aguardando confirmação</b>.') + '</span></div>');
 				
 				// A mensagem de sucesso permanece visivel, junto do botao do WhatsApp
 				$('#mensagem').stop(true, true).fadeIn(0);
@@ -2359,7 +2386,7 @@ function criarConfetti() {
 
 					var msg_agendamento = "<?=$msg_agendamento?>";
 
-					if(msg_agendamento == 'Sim'){
+					if(msg_agendamento == 'Sim' && !AGENDAMENTO_DEMO){
 
 					montarUrlWhatsApp(nome_func, nome_serv, dataFormatada, horaFormatada, nome, obs, $('#telefone').val());
 					avisarEstabelecimentoWhatsApp();

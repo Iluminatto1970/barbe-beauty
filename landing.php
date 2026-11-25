@@ -2,11 +2,10 @@
 // ============================================================
 // LANDING DE ABERTURA
 // ------------------------------------------------------------
-// Pagina que carrega ANTES do site atual: hero, servicos,
-// profissionais (com foto), depoimentos e contato. O botao
-// "Entrar no site" aponta para index.php?site=1, que grava o
-// cookie bb_landing e libera o site normal nas proximas visitas.
-// Pode ser vista de novo a qualquer momento em /landing.php.
+// Pagina que carrega ANTES do site atual, em TODA visita a home:
+// hero, servicos, profissionais (com foto), depoimentos e contato.
+// O botao "Entrar no site" aponta para index.php?site=1. Pode ser
+// vista de novo a qualquer momento em /landing.php ou /?landing=1.
 // ============================================================
 require_once(__DIR__ . '/sistema/conexao.php');
 

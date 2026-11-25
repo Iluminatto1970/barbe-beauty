@@ -2,14 +2,11 @@
 // ============================================================
 // LANDING ANTES DO SITE
 // ------------------------------------------------------------
-// A home abre a landing (landing.php) no inicio de cada sessao. O
-// botao "Entrar no site" (?site=1) marca a sessao e libera o site
-// normal ate o navegador encerrar. Para rever a landing a qualquer
-// momento: /landing.php ou /?landing=1 (nao altera a sessao).
-//
-// A decisao NUNCA depende de cookie de longa duracao: antes era o
-// cookie bb_landing (1 ano), entao quem clicava uma vez nunca mais
-// via a landing. O cookie antigo e apagado quando aparece.
+// A home carrega SEMPRE a landing (landing.php), em toda visita e
+// para todo mundo: nada de sessao nem cookie guardando "ja vi".
+// O site normal abre por /?site=1 (ou /?entrar), e a troca de tema
+// /?segmento=... tambem vai direto para o site. A landing pode ser
+// forçada em qualquer endereco com /?landing=1 ou /landing.php.
 // ============================================================
 require_once(__DIR__ . '/sistema/conexao.php');
 
@@ -28,13 +25,9 @@ if (isset($_COOKIE['bb_landing'])) {
     unset($_COOKIE['bb_landing']);
 }
 
-if (isset($_GET['site']) || isset($_GET['entrar'])) {
-    $_SESSION['bb_entrar_site'] = 1;
-    header('Location: /', true, 302);
-    exit;
-}
+$quer_site = isset($_GET['site']) || isset($_GET['entrar']) || isset($_GET['segmento']);
 
-if (isset($_GET['landing']) || empty($_SESSION['bb_entrar_site'])) {
+if (!$quer_site || isset($_GET['landing'])) {
     require __DIR__ . '/landing.php';
     exit;
 }

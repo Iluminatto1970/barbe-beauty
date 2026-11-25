@@ -1,8 +1,14 @@
 <?php
 require_once("../sistema/conexao.php");
 
+// Modo demonstracao: a pagina de agendamento do site simula a reserva.
+// Validamos data, horario e servico como no fluxo real, mas no final
+// nada e gravado (nem cliente, nem agendamento).
+$bb_demo = (isset($_POST['demo']) && (string) $_POST['demo'] === '1');
+
 // Cota do plano gratuito: sem agendamentos quando o limite do mes acabou
-if (bb_quota_atingida($pdo)) {
+// (a demonstracao nao consome cota, porque nao grava nada)
+if (!$bb_demo && bb_quota_atingida($pdo)) {
 	echo 'As reservas online estão temporariamente indisponíveis. Fale com o estabelecimento pelo WhatsApp.';
 	exit();
 }
@@ -51,6 +57,12 @@ $total_reg = @count($res);
 if($total_reg > 0 and $res[0]['id'] != $id){
 	echo 'Este horário não está disponível!';
 	exit();
+}
+
+// Demonstracao: encerra aqui, sem gravar cliente nem agendamento
+if ($bb_demo) {
+	echo 'Agendado com Sucesso';
+	exit;
 }
 
 //Cadastrar o cliente caso não tenha cadastro
