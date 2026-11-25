@@ -160,9 +160,11 @@ if($nome_pessoa == 'Nenhum!' and $nome_func != 'Nenhum!'){
 
 
 
+$__bb_esc1 = bb_e($descricao);
+$__bb_esc2 = bb_js($descricao);
 echo <<<HTML
 <tr class="{$classe_debito}">
-<td><i class="fa fa-square {$classe_alerta}"></i> {bb_e($descricao)}</td>
+<td><i class="fa fa-square {$classe_alerta}"></i> {$__bb_esc1}</td>
 <td class="esc">R$ {$valorF}</td>
 <td class="esc">{$data_vencF}</td>
 <td class="esc">{$data_pgtoF}</td>
@@ -170,9 +172,9 @@ echo <<<HTML
 <td class="esc">{$nome_pessoa}</td>
 <td><a href="img/contas/{$foto}" target="_blank"><img src="img/contas/{$tumb_arquivo}" width="27px" class="mr-2"></a></td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($descricao)}', '{$pessoa}', '{$valor}', '{$data_venc}', '{$data_pgto}', '{$tumb_arquivo}', '{$funcionario}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc2}, '{$pessoa}', '{$valor}', '{$data_venc}', '{$data_pgto}', '{$tumb_arquivo}', '{$funcionario}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{bb_e($descricao)}', '{$valorF}', '{$data_lancF}', '{$data_vencF}',  '{$data_pgtoF}', '{$nome_usuario_lanc}', '{$nome_usuario_pgto}', '{$tumb_arquivo}', '{$nome_pessoa}', '{$foto}', '{$nome_func}', '{$telefone_func}', '{$chave}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc2}, '{$valorF}', '{$data_lancF}', '{$data_vencF}',  '{$data_pgtoF}', '{$nome_usuario_lanc}', '{$nome_usuario_pgto}', '{$tumb_arquivo}', '{$nome_pessoa}', '{$foto}', '{$nome_func}', '{$telefone_func}', '{$chave}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

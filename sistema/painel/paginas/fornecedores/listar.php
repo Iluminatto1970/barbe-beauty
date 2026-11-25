@@ -42,16 +42,23 @@ for($i=0; $i < $total_reg; $i++){
 	
 
 
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_e($telefone);
+$__bb_esc3 = bb_e($data_cadF);
+$__bb_esc4 = bb_js($nome);
+$__bb_esc5 = bb_js($telefone);
+$__bb_esc6 = bb_js($endereco);
+$__bb_esc7 = bb_js($data_cadF);
 echo <<<HTML
 <tr class="">
-<td>{bb_e($nome)}</td>
-<td class="esc">{bb_e($telefone)}</td>
-<td class="esc">{bb_e($data_cadF)}</td>
+<td>{$__bb_esc1}</td>
+<td class="esc">{$__bb_esc2}</td>
+<td class="esc">{$__bb_esc3}</td>
 
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$tipo_chave}', '{$chave_pix}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc4}, {$__bb_esc5}, {$__bb_esc6}, '{$tipo_chave}', '{$chave_pix}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($telefone)}', '{bb_e($data_cadF)}', '{bb_e($endereco)}', '{$tipo_chave}', '{$chave_pix}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc4}, {$__bb_esc5}, {$__bb_esc7}, {$__bb_esc6}, '{$tipo_chave}', '{$chave_pix}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

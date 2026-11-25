@@ -66,18 +66,30 @@ for($i=0; $i < $total_reg; $i++){
 
 
 
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_e($telefone);
+$__bb_esc3 = bb_e($data_cadF);
+$__bb_esc4 = bb_e($data_nascF);
+$__bb_esc5 = bb_e($data_retornoF);
+$__bb_esc6 = bb_js($nome);
+$__bb_esc7 = bb_js($telefone);
+$__bb_esc8 = bb_js($endereco);
+$__bb_esc9 = bb_js($data_cadF);
+$__bb_esc10 = bb_js($data_nascF);
+$__bb_esc11 = bb_js($data_retornoF);
+$__bb_esc12 = bb_js($nome_servico);
 echo <<<HTML
 <tr class="">
-<td>{bb_e($nome)}</td>
-<td class="esc">{bb_e($telefone)}</td>
-<td class="esc">{bb_e($data_cadF)}</td>
-<td class="esc">{bb_e($data_nascF)}</td>
-<td class="esc {$classe_retorno}">{bb_e($data_retornoF)}</td>
+<td>{$__bb_esc1}</td>
+<td class="esc">{$__bb_esc2}</td>
+<td class="esc">{$__bb_esc3}</td>
+<td class="esc">{$__bb_esc4}</td>
+<td class="esc {$classe_retorno}">{$__bb_esc5}</td>
 <td class="esc">{$cartoes}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$data_nasc}', '{$cartoes}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc6}, {$__bb_esc7}, {$__bb_esc8}, '{$data_nasc}', '{$cartoes}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($telefone)}', '{$cartoes}', '{bb_e($data_cadF)}', '{bb_e($data_nascF)}', '{bb_e($endereco)}', '{bb_e($data_retornoF)}', '{bb_e($nome_servico)}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc6}, {$__bb_esc7}, '{$cartoes}', {$__bb_esc9}, {$__bb_esc10}, {$__bb_esc8}, {$__bb_esc11}, {$__bb_esc12})" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

@@ -241,6 +241,13 @@ if (!function_exists('bb_e')) {
     }
 }
 
+// Escape para valor dentro de onclick="..." (string JS segura)
+if (!function_exists('bb_js')) {
+    function bb_js($v) {
+        return htmlspecialchars(json_encode((string)$v, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+    }
+}
+
 // ============================================================
 // UPLOAD DE IMAGEM (Sprint 1 - item 4)
 // ------------------------------------------------------------

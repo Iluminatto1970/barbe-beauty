@@ -77,16 +77,27 @@ $dias = $intvl->days;
 $url_agendamento = $url_sistema.'agendamento';
 
 
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_e($telefone);
+$__bb_esc3 = bb_e($data_retornoF);
+$__bb_esc4 = bb_e($nome_servico);
+$__bb_esc5 = bb_js($nome);
+$__bb_esc6 = bb_js($telefone);
+$__bb_esc7 = bb_js($data_cadF);
+$__bb_esc8 = bb_js($data_nascF);
+$__bb_esc9 = bb_js($endereco);
+$__bb_esc10 = bb_js($data_retornoF);
+$__bb_esc11 = bb_js($nome_servico);
 echo <<<HTML
 <tr class="">
-<td>{bb_e($nome)}</td>
-<td class="esc">{bb_e($telefone)}</td>
-<td class="esc {$classe_retorno}">{bb_e($data_retornoF)}</td>
-<td class="esc">{bb_e($nome_servico)}</td>
+<td>{$__bb_esc1}</td>
+<td class="esc">{$__bb_esc2}</td>
+<td class="esc {$classe_retorno}">{$__bb_esc3}</td>
+<td class="esc">{$__bb_esc4}</td>
 <td class="esc">{$dias}</td>
 <td>
 		
-		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($telefone)}', '{$cartoes}', '{bb_e($data_cadF)}', '{bb_e($data_nascF)}', '{bb_e($endereco)}', '{bb_e($data_retornoF)}', '{bb_e($nome_servico)}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc5}, {$__bb_esc6}, '{$cartoes}', {$__bb_esc7}, {$__bb_esc8}, {$__bb_esc9}, {$__bb_esc10}, {$__bb_esc11})" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 		<big><a onclick="alertar('{$id}')" href="http://api.whatsapp.com/send?1=pt_BR&phone=$whats&text=Olá $nome, já faz $dias dias que você não vem dar um trato no visual, caso queira fazer um novo agendamento é só acessar nosso site $url_agendamento, será um prazer atendê-lo novamente!!" target="_blank" title="Abrir Whatsapp"><i class="fa fa-whatsapp text-danger"></i></a></big>
 

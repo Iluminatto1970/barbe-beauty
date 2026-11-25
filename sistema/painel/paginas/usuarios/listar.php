@@ -60,20 +60,27 @@ for($i=0; $i < $total_reg; $i++){
 		}
 
 
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_e($email);
+$__bb_esc3 = bb_js($nome);
+$__bb_esc4 = bb_js($email);
+$__bb_esc5 = bb_js($telefone);
+$__bb_esc6 = bb_js($cpf);
+$__bb_esc7 = bb_js($endereco);
 echo <<<HTML
 <tr class="{$classe_linha}">
 <td>
 <img src="img/perfil/{$foto}" width="27px" class="mr-2">
-{bb_e($nome)}
+{$__bb_esc1}
 </td>
-<td class="esc">{bb_e($email)}</td>
+<td class="esc">{$__bb_esc2}</td>
 <td class="esc">{$senhaF}</td>
 <td class="esc">{$nivel}</td>
 <td class="esc">{$dataF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($email)}', '{bb_e($telefone)}', '{bb_e($cpf)}', '{$nivel}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc3}, {$__bb_esc4}, {$__bb_esc5}, {$__bb_esc6}, '{$nivel}', {$__bb_esc7}, '{$foto}', '{$atendimento}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($email)}', '{bb_e($cpf)}', '{$senhaF}', '{$nivel}', '{$dataF}', '{$ativo}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc3}, {$__bb_esc4}, {$__bb_esc6}, '{$senhaF}', '{$nivel}', '{$dataF}', '{$ativo}', {$__bb_esc5}, {$__bb_esc7}, '{$foto}', '{$atendimento}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 
@@ -93,7 +100,7 @@ echo <<<HTML
 
 		<big><a href="#" onclick="ativar('{$id}', '{$acao}')" title="{$titulo_link}"><i class="fa {$icone} text-success"></i></a></big>
 
-		<big><a href="#" onclick="permissoes('{$id}', '{bb_e($nome)}')" title="Definir Permissões"><i class="fa fa-lock " style="color:blue; margin-left:3px"></i></a></big>
+		<big><a href="#" onclick="permissoes('{$id}', {$__bb_esc3})" title="Definir Permissões"><i class="fa fa-lock " style="color:blue; margin-left:3px"></i></a></big>
 
 
 		</td>

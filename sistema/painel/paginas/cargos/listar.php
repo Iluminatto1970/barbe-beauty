@@ -25,11 +25,13 @@ for($i=0; $i < $total_reg; $i++){
 	$nome = $res[$i]['nome'];
 		
 	
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_js($nome);
 echo <<<HTML
 <tr class="">
-<td>{bb_e($nome)}</td>
+<td>{$__bb_esc1}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc2})" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
 		
 		<li class="dropdown head-dpdn2" style="display: inline-block;">

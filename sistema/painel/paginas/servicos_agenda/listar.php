@@ -137,9 +137,11 @@ if($data_venc < $data_hoje and $pago != 'Sim'){
 		
 
 
+$__bb_esc1 = bb_e($descricao);
+$__bb_esc2 = bb_js($descricao);
 echo <<<HTML
 <tr class="{$classe_debito}">
-<td><i class="fa fa-square {$classe_alerta}"></i> {bb_e($descricao)}</td>
+<td><i class="fa fa-square {$classe_alerta}"></i> {$__bb_esc1}</td>
 <td class="esc">R$ {$valorF}</td>
 <td class="esc">{$nome_func}</td>
 <td class="esc">{$data_lancF}</td>
@@ -148,7 +150,7 @@ echo <<<HTML
 <td>
 		
 
-		<big><a href="#" onclick="mostrar('{bb_e($descricao)}', '{$valorF}', '{$data_lancF}', '{$data_vencF}',  '{$data_pgtoF}', '{$nome_usuario_lanc}', '{$nome_usuario_pgto}', '{$tumb_arquivo}', '{$nome_pessoa}', '{$foto}', '{$telefone_pessoa}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc2}, '{$valorF}', '{$data_lancF}', '{$data_vencF}',  '{$data_pgtoF}', '{$nome_usuario_lanc}', '{$nome_usuario_pgto}', '{$tumb_arquivo}', '{$nome_pessoa}', '{$foto}', '{$telefone_pessoa}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

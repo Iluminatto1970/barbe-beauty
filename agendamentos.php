@@ -2094,6 +2094,15 @@ function criarConfetti() {
 	var urlWhatsAppAtual = '';
 
 	function montarUrlWhatsApp(funcionario, servico, data, hora, cliente, observacao, telefone){
+		// Alguns campos vem de ajax e chegam com quebra de linha no fim;
+		// sem limpar, a mensagem saia com linhas em branco.
+		var limpar = function(v){ return (v == null ? '' : String(v)).replace(/\s+/g, ' ').trim(); };
+		funcionario = limpar(funcionario);
+		servico = limpar(servico);
+		cliente = limpar(cliente);
+		observacao = limpar(observacao);
+		telefone = limpar(telefone);
+
 		var texto = '*Novo Agendamento*\n'
 			+ 'Funcionário: ' + funcionario + '\n'
 			+ 'Serviço: ' + servico + '\n'
@@ -2408,7 +2417,7 @@ function criarConfetti() {
 			dataType: "text",
 
 			success:function(result){
-				$("#nome_func").val(result);
+				$("#nome_func").val($.trim(result));
 			}
 		});
 	}
@@ -2426,7 +2435,7 @@ function criarConfetti() {
 			dataType: "text",
 
 			success:function(result){
-				$("#nome_serv").val(result);
+				$("#nome_serv").val($.trim(result));
 			}
 		});
 	}

@@ -75,20 +75,22 @@ for($i=0; $i < $total_reg; $i++){
 			}
 
 
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_js($nome);
 echo <<<HTML
 <tr class="{$classe_linha}">
 <td>
 <img src="img/servicos/{$foto}" width="27px" class="mr-2">
-{bb_e($nome)}
+{$__bb_esc1}
 </td>
 <td class="esc">{$nome_cat}</td>
 <td class="esc">R$ {$valorF}</td>
 <td class="esc">{$dias_retorno}</td>
 <td class="esc">{$comissaoF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{$valor}', '{$categoria}', '{$dias_retorno}', '{$foto}', '{$comissao}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc2}, '{$valor}', '{$categoria}', '{$dias_retorno}', '{$foto}', '{$comissao}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{$valorF}', '{$nome_cat}', '{$dias_retorno}',  '{$ativo}', '{$foto}', '{$comissaoF}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc2}, '{$valorF}', '{$nome_cat}', '{$dias_retorno}',  '{$ativo}', '{$foto}', '{$comissaoF}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

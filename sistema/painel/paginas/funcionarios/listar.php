@@ -62,20 +62,28 @@ for($i=0; $i < $total_reg; $i++){
 		$whats = '55'.preg_replace('/[ ()-]+/' , '' , $telefone);
 
 
+$__bb_esc1 = bb_e($nome);
+$__bb_esc2 = bb_e($email);
+$__bb_esc3 = bb_e($cpf);
+$__bb_esc4 = bb_js($nome);
+$__bb_esc5 = bb_js($email);
+$__bb_esc6 = bb_js($telefone);
+$__bb_esc7 = bb_js($cpf);
+$__bb_esc8 = bb_js($endereco);
 echo <<<HTML
 <tr class="{$classe_linha}">
 <td>
 <img src="img/perfil/{$foto}" width="27px" class="mr-2">
-{bb_e($nome)}
+{$__bb_esc1}
 </td>
-<td class="esc">{bb_e($email)}</td>
-<td class="esc">{bb_e($cpf)}</td>
+<td class="esc">{$__bb_esc2}</td>
+<td class="esc">{$__bb_esc3}</td>
 <td class="esc">{$nivel}</td>
 <td class="esc">{$dataF}</td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{bb_e($nome)}', '{bb_e($email)}', '{bb_e($telefone)}', '{bb_e($cpf)}', '{$nivel}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}', '{$segmento_user}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}',{$__bb_esc4}, {$__bb_esc5}, {$__bb_esc6}, {$__bb_esc7}, '{$nivel}', {$__bb_esc8}, '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}', '{$segmento_user}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{bb_e($nome)}', '{bb_e($email)}', '{bb_e($cpf)}', '{$senha}', '{$nivel}', '{$dataF}', '{$ativo}', '{bb_e($telefone)}', '{bb_e($endereco)}', '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar({$__bb_esc4}, {$__bb_esc5}, {$__bb_esc7}, '{$senha}', '{$nivel}', '{$dataF}', '{$ativo}', {$__bb_esc6}, {$__bb_esc8}, '{$foto}', '{$atendimento}', '{$tipo_chave}', '{$chave_pix}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 
@@ -95,9 +103,9 @@ echo <<<HTML
 
 		<big><a href="#" onclick="ativar('{$id}', '{$acao}')" title="{$titulo_link}"><i class="fa {$icone} text-success"></i></a></big>
 
-		<a href="#" onclick="horarios('{$id}', '{bb_e($nome)}')" title="Lançar Horários"><i class="fa fa-calendar text-secondary"></i></a>
+		<a href="#" onclick="horarios('{$id}', {$__bb_esc4})" title="Lançar Horários"><i class="fa fa-calendar text-secondary"></i></a>
 
-		<a href="#" onclick="dias('{$id}', '{bb_e($nome)}')" title="Lançar Dias"><i class="fa fa-calendar text-danger"></i></a>
+		<a href="#" onclick="dias('{$id}', {$__bb_esc4})" title="Lançar Dias"><i class="fa fa-calendar text-danger"></i></a>
 
 
 		<big><a href="http://api.whatsapp.com/send?1=pt_BR&phone=$whats&text=" target="_blank" title="Abrir Whatsapp"><i class="fa fa-whatsapp verde"></i></a></big>
