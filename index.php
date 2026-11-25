@@ -2,21 +2,44 @@
 // ============================================================
 // LANDING ANTES DO SITE
 // ------------------------------------------------------------
-// A primeira visita a home ve a landing (landing.php). O botao
-// "Entrar no site" passa por ?site=1, grava o cookie bb_landing e
-// libera o site normal nas proximas visitas. Para rever a landing
-// a qualquer momento basta abrir /landing.php ou ?landing=1.
+// A home abre a landing (landing.php) no inicio de cada sessao. O
+// botao "Entrar no site" (?site=1) marca a sessao e libera o site
+// normal ate o navegador encerrar. Para rever a landing a qualquer
+// momento: /landing.php ou /?landing=1 (nao altera a sessao).
+//
+// A decisao NUNCA depende de cookie de longa duracao: antes era o
+// cookie bb_landing (1 ano), entao quem clicava uma vez nunca mais
+// via a landing. O cookie antigo e apagado quando aparece.
 // ============================================================
-if (isset($_GET['site'])) {
-    setcookie('bb_landing', '1', time() + 31536000, '/');
+require_once(__DIR__ . '/sistema/conexao.php');
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @session_start();
+}
+
+// Nada de HTML velho preso no navegador: a home sempre revalida.
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
+// Cookie da versao anterior: expira para nao interferir em nada.
+if (isset($_COOKIE['bb_landing'])) {
+    setcookie('bb_landing', '', time() - 3600, '/');
+    unset($_COOKIE['bb_landing']);
+}
+
+if (isset($_GET['site']) || isset($_GET['entrar'])) {
+    $_SESSION['bb_entrar_site'] = 1;
     header('Location: /', true, 302);
     exit;
 }
-if (!isset($_COOKIE['bb_landing']) || isset($_GET['landing'])) {
+
+if (isset($_GET['landing']) || empty($_SESSION['bb_entrar_site'])) {
     require __DIR__ . '/landing.php';
     exit;
 }
-require_once("cabecalho.php") ?>
+
+require_once(__DIR__ . '/cabecalho.php') ?>
 
 
 <style type="text/css">
