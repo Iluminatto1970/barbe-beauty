@@ -126,9 +126,9 @@ if($total_reg == 0){
     <header class="header_section">
         <div class="container">
             <nav class="navbar navbar-expand-lg custom_nav-container">
-                <a class="navbar-brand" href="../index.php"><?php echo $nome_sistema ?></a>
+                <a class="navbar-brand" href="../index.php?site=1"><?php echo $nome_sistema ?></a>
                 <div class="ml-auto">
-                    <a title="Voltar para o Site" class="nav-link text-white" href="../index.php">
+                    <a title="Voltar para o Site" class="nav-link text-white" href="../index.php?site=1">
                         <i class="fa fa-home" aria-hidden="true"></i> Voltar ao Site
                     </a>
                 </div>

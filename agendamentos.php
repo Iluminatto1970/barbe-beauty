@@ -4,11 +4,11 @@ $data_atual = date('Y-m-d');
 // ------------------------------------------------------------
 // MODO DEMONSTRACAO
 // ------------------------------------------------------------
-// A pagina de agendamento funciona como uma demonstracao: o visitante
-// percorre todas as etapas, o calendario/horarios/servicos vem do banco
-// real, mas ao confirmar nada e gravado (nem cliente, nem agendamento).
-// A regra vive em ajax/agendar.php, que recebe o campo demo=1.
-$agendamento_demo = true;
+// No site de demonstracao o visitante percorre todas as etapas com os
+// dados do banco, mas ao confirmar nada e gravado. O modo vem do servidor
+// (bb_site_demo) e vale igual em ajax/agendar.php: nao ha campo no
+// formulario capaz de ligar ou desligar a demonstracao.
+$agendamento_demo = bb_site_demo();
 // Cor de destaque do segmento (barbearia = teal, salao = ameixa rosado)
 $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 ?>
@@ -103,7 +103,6 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 			</div>
 
 			<form id="form-agenda" method="post" style="margin-top: -25px !important">
-			<input type="hidden" name="demo" value="<?php echo $agendamento_demo ? '1' : '0'; ?>" />
 			<div class="footer_form footer-col">
 				
 				<!-- Step 1: Dados Pessoais -->

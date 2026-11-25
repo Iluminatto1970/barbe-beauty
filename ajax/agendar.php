@@ -1,10 +1,11 @@
 <?php
 require_once("../sistema/conexao.php");
 
-// Modo demonstracao: a pagina de agendamento do site simula a reserva.
-// Validamos data, horario e servico como no fluxo real, mas no final
-// nada e gravado (nem cliente, nem agendamento).
-$bb_demo = (isset($_POST['demo']) && (string) $_POST['demo'] === '1');
+// Modo demonstracao: no site de demonstracao o agendamento simula a
+// reserva. Validamos data, horario e servico como no fluxo real, mas no
+// final nada e gravado (nem cliente, nem agendamento). A decisao e do
+// servidor: nenhum campo do formulario liga ou desliga a demonstracao.
+$bb_demo = bb_site_demo();
 
 // Cota do plano gratuito: sem agendamentos quando o limite do mes acabou
 // (a demonstracao nao consome cota, porque nao grava nada)

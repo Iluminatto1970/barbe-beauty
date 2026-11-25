@@ -6,7 +6,7 @@
         <div class="row ">
           <div class="col-md-5 col-lg-5 footer-col">
             <div class="footer_detail">
-              <a href="index.php">
+              <a href="index.php?site=1">
                 <h4>
                   <?php echo $nome_sistema ?>
                 </h4>

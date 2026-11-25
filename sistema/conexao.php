@@ -136,6 +136,20 @@ if (!function_exists('bb_csrf_token')) {
 }
 
 // ============================================================
+// INSTALACAO DE DEMONSTRACAO
+// ------------------------------------------------------------
+// A instalacao principal (banco de controle) e o site de demonstracao:
+// mostra o selo, o agendamento simulado e a conta demo do painel. Cada
+// cliente tem o proprio banco, entao ve e agenda de verdade.
+// ============================================================
+if (!function_exists('bb_site_demo')) {
+    function bb_site_demo()
+    {
+        return bb_banco_atual() === bb_banco_controle();
+    }
+}
+
+// ============================================================
 // MODO DEMONSTRACAO (Sprint: conta demo simula Admin, sem escrever)
 // ------------------------------------------------------------
 // A conta marcada com usuarios.demo = 1 entra como Administrador e

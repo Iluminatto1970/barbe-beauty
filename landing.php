@@ -294,12 +294,14 @@ function lp_iniciais($nome)
 <body>
 
   <div class="lp-cabeca">
+  <?php if (bb_site_demo()) { ?>
   <div class="lp-faixa-demo" role="note">
     <div class="lp-wrap">
       <span><b>Demonstração</b> — este site é um exemplo do sistema Barbearia PRO: o agendamento e o painel são simulados.</span>
       <a href="assinar.php">Criar a conta do meu estabelecimento →</a>
     </div>
   </div>
+  <?php } ?>
   <header class="lp-topo">
     <div class="lp-wrap">
       <a class="lp-marca" href="landing.php">
@@ -333,7 +335,9 @@ function lp_iniciais($nome)
           <a class="lp-btn lp-btn-principal" href="agendamentos">Agendar horário</a>
           <a class="lp-btn lp-btn-secundario" href="#servicos">Ver serviços</a>
         </div>
+        <?php if (bb_site_demo()) { ?>
         <p class="lp-nota-demo">Demonstração: o agendamento e o painel são exemplos do sistema — nenhuma reserva é registrada de verdade.</p>
+        <?php } ?>
         <div class="lp-hero-selos">
           <?php if (!empty($lp_servicos)) { ?>
           <span><b><?php echo count($lp_servicos); ?></b> serviços à disposição</span>
@@ -495,9 +499,11 @@ function lp_iniciais($nome)
       <span>&copy; <?php echo date('Y'); ?> <?php echo lp_e($lp_nome); ?>. Todos os direitos reservados.</span>
       <span><a href="index.php?site=1">Entrar no site</a> · <a href="sistema" target="_blank" rel="noopener">Área do estabelecimento</a></span>
     </div>
+    <?php if (bb_site_demo()) { ?>
     <div class="lp-wrap" style="margin-top:14px">
       <span>Demonstração do sistema Barbearia PRO — feito para barbearias, salões de beleza e qualquer estabelecimento que trabalhe com beleza. <a href="assinar.php">Criar a conta do meu estabelecimento</a></span>
     </div>
+    <?php } ?>
   </footer>
 
 </body>

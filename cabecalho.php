@@ -12,6 +12,11 @@ if (isset($_GET['segmento']) && in_array($_GET['segmento'], array('barbearia', '
   $segmento_site = $_GET['segmento'];
   setcookie('bb_segmento', $segmento_site, time() + 31536000, '/');
   $destino_tema = strtok($_SERVER['REQUEST_URI'], '?');
+  // A home entrega a landing por padrao. Como a troca partiu de dentro do
+  // site, volta para o site e nao para a landing.
+  if (preg_match('~/(index\.php)?$~', $destino_tema)) {
+    $destino_tema .= '?site=1';
+  }
   header('Location: ' . $destino_tema, true, 302);
   exit;
 }
@@ -71,6 +76,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $body_class = ($current_page == 'index') ? '' : 'sub_page';
 ?>
 <body class="<?php echo trim($body_class . ($segmento == 'salao' ? ' tema-salao' : '')); ?>">
+  <?php if (bb_site_demo()) { ?>
   <style>
     /* Selo de demonstracao: o site, o agendamento e o painel sao exemplos */
     .bb-faixa-demo { background: #0f1720; color: #e6eaed; font-size: 12.5px; line-height: 1.5; padding: 8px 14px; text-align: center; }
@@ -90,6 +96,7 @@ $body_class = ($current_page == 'index') ? '' : 'sub_page';
       <a href="assinar.php">Criar a conta do meu estabelecimento</a>
     </div>
   </div>
+  <?php } ?>
   <div class="hero_area">
     <div class="hero_bg_box">
       <img src="images/<?php echo $img_banner_index ?>" alt="">
@@ -98,7 +105,7 @@ $body_class = ($current_page == 'index') ? '' : 'sub_page';
     <header class="header_section">
       <div class="container">
         <nav class="navbar navbar-expand-lg custom_nav-container ">
-          <a class="navbar-brand " href="index"> <?php echo $nome_sistema ?> </a>
+          <a class="navbar-brand " href="index.php?site=1"> <?php echo $nome_sistema ?> </a>
 
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class=""> </span>
@@ -107,7 +114,7 @@ $body_class = ($current_page == 'index') ? '' : 'sub_page';
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav  ">
               <li class="nav-item active">
-                <a class="nav-link" href="index">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="index.php?site=1">Home <span class="sr-only">(current)</span></a>
               </li>
                <li class="nav-item">
                 <a class="nav-link" href="agendamentos"> Agendamentos</a>

@@ -10,20 +10,10 @@
 // ============================================================
 require_once(__DIR__ . '/sistema/conexao.php');
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    @session_start();
-}
-
 // Nada de HTML velho preso no navegador: a home sempre revalida.
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
-
-// Cookie da versao anterior: expira para nao interferir em nada.
-if (isset($_COOKIE['bb_landing'])) {
-    setcookie('bb_landing', '', time() - 3600, '/');
-    unset($_COOKIE['bb_landing']);
-}
 
 $quer_site = isset($_GET['site']) || isset($_GET['entrar']) || isset($_GET['segmento']);
 
