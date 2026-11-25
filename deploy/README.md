@@ -9,12 +9,18 @@ automático.
 ## Layout
 
 ```
-/var/www/releases/beauty-20261125-153000-ef30853/   release (git archive do commit)
-/var/www/releases/beauty-.../                        releases anteriores (rollback)
-/var/www/beauty -> /var/www/releases/beauty-...      symlink publicado
-/var/www/releases/.preserve                          arquivos só do servidor que sobrevivem
-/var/www/releases/deploy.log                         histórico de deploys
+/var/www/beauty           -> /var/www/releases/current      link estável (criado 1x, root)
+/var/www/releases/current -> /var/www/releases/beauty-…      trocado a cada deploy (atômico)
+/var/www/releases/beauty-20261125-153000-ef30853/            release (git archive do commit)
+/var/www/releases/beauty-…/                                  releases anteriores (rollback)
+/var/www/releases/.preserve                                  arquivos só do servidor
+/var/www/releases/deploy.log                                 histórico de deploys
 ```
+
+São dois níveis de symlink de propósito: `/var/www` é do root, então o link
+final (`/var/www/beauty`) é criado uma única vez no bootstrap, e a troca de
+release acontece em `current`, dentro de `/var/www/releases` (do usuário
+`deploy`) — por isso o deploy do dia a dia não pede root.
 
 O docroot publicado continua sendo `/var/www/beauty`, então o `Caddyfile`
 (`root * /var/www/beauty`), o gerador de sites dos tenants
