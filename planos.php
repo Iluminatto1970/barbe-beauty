@@ -78,7 +78,7 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Barbearia PRO · sistema completo para barbearias e salões</title>
+  <title>Barbearia PRO · sistema completo para barbearias, salões e qualquer estabelecimento de beleza</title>
   <meta name="description" content="Agenda online, site próprio, clientes, produtos, financeiro, comissões e relatórios em um só sistema. Comece grátis, sem cartão.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -301,11 +301,13 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
     <section class="hero">
       <div class="wrap hero-grid">
         <div>
-          <span class="eyebrow">Sistema para barbearias e salões</span>
-          <h1>Sua barbearia organizada, <em>do agendamento ao caixa</em>.</h1>
+          <span class="eyebrow">Sistema para barbearias, salões e qualquer estabelecimento de beleza</span>
+          <h1>Seu negócio de beleza organizado, <em>do agendamento ao caixa</em>.</h1>
           <p class="lead">
             Agenda online, site próprio, clientes, serviços, produtos, financeiro, comissões e relatórios
-            no mesmo lugar. Comece no plano gratuito e só pague quando precisar de mais agendamentos.
+            no mesmo lugar. Feito para barbearias, salões de beleza, studios de manicure, estética,
+            sobrancelhas e qualquer estabelecimento que trabalhe com beleza — comece no plano gratuito
+            e só pague quando precisar de mais agendamentos.
           </p>
           <div class="hero-actions">
             <a class="btn btn-gold" href="assinar.php">Criar minha conta grátis</a>
@@ -603,9 +605,10 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
              permanecem salvos.</p>
         </details>
         <details>
-          <summary>Serve para salão de beleza também?</summary>
-          <p>Sim. O sistema tem tema próprio para salão, com serviços, profissionais e textos do
-             segmento.</p>
+          <summary>Serve só para barbearia?</summary>
+          <p>Não. O sistema é para barbearias, salões de beleza, studios de manicure, estética, sobrancelhas,
+             depilação e qualquer estabelecimento que trabalhe com beleza. No cadastro você escolhe o tema
+             (barbearia ou salão) e personaliza serviços, profissionais, fotos e textos do seu jeito.</p>
         </details>
       </div>
     </section>
@@ -626,7 +629,7 @@ $bbv_agendamentos_gratis = $bbv_limite_gratis !== null
 
   <footer>
     <div class="wrap foot-inner">
-      <span>Barbearia PRO · sistema para barbearias e salões</span>
+      <span>Barbearia PRO · sistema para barbearias, salões e qualquer estabelecimento de beleza</span>
       <span class="foot-links">
         <a href="assinar.php">Criar conta</a>
         <a href="sistema/">Entrar</a>
