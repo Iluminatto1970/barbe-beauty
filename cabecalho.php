@@ -71,6 +71,20 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $body_class = ($current_page == 'index') ? '' : 'sub_page';
 ?>
 <body class="<?php echo trim($body_class . ($segmento == 'salao' ? ' tema-salao' : '')); ?>">
+  <style>
+    /* Selo de demonstracao: o site, o agendamento e o painel sao exemplos */
+    .bb-faixa-demo { background: #0f1720; color: #e6eaed; font-size: 12.5px; line-height: 1.5; padding: 8px 14px; text-align: center; }
+    .bb-faixa-demo .container { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 10px; }
+    .bb-faixa-demo strong { color: #d9b26a; font-size: 11px; letter-spacing: 1.3px; text-transform: uppercase; }
+    .bb-faixa-demo a { color: #d9b26a; font-weight: 600; text-decoration: none; border-bottom: 1px solid rgba(217,178,106,.5); }
+    .bb-faixa-demo a:hover { color: #f0cd7f; }
+  </style>
+  <div class="bb-faixa-demo" role="note">
+    <div class="container">
+      <span><strong>Demonstração</strong> — este site é um exemplo do sistema Barbearia PRO: o agendamento e o painel são simulados.</span>
+      <a href="assinar.php">Criar a conta do meu estabelecimento</a>
+    </div>
+  </div>
   <div class="hero_area">
     <div class="hero_bg_box">
       <img src="images/<?php echo $img_banner_index ?>" alt="">

@@ -140,11 +140,25 @@ function lp_iniciais($nome)
     .lp-btn-secundario { border-color: var(--lp-borda); background: rgba(255,255,255,.03); color: var(--lp-texto); }
     .lp-btn-secundario:hover { background: rgba(255,255,255,.08); }
 
+    /* ---------- cabecalho + selo de demonstracao ---------- */
+    .lp-cabeca { position: absolute; top: 0; left: 0; right: 0; z-index: 5; }
+    .lp-faixa-demo {
+      background: rgba(6,10,12,.94); border-bottom: 1px solid rgba(217,178,106,.34);
+      font-size: 12.5px; color: #b9c2c8;
+    }
+    .lp-faixa-demo .lp-wrap {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 4px 12px; padding: 7px 22px; text-align: center;
+    }
+    .lp-faixa-demo b { color: var(--lp-dourado); font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; }
+    .lp-faixa-demo a { color: var(--lp-dourado); font-weight: 600; white-space: nowrap; }
+    .lp-faixa-demo a:hover { text-decoration: underline; }
+    .lp-nota-demo { font-size: 12.5px; color: #8b979e; margin: 16px 0 0; max-width: 480px; }
+
     /* ---------- topo ---------- */
     .lp-topo {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 5;
-      padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(6,10,12,.75), rgba(6,10,12,0));
+      padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(6,10,12,.85), rgba(6,10,12,0));
     }
     .lp-topo .lp-wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .lp-marca { display: flex; align-items: center; gap: 12px; font-family: 'Playfair Display', serif; font-size: 20px; letter-spacing: .5px; }
@@ -265,6 +279,13 @@ function lp_iniciais($nome)
 </head>
 <body>
 
+  <div class="lp-cabeca">
+  <div class="lp-faixa-demo" role="note">
+    <div class="lp-wrap">
+      <span><b>Demonstração</b> — este site é um exemplo do sistema Barbearia PRO: o agendamento e o painel são simulados.</span>
+      <a href="assinar.php">Criar a conta do meu estabelecimento →</a>
+    </div>
+  </div>
   <header class="lp-topo">
     <div class="lp-wrap">
       <a class="lp-marca" href="landing.php">
@@ -281,6 +302,7 @@ function lp_iniciais($nome)
       </nav>
     </div>
   </header>
+  </div>
 
   <section class="lp-hero">
     <div class="lp-hero-bg">
@@ -297,6 +319,7 @@ function lp_iniciais($nome)
           <a class="lp-btn lp-btn-principal" href="agendamentos">Agendar horário</a>
           <a class="lp-btn lp-btn-secundario" href="#servicos">Ver serviços</a>
         </div>
+        <p class="lp-nota-demo">Demonstração: o agendamento e o painel são exemplos do sistema — nenhuma reserva é registrada de verdade.</p>
         <div class="lp-hero-selos">
           <?php if (!empty($lp_servicos)) { ?>
           <span><b><?php echo count($lp_servicos); ?></b> serviços à disposição</span>
@@ -459,7 +482,7 @@ function lp_iniciais($nome)
       <span><a href="index.php?site=1">Entrar no site</a> · <a href="sistema" target="_blank" rel="noopener">Área do estabelecimento</a></span>
     </div>
     <div class="lp-wrap" style="margin-top:14px">
-      <span>Sistema Barbearia PRO — feito para barbearias, salões de beleza e qualquer estabelecimento que trabalhe com beleza.</span>
+      <span>Demonstração do sistema Barbearia PRO — feito para barbearias, salões de beleza e qualquer estabelecimento que trabalhe com beleza. <a href="assinar.php">Criar a conta do meu estabelecimento</a></span>
     </div>
   </footer>
 

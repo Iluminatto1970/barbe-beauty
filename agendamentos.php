@@ -67,7 +67,7 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 				<i class="fa fa-flask" aria-hidden="true"></i>
 				<div>
 					<strong>Modo demonstração</strong>
-					<span>Percorra as etapas e simule um agendamento à vontade. Nenhum dado é enviado nem salvo: é só uma demonstração de como funciona a agenda online.</span>
+					<span>Percorra as etapas e simule um agendamento à vontade. Nenhum dado é enviado nem salvo: é só uma demonstração de como funciona a agenda online. <a href="assinar.php" style="color:#fff;text-decoration:underline;font-weight:600">Criar a conta do meu estabelecimento</a></span>
 				</div>
 			</div>
 			<?php } ?>
