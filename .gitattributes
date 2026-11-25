@@ -1,1 +1,2 @@
 deploy/systemd/* text eol=lf
+deploy/caddy/* text eol=lf
