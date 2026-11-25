@@ -64,14 +64,16 @@ Um sistema completo de gestão para barbearias desenvolvido em PHP com MySQL, of
 
 3. **Configure a conexão**:
 
-   - Edite o arquivo `sistema/conexao.php`
-   - Ajuste as credenciais do banco de dados:
-     ```php
-     $servidor = 'localhost';
-     $banco = 'barbearia';
-     $usuario = 'root';
-     $senha = '';
+   - Não edite `sistema/conexao.php`: ele lê as credenciais de variáveis de ambiente (fallback local: `localhost`/`root`/senha vazia)
+   - Defina no ambiente (ou em um `.env` não versionado usado pelo Docker):
      ```
+     DB_HOST=localhost
+     DB_PORT=3306
+     DB_NAME=barbearia
+     DB_USER=root
+     DB_PASSWORD=
+     ```
+   - Em produção use um usuário próprio, com senha forte, fora do repositório
 
 4. **Acesse o sistema**:
    - Frontend: `http://localhost/barbearia`

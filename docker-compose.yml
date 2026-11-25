@@ -9,7 +9,11 @@
 # URLs:
 #   Site:        http://localhost:8080
 #   Painel:      http://localhost:8080/sistema
-#   phpMyAdmin:  http://localhost:8081   (user: barbearia / senha: barbearia123)
+#   phpMyAdmin:  http://localhost:8081   (user: barbearia / senha: barbearia_local)
+#
+# Credenciais abaixo sao APENAS para este ambiente local descartavel.
+# Sobrescreva em um arquivo .env (nao versionado) e nunca reutilize a
+# senha do banco de producao aqui.
 # ============================================================
 
 services:
@@ -20,8 +24,8 @@ services:
     environment:
       MYSQL_DATABASE: barbearia
       MYSQL_USER: barbearia
-      MYSQL_PASSWORD: barbearia123
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_PASSWORD: ${DB_PASSWORD:-barbearia_local}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_local}
     ports:
       - "3307:3306"
     volumes:
@@ -29,7 +33,7 @@ services:
       # Importa o schema + dados na primeira subida
       - ./sql/barbearia.sql:/docker-entrypoint-initdb.d/01-barbearia.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root_local}"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -47,7 +51,7 @@ services:
       DB_PORT: "3306"
       DB_NAME: barbearia
       DB_USER: barbearia
-      DB_PASSWORD: barbearia123
+      DB_PASSWORD: ${DB_PASSWORD:-barbearia_local}
       # "" = aplicacao na raiz (sem prefixo /barbearia)
       APP_BASE_PATH: ""
       SHOW_DB_ERROR: "0"
