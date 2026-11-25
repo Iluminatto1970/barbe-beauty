@@ -78,6 +78,11 @@ $body_class = ($current_page == 'index') ? '' : 'sub_page';
     .bb-faixa-demo strong { color: #d9b26a; font-size: 11px; letter-spacing: 1.3px; text-transform: uppercase; }
     .bb-faixa-demo a { color: #d9b26a; font-weight: 600; text-decoration: none; border-bottom: 1px solid rgba(217,178,106,.5); }
     .bb-faixa-demo a:hover { color: #f0cd7f; }
+    @media (max-width: 720px) {
+      .bb-faixa-demo { font-size: 11.5px; padding: 7px 10px; }
+      .bb-faixa-demo .container { gap: 1px 8px; }
+      .bb-faixa-demo a { white-space: nowrap; }
+    }
   </style>
   <div class="bb-faixa-demo" role="note">
     <div class="container">

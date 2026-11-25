@@ -141,7 +141,9 @@ function lp_iniciais($nome)
     .lp-btn-secundario:hover { background: rgba(255,255,255,.08); }
 
     /* ---------- cabecalho + selo de demonstracao ---------- */
-    .lp-cabeca { position: absolute; top: 0; left: 0; right: 0; z-index: 5; }
+    /* Faixa e menu ficam no fluxo normal: em qualquer largura o hero
+       comeca abaixo deles, sem sobreposicao. */
+    .lp-cabeca { position: relative; z-index: 5; background: #070d10; }
     .lp-faixa-demo {
       background: rgba(6,10,12,.94); border-bottom: 1px solid rgba(217,178,106,.34);
       font-size: 12.5px; color: #b9c2c8;
@@ -158,20 +160,30 @@ function lp_iniciais($nome)
     /* ---------- topo ---------- */
     .lp-topo {
       padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(6,10,12,.85), rgba(6,10,12,0));
     }
-    .lp-topo .lp-wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .lp-marca { display: flex; align-items: center; gap: 12px; font-family: 'Playfair Display', serif; font-size: 20px; letter-spacing: .5px; }
-    .lp-marca img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--lp-borda); }
-    .lp-topo-links { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--lp-fraco); }
+    .lp-topo .lp-wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .lp-marca { display: flex; align-items: center; gap: 12px; font-family: 'Playfair Display', serif; font-size: clamp(15px, 4.2vw, 20px); letter-spacing: .5px; white-space: nowrap; min-width: 0; }
+    .lp-marca img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--lp-borda); flex: 0 0 auto; }
+    .lp-topo-links { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--lp-fraco); flex: 0 0 auto; }
     .lp-topo-links a:hover { color: var(--lp-dourado); }
-    .lp-topo-cta { padding: 10px 22px; font-size: 14px; }
-    @media (max-width: 720px) { .lp-topo-links > a:not(.lp-topo-cta) { display: none; } }
+    .lp-topo-cta { padding: 10px 22px; font-size: 14px; white-space: nowrap; }
+    @media (max-width: 720px) {
+      .lp-topo { padding: 12px 0; }
+      .lp-topo-links > a:not(.lp-topo-cta) { display: none; }
+      .lp-marca { gap: 10px; }
+      .lp-marca img { width: 32px; height: 32px; }
+      .lp-topo-cta { padding: 8px 14px; font-size: 12.5px; }
+      .lp-faixa-demo { font-size: 11.5px; }
+      .lp-faixa-demo .lp-wrap { gap: 2px 8px; padding: 6px 14px; }
+    }
+    @media (max-width: 380px) {
+      .lp-marca img { display: none; }
+    }
 
     /* ---------- hero ---------- */
     .lp-hero {
-      position: relative; min-height: 92vh; display: flex; align-items: center;
-      padding: 140px 0 90px; overflow: hidden;
+      position: relative; min-height: 82vh; display: flex; align-items: center;
+      padding: 68px 0 84px; overflow: hidden;
     }
     .lp-hero-bg { position: absolute; inset: 0; }
     .lp-hero-bg img { width: 100%; height: 100%; object-fit: cover; }
@@ -251,8 +263,10 @@ function lp_iniciais($nome)
     .lp-estrelas { color: var(--lp-dourado); font-size: 12px; letter-spacing: 3px; }
 
     /* contato */
-    .lp-contato { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; }
-    @media (max-width: 900px) { .lp-contato { grid-template-columns: 1fr; } }
+    .lp-contato { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 32px; align-items: center; }
+    @media (max-width: 900px) { .lp-contato { grid-template-columns: minmax(0, 1fr); } }
+    .lp-contato > div, .lp-lista, .lp-lista li, .lp-lista li > div { min-width: 0; }
+    .lp-contato h2, .lp-contato p, .lp-lista a, .lp-lista div { overflow-wrap: anywhere; }
     .lp-contato h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 16px; }
     .lp-contato p { color: var(--lp-fraco); margin: 0 0 26px; }
     .lp-lista { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }

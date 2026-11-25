@@ -454,6 +454,7 @@ $dataMesInicial = $partesInicial[1];
 			<?php if (bb_usuario_demo()) { ?>
 			<div role="status" style="margin:0 0 18px;padding:12px 16px;border-radius:8px;background:#fff8e1;border:1px solid #f0c36d;color:#7a5b00;font-size:14px;line-height:1.5;">
 				<i class="fa fa-eye"></i> <strong>Modo demonstração</strong> — você está vendo o painel como Administrador. As alterações (salvar, excluir, receber, assinar plano) estão desabilitadas nesta conta.
+				<a href="../../assinar.php" style="color:#7a5b00;font-weight:600;text-decoration:underline;white-space:nowrap">Criar a conta do meu estabelecimento</a>
 			</div>
 			<?php } ?>
 			<?php require_once("paginas/".$pag.'.php') ?>

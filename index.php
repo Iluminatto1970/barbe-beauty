@@ -1171,7 +1171,13 @@ require_once(__DIR__ . '/cabecalho.php') ?>
 
   .segmento_btn {
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 18px 16px;
+    box-sizing: border-box;
   }
+  .segmento_acao { max-width: 100%; min-width: 0; }
+  .segmento_box { box-sizing: border-box; max-width: 100%; }
 }
 </style>
 
