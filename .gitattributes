@@ -1,3 +1,5 @@
 deploy/systemd/* text eol=lf
 deploy/caddy/* text eol=lf
 deploy/ssh/* text eol=lf
+deploy/ export-ignore
+.github/ export-ignore
