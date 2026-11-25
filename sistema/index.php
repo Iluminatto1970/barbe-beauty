@@ -249,7 +249,7 @@ if($total_reg == 0){
                                 <a class="btn btn-login btn-block" href="../assinar.php" style="text-decoration:none;font-size:13px;white-space:normal">
                                     <i class="fa fa-plus-circle mr-2"></i>Criar minha conta grátis
                                 </a>
-                                <div style="margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;font-size:12.5px;color:#d6dbe1;line-height:1.65;text-align:left">
+                                <div style="margin-top:14px;padding:12px 14px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.12);border-radius:10px;font-size:13px;color:#e5e7eb;line-height:1.65;text-align:left">
                                     <strong style="color:#f0cd7f"><?php echo htmlspecialchars($bb_login_gratis ? $bb_login_gratis['nome'] : 'Grátis'); ?>:</strong>
                                     <?php echo $bb_login_limite !== null
                                         ? 'até ' . (int) $bb_login_limite . ' agendamentos por mês, sem cartão.'
