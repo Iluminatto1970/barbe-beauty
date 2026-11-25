@@ -143,6 +143,11 @@ if($total_reg == 0){
                 <div class="col-md-6 col-lg-5">
                     <div class="login_container">
                         <div class="login_form">
+                            <?php if (isset($_GET['senha']) && $_GET['senha'] === 'redefinida') { ?>
+                                <div class="alert alert-success py-2 px-3" style="font-size:13px">
+                                    Senha alterada com sucesso. Entre com a nova senha.
+                                </div>
+                            <?php } ?>
                             <?php if (isset($_GET['sessao']) && $_GET['sessao'] === 'expirada') { ?>
                                 <div class="alert alert-warning py-2 px-3" style="font-size:13px">
                                     Sua sessão expirou. Entre novamente para continuar.
@@ -208,7 +213,7 @@ if($total_reg == 0){
                             <?php } ?>
                             
                             <div class="text-center">
-                                <a class="recuperar-link" href="" data-toggle="modal" data-target="#exampleModal">
+                                <a class="recuperar-link" href="recuperar-senha.php">
                                     <i class="fa fa-key mr-1"></i>Esqueceu sua senha?
                                 </a>
                             </div>
@@ -272,78 +277,3 @@ if($total_reg == 0){
 
 </body>
 </html>
-
-
-
-
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content" style="max-width:400px;width:100%">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Recuperar Senha</h5>
-        <button id="btn-fechar-rec" type="button" class="close" data-dismiss="modal" aria-label="Close" style="margin-top: -20px">
-          <span aria-hidden="true" >&times;</span>
-        </button>
-      </div>
-      <form method="post" id="form-recuperar">
-      <div class="modal-body">
-        
-        	<input placeholder="Digite seu Email" class="form-control" type="email" name="email" id="email-recuperar" required>        	
-       
-       <br>
-       <small><div id="mensagem-recuperar" align="center"></div></small>
-      </div>
-      <div class="modal-footer">      
-        <button type="submit" class="btn btn-primary">Recuperar</button>
-      </div>
-  <?php echo bb_csrf_field(); ?></form>
-    </div>
-  </div>
-</div>
-
-
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-
- <script type="text/javascript">
-	$("#form-recuperar").submit(function () {
-
-		event.preventDefault();
-		var formData = new FormData(this);
-
-		$.ajax({
-			url: "recuperar-senha.php",
-			type: 'POST',
-			data: formData,
-
-			success: function (mensagem) {
-				$('#mensagem-recuperar').text('');
-				$('#mensagem-recuperar').removeClass()
-				if (mensagem.trim() == "Recuperado com Sucesso") {
-					//$('#btn-fechar-rec').click();					
-					$('#email-recuperar').val('');
-					$('#mensagem-recuperar').addClass('text-success')
-					$('#mensagem-recuperar').text('Sua Senha foi enviada para o Email')			
-
-				} else {
-
-					$('#mensagem-recuperar').addClass('text-danger')
-					$('#mensagem-recuperar').text(mensagem)
-				}
-
-
-			},
-
-			cache: false,
-			contentType: false,
-			processData: false,
-
-		});
-
-	});
-</script>
-
-
-

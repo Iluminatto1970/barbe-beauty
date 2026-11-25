@@ -148,6 +148,41 @@ if (!function_exists('bb_email_enviar')) {
     }
 }
 
+if (!function_exists('bb_email_recuperacao_enviar')) {
+    // E-mail com o link de redefinicao de senha (uso unico)
+    function bb_email_recuperacao_enviar($para, $nome, $link, $marca = '')
+    {
+        $nome = trim((string) $nome);
+        $saudacao = $nome !== '' ? 'Olá, ' . $nome . '.' : 'Olá.';
+        $marca = trim((string) $marca) !== '' ? trim((string) $marca) : 'Barbearia PRO';
+        $assunto = 'Redefinir sua senha · ' . $marca;
+
+        $html = '<div style="margin:0;padding:24px;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2430">'
+            . '<div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;padding:28px">'
+            . '<p style="margin:0 0 6px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#8a91a0">Recuperação de senha</p>'
+            . '<h1 style="margin:0 0 14px;font-size:22px">Criar uma nova senha</h1>'
+            . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5261">'
+            . htmlspecialchars($saudacao, ENT_QUOTES, 'UTF-8')
+            . ' Recebemos um pedido para redefinir a senha do seu acesso.</p>'
+            . '<p style="margin:0 0 20px"><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" '
+            . 'style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:15px">'
+            . 'Criar nova senha</a></p>'
+            . '<p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:#6b7280">'
+            . 'O link vale por 1 hora e só pode ser usado uma vez. Depois disso, peça outro na tela de login.</p>'
+            . '<p style="margin:0;font-size:12px;line-height:1.6;color:#8a91a0">'
+            . 'Se não foi você quem pediu, ignore esta mensagem: sua senha continua a mesma.</p>'
+            . '</div></div>';
+
+        $texto = $saudacao . "\n\n"
+            . "Recebemos um pedido para redefinir a senha do seu acesso.\n\n"
+            . $link . "\n\n"
+            . "O link vale por 1 hora e só pode ser usado uma vez.\n"
+            . "Se não foi você quem pediu, ignore esta mensagem.\n";
+
+        return bb_email_enviar($para, $assunto, $html, $texto);
+    }
+}
+
 if (!function_exists('bb_boas_vindas_url')) {
     function bb_boas_vindas_url($slug)
     {

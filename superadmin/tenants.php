@@ -238,6 +238,12 @@ sa_topo('Estabelecimentos');
                                 <a class="btn pequeno" href="tenant-boas-vindas.php?id=<?php echo (int) $t['id']; ?>"
                                    onclick="return confirm('Enviar o e-mail de boas-vindas com as instruções de acesso?');">Enviar e-mail</a>
                             <?php } ?>
+                            <form method="post" action="tenant-senha.php" style="display:inline"
+                                  onsubmit="return confirm('Gerar um link de redefinição de senha para o administrador deste estabelecimento?');">
+                                <input type="hidden" name="id" value="<?php echo (int) $t['id']; ?>">
+                                <input type="hidden" name="csrf" value="<?php echo sa_e($csrf); ?>">
+                                <button type="submit" class="btn pequeno" style="border:0;cursor:pointer">Link de senha</button>
+                            </form>
                             <form method="post" action="tenant-excluir.php" style="display:inline"
                                   onsubmit="return confirm('Excluir este estabelecimento, o banco de dados e os registros de assinatura?');">
                                 <input type="hidden" name="id" value="<?php echo (int) $t['id']; ?>">
