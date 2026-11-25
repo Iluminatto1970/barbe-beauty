@@ -221,9 +221,13 @@ if (!function_exists('bb_tenant_resolver')) {
         $tenant = null;
 
         try {
+            // Dominio proprio so serve depois de verificado (verificado_em).
+            // Subdominio da plataforma continua valendo sem essa checagem.
             $q = $pdo_controle->prepare("SELECT t.* FROM tenant_dominios d
                 INNER JOIN tenants t ON t.id = d.tenant_id
-                WHERE LOWER(d.hostname) = :host LIMIT 1");
+                WHERE LOWER(d.hostname) = :host
+                  AND (d.tipo <> 'proprio' OR d.verificado_em IS NOT NULL)
+                LIMIT 1");
             $q->bindValue(':host', $host);
             $q->execute();
             $linha = $q->fetch(PDO::FETCH_ASSOC);
@@ -733,3 +737,6 @@ if (!function_exists('bb_slug_motivo')) {
         return $avaliacao['motivo'];
     }
 }
+
+// Dominio proprio: registro, verificacao TXT/CNAME e regra de servico
+require_once(__DIR__ . '/dominio.php');

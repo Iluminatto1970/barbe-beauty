@@ -151,7 +151,9 @@ function sa_garantir_tabelas($pdo)
         hostname VARCHAR(120) PRIMARY KEY,
         tenant_id INT UNSIGNED NOT NULL,
         tipo VARCHAR(12) NOT NULL DEFAULT 'subdominio',
+        token_verificacao VARCHAR(64) NULL DEFAULT NULL,
         verificado_em DATETIME NULL,
+        registrado_em DATETIME NULL DEFAULT NULL,
         KEY idx_tenant (tenant_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 

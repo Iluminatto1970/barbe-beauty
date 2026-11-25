@@ -36,7 +36,7 @@ sa_topo('Estabelecimentos');
     <p class="sub">Cada estabelecimento tem um subdomínio e uma assinatura vinculada a um plano.</p>
 
     <?php if (isset($_GET['ok'])) { ?>
-        <div class="aviso ok">Estabelecimento salvo com sucesso.</div>
+        <div class="aviso ok"><?php echo ($_GET['ok'] === '1' || $_GET['ok'] === '') ? 'Estabelecimento salvo com sucesso.' : sa_e($_GET['ok']); ?></div>
     <?php } ?>
     <?php if (isset($_GET['erro'])) { ?>
         <div class="aviso erro">Não foi possível salvar: <?php echo sa_e($_GET['erro']); ?></div>
@@ -103,6 +103,93 @@ sa_topo('Estabelecimentos');
             </div>
         </form>
     </div>
+
+    <?php
+    if ($id > 0) {
+        bb_dominio_garantir_colunas($pdo);
+        $q = $pdo->prepare("SELECT * FROM tenant_dominios WHERE tenant_id = :id ORDER BY (tipo = 'subdominio') DESC, hostname ASC");
+        $q->bindValue(':id', $id, PDO::PARAM_INT);
+        $q->execute();
+        $dominios = $q->fetchAll(PDO::FETCH_ASSOC);
+    ?>
+    <div class="painel">
+        <h2 style="margin-top:0">Domínio próprio</h2>
+        <p class="sub">
+            O site do estabelecimento responde em qualquer domínio verificado. A verificação prova que o cliente
+            controla o DNS: crie o registro TXT (ou o CNAME) indicado e clique em Verificar.
+            Enquanto não estiver verificado, o domínio não serve o site nem recebe certificado.
+        </p>
+
+        <?php if (count($dominios) == 0) { ?>
+            <p class="muted">Nenhum domínio cadastrado. O subdomínio é criado junto com o estabelecimento.</p>
+        <?php } ?>
+
+        <?php foreach ($dominios as $d) {
+            $situacao = bb_dominio_situacao($d);
+        ?>
+            <div style="border:1px solid #2a2f3a;border-radius:12px;padding:14px 16px;margin:0 0 12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                    <div>
+                        <strong><?php echo sa_e($d['hostname']); ?></strong>
+                        <span class="badge <?php echo sa_e($situacao['classe']); ?>" style="margin-left:8px"><?php echo sa_e($situacao['rotulo']); ?></span>
+                        <?php if (!empty($d['registrado_em'])) { ?>
+                            <br><small class="muted">Registrado em <?php echo sa_e($d['registrado_em']); ?><?php echo !empty($d['verificado_em']) ? ' · verificado em ' . sa_e($d['verificado_em']) : ''; ?></small>
+                        <?php } ?>
+                    </div>
+                    <?php if (!empty($d['tipo']) && $d['tipo'] === 'proprio') { ?>
+                        <form method="post" action="tenant-dominio.php" style="margin:0"
+                              onsubmit="return confirm('Remover este domínio próprio? O site deixa de responder neste endereço.');">
+                            <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
+                            <input type="hidden" name="host" value="<?php echo sa_e($d['hostname']); ?>">
+                            <input type="hidden" name="acao" value="remover">
+                            <input type="hidden" name="csrf" value="<?php echo sa_e($csrf); ?>">
+                            <button type="submit" class="btn pequeno perigo" style="border:0;cursor:pointer">Remover</button>
+                        </form>
+                    <?php } ?>
+                </div>
+
+                <?php if (!$situacao['verificado']) {
+                    $registros = bb_dominio_registros_esperados($d['hostname'], $d['token_verificacao'], $tenant);
+                ?>
+                    <p class="muted" style="margin:12px 0 6px;font-size:13px">Crie um destes registros no DNS do domínio:</p>
+                    <table style="margin:0 0 10px">
+                        <thead><tr><th>Tipo</th><th>Nome</th><th>Valor</th></tr></thead>
+                        <tbody>
+                            <?php foreach ($registros as $r) { ?>
+                                <tr>
+                                    <td><?php echo sa_e($r['tipo']); ?></td>
+                                    <td class="agora"><code><?php echo sa_e($r['nome']); ?></code></td>
+                                    <td class="agora"><code><?php echo sa_e($r['valor']); ?></code></td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                    <p class="muted" style="margin:0 0 10px;font-size:12px">
+                        O TXT é a prova de propriedade. O CNAME também precisa apontar para esta VPS para o site responder.
+                    </p>
+                    <form method="post" action="tenant-dominio.php" class="acoes-form" style="margin:0">
+                        <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
+                        <input type="hidden" name="host" value="<?php echo sa_e($d['hostname']); ?>">
+                        <input type="hidden" name="acao" value="verificar">
+                        <input type="hidden" name="csrf" value="<?php echo sa_e($csrf); ?>">
+                        <button type="submit" class="btn pequeno primario">Verificar agora</button>
+                    </form>
+                <?php } ?>
+            </div>
+        <?php } ?>
+
+        <form method="post" action="tenant-dominio.php" class="acoes-form" style="margin:0">
+            <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
+            <input type="hidden" name="acao" value="registrar">
+            <input type="hidden" name="csrf" value="<?php echo sa_e($csrf); ?>">
+            <div class="campo" style="flex:1;min-width:240px;margin:0">
+                <label for="dominio">Adicionar domínio próprio</label>
+                <input type="text" id="dominio" name="host" maxlength="253" placeholder="barbearia.com.br">
+            </div>
+            <button type="submit" class="btn primario">Registrar domínio</button>
+        </form>
+    </div>
+    <?php } ?>
 
     <h2>Lista</h2>
     <form method="post" action="tenant-migrar.php" class="acoes-form" style="margin:0 0 16px">

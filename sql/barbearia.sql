@@ -958,7 +958,9 @@ CREATE TABLE IF NOT EXISTS `tenant_dominios` (
   `hostname` varchar(120) NOT NULL,
   `tenant_id` int(11) NOT NULL,
   `tipo` varchar(12) NOT NULL DEFAULT 'subdominio',
+  `token_verificacao` varchar(64) DEFAULT NULL,
   `verificado_em` datetime DEFAULT NULL,
+  `registrado_em` datetime DEFAULT NULL,
   PRIMARY KEY (`hostname`),
   KEY `idx_tenant` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

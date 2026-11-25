@@ -40,7 +40,7 @@ try {
         getenv('DB_PASSWORD')
     );
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $linhas = $pdo->query("SELECT d.hostname, t.status FROM tenant_dominios d
+    $linhas = $pdo->query("SELECT d.hostname, d.tipo, d.verificado_em, t.status FROM tenant_dominios d
         INNER JOIN tenants t ON t.id = d.tenant_id")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     fwrite(STDERR, 'banco indisponivel: ' . $e->getMessage() . "\n");
@@ -62,9 +62,23 @@ foreach ($linhas as $linha) {
         continue;
     }
 
+    // Dominio proprio so entra no Caddy depois de verificado. Antes disso o
+    // host nao resolve tenant no PHP e nao deve receber certificado.
+    $tipo = strtolower(trim((string) $linha['tipo']));
+    if ($tipo === 'proprio' && empty($linha['verificado_em'])) {
+        continue;
+    }
+
+    // O host pode chegar como www.: o resolvedor normaliza e o bloco
+    // atende as duas formas.
+    $enderecos = 'https://' . $host;
+    if ($tipo === 'proprio' && strpos($host, 'www.') !== 0) {
+        $enderecos .= ', https://www.' . $host;
+    }
+
     $arquivo = $dir_destino . '/' . $prefixo . $host . '.caddy';
     $desejados[$arquivo] = "# gerado por /usr/local/sbin/beauty-sync-tenants.php - nao editar\n"
-        . "https://" . $host . " {\n"
+        . $enderecos . " {\n"
         . "\troot * /var/www/beauty\n"
         . "\tencode gzip\n"
         . "\tphp_fastcgi unix//run/php/php8.4-fpm.sock {\n"
