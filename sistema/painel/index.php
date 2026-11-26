@@ -523,11 +523,8 @@ $dataMesInicial = $partesInicial[1];
 	<script src="js/scripts.js"></script>
 	<!--//scrolling js-->
 	
-	<!-- side nav js -->
-	<script src='js/SidebarNav.min.js' type='text/javascript'></script>
-	<script>
-		$('.sidebar-menu').SidebarNav()
-	</script>
+	<!-- side nav js: abrir/fechar os submenus do menu lateral -->
+	<script src="js/sidebar-nav.js"></script>
 	<!-- //side nav js -->
 	
 	
