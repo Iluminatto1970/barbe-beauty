@@ -58,18 +58,24 @@ O script:
 2. extrai `git archive $REF` para `/var/www/releases/.incoming` — só conteúdo
    commitado, sem `.env`, `.git`, `node_modules`;
 3. copia do release atual os arquivos listados em `.preserve`;
-4. troca o symlink com `ln -sfn` + `mv -Tf` (rename atômico) e reinicia o
+4. libera escrita do PHP (`www-data`) em `images/`, `sistema/img/` e
+   `sistema/painel/img/` (ACL recursiva + default, ou `chgrp`/`chmod` se não
+   houver `setfacl`). A release sai do `git archive`, então nasce `644/755` do
+   usuário `deploy`: sem esse passo o upload de logo/banner/foto do painel
+   falharia em silêncio (`move_uploaded_file` sem permissão). Ajuste a lista em
+   `WRITABLE_DIRS` se o app passar a gravar em outro diretório;
+5. troca o symlink com `ln -sfn` + `mv -Tf` (rename atômico) e reinicia o
    PHP-FPM para limpar OPcache/realpath cache;
-5. roda o smoke em `/`, `/landing.php`, `/sistema/`, `/css/style.css`,
+6. roda o smoke em `/`, `/landing.php`, `/sistema/`, `/css/style.css`,
    `/planos.php` (200 + conteúdo esperado) e confere que
    `/docker-compose.yml`, `/README.md` e `/deploy/` seguem 404;
-6. **se o smoke falhar, volta o symlink para a release anterior**, reinicia o
+7. **se o smoke falhar, volta o symlink para a release anterior**, reinicia o
    PHP-FPM e roda o smoke de novo — saindo com código 1;
-7. mantém as `KEEP` (padrão 5) releases mais recentes e registra tudo em
+8. mantém as `KEEP` (padrão 5) releases mais recentes e registra tudo em
    `deploy.log`.
 
 Variáveis: `SSH_HOST`, `RELEASE_BASE`, `APP_LINK`, `BASE_URL`, `REF`, `KEEP`,
-`SMOKE_TENTATIVAS`.
+`SMOKE_TENTATIVAS`, `WRITABLE_DIRS`.
 
 ## Ver o que está publicado
 

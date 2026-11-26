@@ -38,6 +38,11 @@ BASE_URL="${BASE_URL:-https://beauty.iluminatto.online}"
 REF="${REF:-HEAD}"
 KEEP="${KEEP:-5}"
 SMOKE_TENTATIVAS="${SMOKE_TENTATIVAS:-20}"
+# Diretórios em que o PHP (www-data) grava em tempo de execução: logos, banners,
+# ícones, fotos de perfil/serviço/produto/comentário. A release sai do
+# `git archive`, então nasce 644/755 do usuário deploy: sem isto o upload do
+# painel passaria a falhar em silêncio (move_uploaded_file sem permissão).
+WRITABLE_DIRS="${WRITABLE_DIRS:-images sistema/img sistema/painel/img}"
 
 cd "$(dirname "$0")/.."
 
@@ -149,6 +154,23 @@ while read -r arquivo; do
 done < <(remoto "cat '$RELEASE_BASE/.preserve' 2>/dev/null || true")
 
 remoto "mv '$RELEASE_BASE/.incoming' '$RELEASE_BASE/$RELEASE'"
+
+# ------------------------------------------------------------
+# 1.5 escrita do PHP nos diretórios de mídia
+# ------------------------------------------------------------
+# Mesma convenção que o bootstrap deixa na release inicial (grupo www-data
+# com escrita), restrita aos diretórios que o app realmente escreve.
+log "liberando escrita do PHP (www-data) em: $WRITABLE_DIRS"
+remoto "cd '$RELEASE_BASE/$RELEASE' || exit 1
+        for d in $WRITABLE_DIRS; do
+          [ -d \"\$d\" ] || continue
+          if command -v setfacl >/dev/null 2>&1; then
+            setfacl -R -m u:www-data:rwX \"\$d\" &&
+            find \"\$d\" -type d -exec setfacl -d -m u:www-data:rwX {} +
+          else
+            chgrp -R www-data \"\$d\" && chmod -R g+rwX \"\$d\"
+          fi || exit 1
+        done"
 
 # ------------------------------------------------------------
 # 2. troca atômica do symlink + limpeza de cache do PHP
