@@ -44,6 +44,29 @@ sudo php /var/www/beauty/scripts/tenant-db-usuarios.php --aplicar \
      --fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf
 ```
 
+### Na VPS sem SSH de root (usuário `deploy`)
+
+O `deploy` está no grupo `docker`, o que na prática dá root na máquina. Foi
+assim que o provisionamento rodou em 2026-11-26, sem reabilitar `PermitRootLogin`:
+
+```bash
+docker run --rm --network host -v /:/host alpine \
+  chroot /host php /var/www/beauty/scripts/tenant-db-usuarios.php \
+  --aplicar --fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf
+```
+
+Dois detalhes que custam tempo se esquecidos:
+
+- `--network host` é obrigatório: o pool define `DB_HOST=127.0.0.1`, que sem
+  isso aponta para o loopback do container (`Connection refused`).
+- o usuário de controle (`barbearia`) **não tem `CREATE USER`**. O `root` do
+  MySQL local entra por socket (`unix_socket`, sem senha), então acrescente
+  `-e DB_HOST=localhost -e DB_USER=root`. A senha derivada não muda, porque
+  `DB_PASSWORD` continua vindo do `env[]` do pool.
+
+O `--verificar` roda com os mesmos argumentos e confirma que cada tenant só
+enxerga o próprio schema.
+
 O painel também tenta provisionar no primeiro acesso de um tenant antigo, mas
 só consegue se a credencial do banco de controle tiver `CREATE USER`. Se o
 log (`/var/log/php8.4-fpm.log`) mostrar `tenant-db: usuario bb_t3 nao
