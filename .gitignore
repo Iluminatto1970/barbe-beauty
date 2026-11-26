@@ -62,3 +62,6 @@ backups/
 
 # Capturas locais de verificacao visual
 screenshots/
+
+# Preview local gerado para checagem visual
+.preview/

@@ -502,7 +502,8 @@ $dataMesInicial = $partesInicial[1];
 			if (menu) {
 				menu.addEventListener("click", function (e) {
 					var link = e.target.closest ? e.target.closest("a") : null;
-					if (link && window.innerWidth <= 992) { abrirMenu(false); }
+					// "#" abre submenu ou modal: nesse caso a gaveta continua aberta.
+					if (link && window.innerWidth <= 992 && link.getAttribute("href") !== "#") { abrirMenu(false); }
 				});
 			}
 
