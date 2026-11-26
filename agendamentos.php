@@ -18,14 +18,20 @@ $cor_tema = ($segmento == 'salao') ? '#7C5D67' : '#5a8e94';
 	}
 
 	/* Calendario de agendamento */
-	.calendario-box{ background:#fff; border-radius:12px; padding:12px; box-shadow:0 4px 12px rgba(0,0,0,.12); }
-	.calendario-topo{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-	.calendario-topo strong{ font-size:16px; color:#2c3e50; text-transform:capitalize; }
-	.calendario-nav{ border:0; background:<?php echo $cor_tema ?>; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:13px; }
+	.calendario-box{ background:#fff; border-radius:12px; padding:12px; box-shadow:0 4px 12px rgba(0,0,0,.12); min-width:0; max-width:100%; overflow:hidden; }
+	.calendario-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+	/* O celular pode aplicar fonte maior que a prevista ("texto grande" do
+	   Android/iOS). Sem min-width:0 + ellipsis, o titulo do mes (nowrap) empurra
+	   a seta de avancar para fora da tela e o calendario fica maior que o
+	   aparelho. */
+	.calendario-topo strong{ flex:1 1 auto; min-width:0; text-align:center; font-size:16px; color:#2c3e50; text-transform:capitalize; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+	.calendario-nav{ flex:0 0 32px; border:0; background:<?php echo $cor_tema ?>; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:13px; }
 	.calendario-nav:disabled{ background:#cfd8dc; cursor:not-allowed; }
-	.calendario-semana,.calendario-dias{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-	.calendario-semana span{ text-align:center; font-size:11px; font-weight:bold; color:#6b7c85; padding:4px 0; }
-	.calendario-dia{ border:0; background:#f1f5f6; color:#2c3e50; border-radius:8px; padding:9px 0; font-size:14px; cursor:pointer; }
+	/* minmax(0,1fr) e nao 1fr: com 1fr a coluna nao encolhe abaixo do conteudo e
+	   a grade de 7 dias estoura a largura do card. */
+	.calendario-semana,.calendario-dias{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
+	.calendario-semana span{ min-width:0; overflow:hidden; text-align:center; font-size:11px; font-weight:bold; color:#6b7c85; padding:4px 0; }
+	.calendario-dia{ min-width:0; overflow:hidden; border:0; background:#f1f5f6; color:#2c3e50; border-radius:8px; padding:9px 0; font-size:14px; cursor:pointer; }
 	.calendario-dia:hover:not(:disabled){ background:#d7e7e9; }
 	.calendario-dia.hoje{ box-shadow: inset 0 0 0 2px <?php echo $cor_tema ?>; }
 	.calendario-dia.selecionado{ background:<?php echo $cor_tema ?>; color:#fff; font-weight:bold; }
