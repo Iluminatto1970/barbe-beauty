@@ -99,7 +99,11 @@ ROTAS
 # volta o symlink `current` para uma release específica
 apontar_para() {
   remoto "ln -sfn '$1' '$CURRENT_LINK.novo' && mv -Tf '$CURRENT_LINK.novo' '$CURRENT_LINK'"
-  remoto "sudo -n systemctl restart php8.4-fpm"
+  # O restart só limpa OPcache/realpath cache. Se o sudoers mudar ou o systemd
+  # estiver ocupado, abortar aqui deixaria o site JÁ trocado e sem smoke nem
+  # rollback — pior que seguir sem o restart.
+  remoto "sudo -n systemctl restart php8.4-fpm" \
+    || log "AVISO: nao consegui reiniciar o php8.4-fpm; seguindo para o smoke (se o site responder com arquivo antigo, rode o restart e republique)"
 }
 
 # ------------------------------------------------------------
@@ -117,17 +121,32 @@ case "$publicado" in
 esac
 remoto "test -w '$RELEASE_BASE'" || falhar "sem permissão de escrita em $RELEASE_BASE"
 
+# `readlink -f` devolve um caminho mesmo quando o alvo não existe. Sem esta
+# checagem o deploy seguiria com uma release atual inexistente e o rollback
+# automático não teria para onde voltar.
+ATUAL="$(remoto "readlink -f '$CURRENT_LINK'")"
+remoto "test -d '$ATUAL'" || falhar "$CURRENT_LINK aponta para '$ATUAL', que não existe. Refaça o link (bootstrap) antes de publicar."
+
 if [ "${1:-}" = "rollback" ]; then
-  ATUAL="$(remoto "readlink -f '$CURRENT_LINK'")"
-  ANTERIOR="$(remoto "ls -1dt '$RELEASE_BASE'/beauty-* 2>/dev/null | grep -vF '$ATUAL' | head -1")"
-  [ -n "$ANTERIOR" ] || falhar "nenhuma release anterior em $RELEASE_BASE"
+  # Ordem por NOME (a data está no nome), não por mtime: a release que acabou
+  # de falhar no smoke fica mais nova que a atual e, ordenando por data de
+  # modificação, seria escolhida como "anterior" — publicando de novo o que
+  # já tinha derrubado o smoke.
+  # Só entram na conta as releases no formato datado (beauty-AAAAMMDD-HHMMSS-sha)
+  # — `beauty-inicial-…` e outros nomes não ordenam cronologicamente por nome.
+  # O `achou` evita que o awk devolva a última linha quando a release atual não
+  # está na lista (aí não existe "anterior", e não a mais nova).
+  ANTERIOR="$(remoto "ls -1d '$RELEASE_BASE'/beauty-* 2>/dev/null | grep -E '/beauty-[0-9]{8}-[0-9]{6}-' | sort | awk -v cur='$ATUAL' '{ if (\$0 == cur) { achou = 1; exit } prev = \$0 } END { if (achou) print prev }'")"
+  [ -n "$ANTERIOR" ] && [ "$ANTERIOR" != "$ATUAL" ] || falhar "nenhuma release anterior a $ATUAL em $RELEASE_BASE"
   log "rollback manual: $ATUAL -> $ANTERIOR"
   apontar_para "$ANTERIOR"
   if smoke; then
     log "rollback concluído: $(remoto "readlink -f '$CURRENT_LINK'")"
     exit 0
   fi
-  falhar "smoke falhou depois do rollback manual"
+  log "smoke falhou em $ANTERIOR -> desfazendo o rollback manual"
+  apontar_para "$ATUAL"
+  falhar "rollback manual desfeito: $ANTERIOR não passou no smoke; produção de volta em $ATUAL"
 fi
 
 SHA="$(git rev-parse --short "$REF")" || falhar "ref inválida: $REF"
@@ -148,15 +167,28 @@ remoto "rm -rf '$RELEASE_BASE/.incoming' && mkdir -p '$RELEASE_BASE/.incoming'"
 git archive --format=tar "$REF" | remoto "tar -xf - -C '$RELEASE_BASE/.incoming'"
 remoto "chmod -R u+rwX,go+rX '$RELEASE_BASE/.incoming'"
 
-# arquivos que existem só no servidor e não podem se perder
-while read -r arquivo; do
-  [ -n "$arquivo" ] || continue
-  remoto "if [ -f '$ATUAL/$arquivo' ] && [ ! -f '$RELEASE_BASE/.incoming/$arquivo' ]; then
+# arquivos (e diretórios) que existem só no servidor e não podem se perder
+#
+# A lista é lida ANTES do laço, de propósito: `ssh` consome o stdin do shell e,
+# lendo direto do pipe, ele engolia as linhas seguintes do .preserve — só a
+# primeira entrada era processada (silenciosamente).
+PRESERVAR=()
+while IFS= read -r linha; do
+  linha="${linha%$'\r'}"   # .preserve editado no Windows vem com CRLF
+  [ -n "$linha" ] || continue
+  case "$linha" in \#*) continue ;; esac
+  PRESERVAR+=("$linha")
+done < <(remoto "cat '$RELEASE_BASE/.preserve' 2>/dev/null || true")
+
+for arquivo in ${PRESERVAR[@]+"${PRESERVAR[@]}"}; do
+  remoto "if [ -e '$ATUAL/$arquivo' ] && [ ! -e '$RELEASE_BASE/.incoming/$arquivo' ]; then
             mkdir -p \"\$(dirname '$RELEASE_BASE/.incoming/$arquivo')\"
             cp -a '$ATUAL/$arquivo' '$RELEASE_BASE/.incoming/$arquivo'
             echo '    preservado: $arquivo'
+          elif [ ! -e '$ATUAL/$arquivo' ] && [ ! -e '$RELEASE_BASE/.incoming/$arquivo' ]; then
+            echo '    AVISO: .preserve lista $arquivo, que nao existe em nenhuma das releases'
           fi"
-done < <(remoto "cat '$RELEASE_BASE/.preserve' 2>/dev/null || true")
+done
 
 remoto "mv '$RELEASE_BASE/.incoming' '$RELEASE_BASE/$RELEASE'"
 
@@ -176,6 +208,17 @@ remoto "cd '$RELEASE_BASE/$RELEASE' || exit 1
             chgrp -R www-data \"\$d\" && chmod -R g+rwX \"\$d\"
           fi || exit 1
         done"
+
+# ------------------------------------------------------------
+# 1.9 sanidade antes de publicar
+# ------------------------------------------------------------
+# A troca do symlink é instantânea: se a árvore veio incompleta (ref errada,
+# tar truncado, export-ignore novo), o site fica fora do ar até o smoke
+# terminar e o rollback rodar (~1 min). Três arquivos barram isso antes.
+log "conferindo a release antes de publicar"
+remoto "cd '$RELEASE_BASE/$RELEASE' && for f in index.php sistema/conexao.php css/style.css; do
+          [ -s \"\$f\" ] || { echo \"    faltando ou vazio: \$f\"; exit 1; }
+        done" || falhar "release $RELEASE incompleta — o symlink NAO foi trocado e produção segue em $ATUAL"
 
 # ------------------------------------------------------------
 # 2. troca atômica do symlink + limpeza de cache do PHP

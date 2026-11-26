@@ -54,27 +54,43 @@ bash deploy/deploy.sh rollback     # volta para a release anterior
 
 O script:
 
-1. recusa se `/var/www/beauty` ainda não for symlink (bootstrap pendente);
+1. recusa se `/var/www/beauty` ainda não for symlink (bootstrap pendente) ou se
+   `current` aponta para uma release que não existe (rollback não teria para
+   onde voltar);
 2. extrai `git archive $REF` para `/var/www/releases/.incoming` — só conteúdo
    commitado, sem `.env`, `.git`, `node_modules`;
-3. copia do release atual os arquivos listados em `.preserve`;
+3. copia do release atual os **arquivos e diretórios** listados em `.preserve`
+   (a lista é lida antes do laço; linhas com `#` e `CRLF` são toleradas, e o
+   que não existir em nenhuma das duas releases gera `AVISO`);
 4. libera escrita do PHP (`www-data`) em `images/`, `sistema/img/` e
    `sistema/painel/img/` (ACL recursiva + default, ou `chgrp`/`chmod` se não
    houver `setfacl`). A release sai do `git archive`, então nasce `644/755` do
    usuário `deploy`: sem esse passo o upload de logo/banner/foto do painel
    falharia em silêncio (`move_uploaded_file` sem permissão). Ajuste a lista em
    `WRITABLE_DIRS` se o app passar a gravar em outro diretório;
-5. troca o symlink com `ln -sfn` + `mv -Tf` (rename atômico) e reinicia o
-   PHP-FPM para limpar OPcache/realpath cache;
-6. roda o smoke em `/`, `/landing.php`, `/sistema/`, `/css/style.css`,
+5. confere que a release tem `index.php`, `sistema/conexao.php` e
+   `css/style.css` não vazios — se faltar algo, aborta **sem** trocar o
+   symlink, em vez de publicar uma árvore quebrada;
+6. troca o symlink com `ln -sfn` + `mv -Tf` (rename atômico) e reinicia o
+   PHP-FPM para limpar OPcache/realpath cache (falha no restart é aviso, não
+   aborto: o smoke logo abaixo é o que decide);
+7. roda o smoke em `/`, `/landing.php`, `/sistema/`, `/css/style.css`,
    `/planos.php` (200 + conteúdo esperado) e confere que
    `/docker-compose.yml`, `/README.md`, `/deploy/deploy.sh` e
    `/deploy/bootstrap.sh` seguem 404. Caminhos com extensão sensível: um
    diretório sem extensão (`/deploy/`) cai no `try_files` do site e volta 200;
-7. **se o smoke falhar, volta o symlink para a release anterior**, reinicia o
+8. **se o smoke falhar, volta o symlink para a release anterior**, reinicia o
    PHP-FPM e roda o smoke de novo — saindo com código 1;
-8. mantém as `KEEP` (padrão 5) releases mais recentes e registra tudo em
+9. mantém as `KEEP` (padrão 5) releases mais recentes e registra tudo em
    `deploy.log`.
+
+## Rollback manual
+
+`bash deploy/deploy.sh rollback` publica a release **imediatamente anterior**,
+na ordem do nome (que carrega a data) e não do mtime — por mtime, a release que
+acabou de falhar no smoke seria escolhida, republicando o que derrubou o site.
+Se o smoke falhar nela, o script volta sozinho para a release que estava no ar
+e sai com código 1.
 
 Variáveis: `SSH_HOST`, `RELEASE_BASE`, `APP_LINK`, `BASE_URL`, `REF`, `KEEP`,
 `SMOKE_TENTATIVAS`, `WRITABLE_DIRS`.
