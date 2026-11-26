@@ -68,7 +68,9 @@ O script:
    PHP-FPM para limpar OPcache/realpath cache;
 6. roda o smoke em `/`, `/landing.php`, `/sistema/`, `/css/style.css`,
    `/planos.php` (200 + conteúdo esperado) e confere que
-   `/docker-compose.yml`, `/README.md` e `/deploy/` seguem 404;
+   `/docker-compose.yml`, `/README.md`, `/deploy/deploy.sh` e
+   `/deploy/bootstrap.sh` seguem 404. Caminhos com extensão sensível: um
+   diretório sem extensão (`/deploy/`) cai no `try_files` do site e volta 200;
 7. **se o smoke falhar, volta o symlink para a release anterior**, reinicia o
    PHP-FPM e roda o smoke de novo — saindo com código 1;
 8. mantém as `KEEP` (padrão 5) releases mais recentes e registra tudo em

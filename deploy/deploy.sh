@@ -56,6 +56,10 @@ remoto() { ssh -o BatchMode=yes -o ConnectTimeout=15 "$SSH_HOST" "$@"; }
 # ------------------------------------------------------------
 # smoke das rotas críticas
 # ------------------------------------------------------------
+# Nas negativas usamos caminhos com extensão sensível (`.sh`): o Caddy tem
+# `@sensivel` + `respond 404` para elas. `/deploy/` sozinho NÃO serve como
+# teste — sem extensão ele cai no `try_files` do site e devolve a home com
+# 200, o que já derrubou um deploy (rollback automático) em 2026-11-26.
 smoke() {
   local falhou=0 rota esperado agulha codigo tentativa url
   while IFS='|' read -r rota esperado agulha; do
@@ -86,7 +90,8 @@ smoke() {
 /planos.php|200|Plano
 /docker-compose.yml|404|
 /README.md|404|
-/deploy/|404|
+/deploy/deploy.sh|404|
+/deploy/bootstrap.sh|404|
 ROTAS
   return "$falhou"
 }
