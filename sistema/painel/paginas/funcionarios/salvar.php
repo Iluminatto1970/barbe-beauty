@@ -38,7 +38,9 @@ if(@count($res) > 0 and $id != $res[0]['id']){
 }
 
 
-//validar cpf
+//validar cpf: em branco nao e duplicidade (o administrador e a maioria
+//dos profissionais nao informam CPF).
+if(trim((string)$cpf) !== ''){
 $query = $pdo->prepare("SELECT * from $tabela where cpf = :cpf");
 $query->bindValue(':cpf', $cpf);
 $query->execute();
@@ -46,6 +48,7 @@ $res = $query->fetchAll(PDO::FETCH_ASSOC);
 if(@count($res) > 0 and $id != $res[0]['id']){
 	echo 'CPF já Cadastrado, escolha outro!!';
 	exit();
+}
 }
 
 
