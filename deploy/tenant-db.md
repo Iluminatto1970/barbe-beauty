@@ -36,12 +36,52 @@ o tenant ainda entra com a credencial compartilhada.
 
 Tenant novo: `bb_tenant_provisionar` cria o usuário junto com o banco.
 
-Tenants existentes, uma vez após o deploy (precisa de `CREATE USER`/`GRANT`;
-em produção, root na VPS):
+### O que falta hoje na credencial de controle
+
+Medido na VPS em 2026-11-27 (MariaDB 11.8.9), rodando os próprios statements
+do provisionamento como `barbearia@localhost` (que tem `ALL PRIVILEGES` só em
+`barbearia`, `barbearia_demo` e `barbearia\_t%`, e apenas `USAGE ON *.*`):
+
+| falta | erro | statements que falham |
+|---|---|---|
+| `CREATE USER ON *.*` (global) | 1227 `Access denied; you need (at least one of) the CREATE USER privilege(s)` | `CREATE USER`, `ALTER USER` (senha derivada), `REVOKE ALL PRIVILEGES, GRANT OPTION` |
+| `GRANT OPTION` em `barbearia\_t%.*` | 1044 `Access denied for user 'barbearia'@'localhost' to database 'barbearia_tN'` | `GRANT <privilégios do painel> ON barbearia_tN.*` |
+
+`CREATE DATABASE` **já funciona** (o schema do cliente é criado sem erro); o
+que sobra para o aviso do provisionamento são os dois itens acima.
+
+### Liberar (uma vez, como root do MySQL)
+
+O SQL está em [`deploy/tenant-db-privilegios.sql`](tenant-db-privilegios.sql):
 
 ```bash
-sudo php /var/www/beauty/scripts/tenant-db-usuarios.php --aplicar \
+ssh root@<vps> 'mysql < /caminho/do/repo/deploy/tenant-db-privilegios.sql'
+```
+
+Ou, direto na VPS:
+
+```bash
+mysql -e "GRANT CREATE USER ON *.* TO 'barbearia'@'localhost';
+GRANT ALL PRIVILEGES ON \`barbearia\\_t%\`.* TO 'barbearia'@'localhost' WITH GRANT OPTION;"
+```
+
+O escopo continua fechado: fora de `barbearia\_t%` o `GRANT` segue negado
+(1044) e não há privilégio global de leitura/escrita em nenhum banco. A senha
+derivada dos tenants não muda.
+
+Depois de liberar, provisionar (e provar o isolamento):
+
+```bash
+php /var/www/beauty/scripts/tenant-db-usuarios.php --aplicar --verificar \
      --fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf
+```
+
+Sem liberar, dá para rodar o mesmo script como root do MySQL, que já tem os
+dois privilégios (o schema do tenant é criado pelo site, antes):
+
+```bash
+DB_HOST=localhost DB_USER=root php /var/www/beauty/scripts/tenant-db-usuarios.php \
+     --aplicar --verificar --fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf
 ```
 
 ### Na VPS sem SSH de root (usuário `deploy`)
@@ -59,19 +99,18 @@ Dois detalhes que custam tempo se esquecidos:
 
 - `--network host` é obrigatório: o pool define `DB_HOST=127.0.0.1`, que sem
   isso aponta para o loopback do container (`Connection refused`).
-- o usuário de controle (`barbearia`) **não tem `CREATE USER`**. O `root` do
-  MySQL local entra por socket (`unix_socket`, sem senha), então acrescente
-  `-e DB_HOST=localhost -e DB_USER=root`. A senha derivada não muda, porque
-  `DB_PASSWORD` continua vindo do `env[]` do pool.
-
-O `--verificar` roda com os mesmos argumentos e confirma que cada tenant só
-enxerga o próprio schema.
+- sem os GRANTs de `deploy/tenant-db-privilegios.sql`, a credencial de
+  controle não cria usuário. O `root` do MySQL local entra por socket
+  (`unix_socket`, sem senha), então acrescente `-e DB_HOST=localhost -e
+  DB_USER=root`. A senha derivada não muda, porque `DB_PASSWORD` continua
+  vindo do `env[]` do pool.
 
 O painel também tenta provisionar no primeiro acesso de um tenant antigo, mas
-só consegue se a credencial do banco de controle tiver `CREATE USER`. Se o
-log (`/var/log/php8.4-fpm.log`) mostrar `tenant-db: usuario bb_t3 nao
-provisionado: ...`, rode o comando acima e o próximo acesso já usa a
-credencial dedicada.
+só consegue se a credencial do banco de controle tiver os dois privilégios. Se
+o log (`/var/log/php8.4-fpm.log`) mostrar `tenant-db: usuario bb_t3 nao
+provisionado: ... (falta privilegio no usuario de controle: aplique
+deploy/tenant-db-privilegios.sql como root do MySQL)`, aplique o SQL uma vez e
+o próximo acesso já usa a credencial dedicada.
 
 ## Conferir isolamento
 

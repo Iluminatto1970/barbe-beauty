@@ -159,6 +159,14 @@ if (!function_exists('bb_tenant_db_criar_usuario')) {
             }
         } catch (Exception $e) {
             $resultado['erro'] = $e->getMessage();
+            // 1227 = falta CREATE USER (global); 1044 = falta GRANT OPTION
+            // no schema do tenant. O comando que libera esta em
+            // deploy/tenant-db-privilegios.sql.
+            if (strpos($e->getMessage(), ' 1227 ') !== false
+                || strpos($e->getMessage(), ' 1044 ') !== false) {
+                $resultado['erro'] .= ' (falta privilegio no usuario de controle:'
+                    . ' aplique deploy/tenant-db-privilegios.sql como root do MySQL)';
+            }
             return $resultado;
         }
 

@@ -247,12 +247,15 @@ if ($opcoes['verificar']) {
 }
 
 echo "\n";
-if (!$opcoes['aplicar'] && $pendentes > 0) {
-    echo "{$pendentes} estabelecimento(s) ainda na credencial compartilhada; rode com --aplicar.\n";
-}
 if ($falhas > 0) {
     echo "{$falhas} problema(s) encontrado(s).\n";
     exit(1);
+}
+if (!$opcoes['aplicar'] && $pendentes > 0) {
+    // Nao dizer "nada pendente" junto: sao casos que dependem de --aplicar.
+    echo "{$pendentes} estabelecimento(s) ainda na credencial compartilhada;"
+        . " rode com --aplicar (ver deploy/tenant-db.md).\n";
+    exit(0);
 }
 echo "nada pendente.\n";
 exit(0);
