@@ -78,19 +78,28 @@ function tdu_carregar_fpm($arquivo)
     }
 }
 
-$opcoes = array('aplicar' => false, 'verificar' => false, 'fpm_conf' => '', 'env_file' => '');
+$opcoes = array(
+    'aplicar'       => false,
+    'verificar'     => false,
+    'imprimir_sql'  => false,
+    'fpm_conf'      => '',
+    'env_file'      => '',
+);
 
 foreach (array_slice($argv, 1) as $arg) {
     if ($arg === '--aplicar') {
         $opcoes['aplicar'] = true;
     } elseif ($arg === '--verificar') {
         $opcoes['verificar'] = true;
+    } elseif ($arg === '--imprimir-sql') {
+        $opcoes['imprimir_sql'] = true;
     } elseif (strpos($arg, '--fpm-conf=') === 0) {
         $opcoes['fpm_conf'] = trim(substr($arg, 11));
     } elseif (strpos($arg, '--env-file=') === 0) {
         $opcoes['env_file'] = trim(substr($arg, 11));
     } elseif ($arg === '--help' || $arg === '-h') {
-        echo "Uso: php scripts/tenant-db-usuarios.php [--aplicar] [--verificar] [--fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf] [--env-file=/caminho/db.env]\n";
+        echo "Uso: php scripts/tenant-db-usuarios.php [--aplicar] [--verificar] [--imprimir-sql]"
+            . " [--fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf] [--env-file=/caminho/db.env]\n";
         exit(0);
     } else {
         tdu_erro('Opcao desconhecida: ' . $arg);
@@ -113,6 +122,27 @@ try {
     $pdo = bb_pdo_banco($controle);
 } catch (Exception $e) {
     tdu_erro('Falha ao conectar no banco de controle: ' . $e->getMessage());
+}
+
+// Os GRANTs que faltam na credencial de controle, prontos para o mysql.
+// Sai antes de qualquer escrita: `--imprimir-sql | mysql` como root.
+if ($opcoes['imprimir_sql']) {
+    $conta = $pdo->query('SELECT CURRENT_USER()')->fetchColumn();
+    $partes = explode('@', (string) $conta, 2);
+    $usuario_controle = $partes[0] !== '' ? $partes[0] : bb_credenciais_banco()['usuario'];
+    $host_controle = isset($partes[1]) && $partes[1] !== '' ? $partes[1] : 'localhost';
+
+    $prefixo = str_replace(array('`', '\\'), '', bb_tenant_prefixo());
+    $padrao = str_replace('_', '\\_', $prefixo) . '%';
+    $alvo = "'" . $usuario_controle . "'@'" . $host_controle . "'";
+
+    echo "-- Libera o provisionamento do usuario MySQL exclusivo de cada tenant\n";
+    echo "-- (CREATE USER global + GRANT OPTION no schema do tenant).\n";
+    echo "-- Aplicar: php scripts/tenant-db-usuarios.php --imprimir-sql | mysql\n";
+    echo 'GRANT CREATE USER ON *.* TO ' . $alvo . ";\n";
+    echo 'GRANT ALL PRIVILEGES ON `' . $padrao . '`.* TO ' . $alvo . " WITH GRANT OPTION;\n";
+    echo "FLUSH PRIVILEGES;\n";
+    exit(0);
 }
 
 // Garante tenants.db_user (tambem entra pela migracao 008)

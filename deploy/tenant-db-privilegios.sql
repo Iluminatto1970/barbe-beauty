@@ -23,9 +23,14 @@
 -- O escopo continua fechado: fora de `barbearia_t%` o GRANT segue negado
 -- (1044), e nao ha privilegio global de leitura/escrita em nenhum banco.
 --
--- Aplicar uma vez, como root do MySQL (socket, sem senha):
+-- Aplicar uma vez, como root do MySQL (socket, sem senha). Como este
+-- diretorio e export-ignore (nao vai para a release), na VPS o mesmo SQL sai
+-- do proprio script:
 --
---   mysql < deploy/tenant-db-privilegios.sql
+--   php /var/www/beauty/scripts/tenant-db-usuarios.php \
+--        --fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf --imprimir-sql | mysql
+--
+-- Ou, do checkout:
 --
 -- Depois provisionar os tenants pendentes:
 --

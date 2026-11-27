@@ -52,13 +52,23 @@ que sobra para o aviso do provisionamento são os dois itens acima.
 
 ### Liberar (uma vez, como root do MySQL)
 
-O SQL está em [`deploy/tenant-db-privilegios.sql`](tenant-db-privilegios.sql):
+O próprio script imprime os dois `GRANT` (lendo o usuário/host reais da
+credencial de controle). Na VPS, como root:
 
 ```bash
-ssh root@<vps> 'mysql < /caminho/do/repo/deploy/tenant-db-privilegios.sql'
+php /var/www/beauty/scripts/tenant-db-usuarios.php \
+     --fpm-conf=/etc/php/8.4/fpm/pool.d/www.conf --imprimir-sql | mysql
 ```
 
-Ou, direto na VPS:
+O mesmo SQL fica versionado em
+[`deploy/tenant-db-privilegios.sql`](tenant-db-privilegios.sql) — mas `deploy/`
+é `export-ignore`, então esse arquivo existe só no checkout, não na release:
+
+```bash
+ssh root@<vps> mysql < deploy/tenant-db-privilegios.sql
+```
+
+Equivalente em uma linha:
 
 ```bash
 mysql -e "GRANT CREATE USER ON *.* TO 'barbearia'@'localhost';
