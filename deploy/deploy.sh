@@ -25,12 +25,13 @@
 #   REF=v1.2.3 bash deploy/deploy.sh   # publica outra ref
 #   bash deploy/deploy.sh rollback     # volta para a release anterior
 #
-# Requisitos: `ssh vps` (usuário deploy, chave) e o bootstrap feito uma vez
-# com root (deploy/bootstrap.sh).
+# Requisitos: `ssh vps-public` (usuário deploy, chave em ~/.ssh/config) e o
+# bootstrap feito uma vez com root (deploy/bootstrap.sh). O alias da tailnet
+# (`vps`) fica como fallback via SSH_HOST=vps quando ela estiver ativa.
 # ============================================================
 set -euo pipefail
 
-SSH_HOST="${SSH_HOST:-vps}"
+SSH_HOST="${SSH_HOST:-vps-public}"
 RELEASE_BASE="${RELEASE_BASE:-/var/www/releases}"
 CURRENT_LINK="${CURRENT_LINK:-$RELEASE_BASE/current}"
 PUBLISH_PATH="${PUBLISH_PATH:-/var/www/beauty}"
