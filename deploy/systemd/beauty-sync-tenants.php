@@ -14,6 +14,10 @@
 
 $dir_destino = '/etc/caddy/sites';
 $prefixo = 'tenant-';
+// Assinatura da primeira linha de cada arquivo gerado. Tambem e o criterio
+// de limpeza: so removemos arquivos com esta marca (ver o loop final),
+// porque /etc/caddy/sites tambem guarda blocos de outros sistemas.
+$assinatura = '# gerado por /usr/local/sbin/beauty-sync-tenants.php - nao editar';
 $host_principal = 'beauty.iluminatto.online'; // bloco proprio no Caddyfile
 
 if (!is_dir($dir_destino) && !@mkdir($dir_destino, 0755, true)) {
@@ -77,13 +81,18 @@ foreach ($linhas as $linha) {
     }
 
     $arquivo = $dir_destino . '/' . $prefixo . $host . '.caddy';
-    $desejados[$arquivo] = "# gerado por /usr/local/sbin/beauty-sync-tenants.php - nao editar\n"
+    $desejados[$arquivo] = $assinatura . "\n"
         . $enderecos . " {\n"
         . "\troot * /var/www/beauty\n"
         . "\tencode gzip\n"
         . "\tphp_fastcgi unix//run/php/php8.4-fpm.sock {\n"
         . "\t\ttry_files {path} {path}.php {path}/index.php index.php\n"
         . "\t}\n"
+        // Mesma protecao do bloco principal no Caddyfile: sem ela o docroot
+        // inteiro fica baixavel no subdominio do cliente (README.md,
+        // docker-compose.yml, dumps .sql, scripts do deploy).
+        . "\t@sensivel path_regexp (?i)(^/[.][^/]+|^/(caddy|docker)file$|[.](md|ya?ml|sql|gz|zip|log|sh|bat|ini|env|json|lock|bak|old|orig|swp)$)\n"
+        . "\trespond @sensivel 404\n"
         . "\tfile_server\n"
         . "}\n";
 }
@@ -98,10 +107,18 @@ foreach ($desejados as $arquivo => $conteudo) {
 }
 
 foreach (glob($dir_destino . '/' . $prefixo . '*.caddy') as $antigo) {
-    if (!isset($desejados[$antigo])) {
-        @unlink($antigo);
-        $mudou = true;
+    if (isset($desejados[$antigo])) {
+        continue;
     }
+    // Apaga apenas o que ESTE gerador escreveu. O diretorio e compartilhado
+    // com outros sistemas (o agreste.shop gera os blocos dele la), e um sync
+    // da barbearia nao pode derrubar um site que nao e seu.
+    $primeira = @file_get_contents($antigo, false, null, 0, strlen($assinatura));
+    if ($primeira !== $assinatura) {
+        continue;
+    }
+    @unlink($antigo);
+    $mudou = true;
 }
 
 if (!$mudou) {
