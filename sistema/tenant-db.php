@@ -165,7 +165,7 @@ if (!function_exists('bb_tenant_db_criar_usuario')) {
             if (strpos($e->getMessage(), ' 1227 ') !== false
                 || strpos($e->getMessage(), ' 1044 ') !== false) {
                 $resultado['erro'] .= ' (falta privilegio no usuario de controle:'
-                    . ' aplique deploy/tenant-db-privilegios.sql como root do MySQL)';
+                    . ' rode scripts/tenant-db-usuarios.php --imprimir-sql | mysql como root)';
             }
             return $resultado;
         }

@@ -132,8 +132,12 @@ if ($opcoes['imprimir_sql']) {
     $usuario_controle = $partes[0] !== '' ? $partes[0] : bb_credenciais_banco()['usuario'];
     $host_controle = isset($partes[1]) && $partes[1] !== '' ? $partes[1] : 'localhost';
 
-    $prefixo = str_replace(array('`', '\\'), '', bb_tenant_prefixo());
-    $padrao = str_replace('_', '\\_', $prefixo) . '%';
+    // SEM escapar o `_` do prefixo: o MariaDB casa GRANT OPTION contra o
+    // padrao literal em mysql.db, e `barbearia\_t%` nao casa com
+    // `barbearia_t10` (1044). Com `barbearia_t%` o `_` e coringa de um
+    // caractere e o padrao alcanca os tenants - e continua nao alcancando
+    // `barbearia` nem `barbearia_demo` (conferido na VPS).
+    $padrao = str_replace(array('`', '\\'), '', bb_tenant_prefixo()) . '%';
     $alvo = "'" . $usuario_controle . "'@'" . $host_controle . "'";
 
     echo "-- Libera o provisionamento do usuario MySQL exclusivo de cada tenant\n";

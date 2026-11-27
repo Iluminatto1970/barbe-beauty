@@ -42,6 +42,12 @@
 
 GRANT CREATE USER ON *.* TO 'barbearia'@'localhost';
 
-GRANT ALL PRIVILEGES ON `barbearia\_t%`.* TO 'barbearia'@'localhost' WITH GRANT OPTION;
+-- Padrao SEM escapar o `_`. Com `barbearia\_t%` o CREATE USER passa, mas o
+-- GRANT ON `barbearia_t10`.* continua 1044: o MariaDB casa o GRANT OPTION
+-- contra o nome literal guardado em mysql.db e o escape nao casa. Com
+-- `barbearia_t%` o `_` e coringa de um caractere, alcancando os tenants e
+-- deixando de fora `barbearia` e `barbearia_demo` (conferido na VPS em
+-- 2026-11-27).
+GRANT ALL PRIVILEGES ON `barbearia_t%`.* TO 'barbearia'@'localhost' WITH GRANT OPTION;
 
 FLUSH PRIVILEGES;

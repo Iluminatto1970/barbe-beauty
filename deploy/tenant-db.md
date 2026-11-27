@@ -45,7 +45,14 @@ do provisionamento como `barbearia@localhost` (que tem `ALL PRIVILEGES` só em
 | falta | erro | statements que falham |
 |---|---|---|
 | `CREATE USER ON *.*` (global) | 1227 `Access denied; you need (at least one of) the CREATE USER privilege(s)` | `CREATE USER`, `ALTER USER` (senha derivada), `REVOKE ALL PRIVILEGES, GRANT OPTION` |
-| `GRANT OPTION` em `barbearia\_t%.*` | 1044 `Access denied for user 'barbearia'@'localhost' to database 'barbearia_tN'` | `GRANT <privilégios do painel> ON barbearia_tN.*` |
+| `GRANT OPTION` em `barbearia_t%.*` | 1044 `Access denied for user 'barbearia'@'localhost' to database 'barbearia_tN'` | `GRANT <privilégios do painel> ON barbearia_tN.*` |
+
+O padrão **não pode** ser escrito com o `_` escapado (`barbearia\_t%`): o
+`CREATE USER` passa, mas o `GRANT` por tenant continua 1044, porque o MariaDB
+casa o `GRANT OPTION` contra o nome guardado em `mysql.db` e o escape não
+casa com `barbearia_t10`. Com `barbearia_t%` o `_` é coringa de um caractere e
+o padrão alcança os tenants; `barbearia` e `barbearia_demo` continuam fora
+(conferido na VPS em 2026-11-27).
 
 `CREATE DATABASE` **já funciona** (o schema do cliente é criado sem erro); o
 que sobra para o aviso do provisionamento são os dois itens acima.
@@ -72,12 +79,17 @@ Equivalente em uma linha:
 
 ```bash
 mysql -e "GRANT CREATE USER ON *.* TO 'barbearia'@'localhost';
-GRANT ALL PRIVILEGES ON \`barbearia\\_t%\`.* TO 'barbearia'@'localhost' WITH GRANT OPTION;"
+GRANT ALL PRIVILEGES ON \`barbearia_t%\`.* TO 'barbearia'@'localhost' WITH GRANT OPTION;"
 ```
 
-O escopo continua fechado: fora de `barbearia\_t%` o `GRANT` segue negado
-(1044) e não há privilégio global de leitura/escrita em nenhum banco. A senha
-derivada dos tenants não muda.
+O escopo continua fechado: fora do padrão `barbearia_t%` o `GRANT` segue
+negado (1044) e não há privilégio global de leitura/escrita em nenhum banco. A
+senha derivada dos tenants não muda.
+
+Aplicado em produção em 2026-11-27: `beauty (#1)`, `mario (#10)` e
+`viih-queiroz-nail-designer (#11)` ficaram com `bb_t1`, `bb_t10` e `bb_t11`, o
+`--verificar` provou que cada um vê só o próprio schema e os três sites
+seguem em 200.
 
 Depois de liberar, provisionar (e provar o isolamento):
 
