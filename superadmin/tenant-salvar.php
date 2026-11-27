@@ -15,6 +15,7 @@ $plano_id   = (int) @$_POST['plano_id'];
 $status     = (string) @$_POST['status'];
 $vencimento = trim((string) @$_POST['vencimento']);
 $senha      = (string) @$_POST['senha'];
+$segmento   = (isset($_POST['segmento']) && $_POST['segmento'] === 'salao') ? 'salao' : 'barbearia';
 
 if ($nome === '' or $slug === '') {
     header('Location: tenants.php?erro=' . urlencode('nome e subdomínio são obrigatórios'));
@@ -47,11 +48,11 @@ $vencimento = ($vencimento !== '') ? $vencimento : null;
 
 if ($id > 0) {
     $q = $pdo->prepare("UPDATE tenants SET nome = :nome, slug = :slug, email = :email, telefone = :telefone,
-                        plano_id = :plano, status = :status, vencimento = :venc WHERE id = :id");
+                        plano_id = :plano, status = :status, vencimento = :venc, segmento = :segmento WHERE id = :id");
     $q->bindValue(':id', $id);
 } else {
-    $q = $pdo->prepare("INSERT INTO tenants (nome, slug, email, telefone, plano_id, status, vencimento, senha_crip, origem, criado_em)
-                        VALUES (:nome, :slug, :email, :telefone, :plano, :status, :venc, :senha, 'manual', NOW())");
+    $q = $pdo->prepare("INSERT INTO tenants (nome, slug, email, telefone, segmento, plano_id, status, vencimento, senha_crip, origem, criado_em)
+                        VALUES (:nome, :slug, :email, :telefone, :segmento, :plano, :status, :venc, :senha, 'manual', NOW())");
     $q->bindValue(':senha', $senha !== '' ? bb_hash_senha($senha) : '');
 }
 
@@ -62,6 +63,7 @@ $q->bindValue(':telefone', $telefone);
 $q->bindValue(':plano', $plano_id, $plano_id ? PDO::PARAM_INT : PDO::PARAM_NULL);
 $q->bindValue(':status', $status);
 $q->bindValue(':venc', $vencimento, $vencimento ? PDO::PARAM_STR : PDO::PARAM_NULL);
+$q->bindValue(':segmento', $segmento);
 $q->execute();
 
 if ($id == 0) {
@@ -92,6 +94,10 @@ if (!$provisionamento['ok']) {
     header('Location: tenants.php?erro=' . urlencode('estabelecimento salvo, mas o banco não foi criado: ' . $provisionamento['erro']) . '&id=' . $id);
     exit;
 }
+
+// O segmento salvo aqui manda no sistema do cliente: trocar entre
+// barbearia e salao remodela site, agendamento, login e painel dele.
+bb_tenant_aplicar_segmento($pdo, $id);
 
 header('Location: tenants.php?ok=1');
 exit;

@@ -23,6 +23,7 @@ foreach ($planos as $p) {
 }
 
 $erro = isset($_GET['erro']) ? (string) $_GET['erro'] : '';
+$seg_sel = (isset($_GET['segmento']) && $_GET['segmento'] === 'salao') ? 'salao' : 'barbearia';
 $csrf = bin2hex(random_bytes(16));
 $_SESSION['assinar_csrf'] = $csrf;
 ?>
@@ -101,6 +102,15 @@ $_SESSION['assinar_csrf'] = $csrf;
               <small class="muted" id="slug-dica">barbearia-estilo.<?php echo sa_e(SA_DOMINIO_BASE); ?></small>
               <small class="slug-status" id="slug-status" role="status" aria-live="polite"></small>
             </div>
+          </div>
+
+          <div class="campo" style="margin-top:12px">
+            <label>Seu negócio é</label>
+            <div class="formas">
+              <label><input type="radio" name="segmento" value="barbearia" <?php echo $seg_sel === 'barbearia' ? 'checked' : ''; ?>> Barbearia</label>
+              <label><input type="radio" name="segmento" value="salao" <?php echo $seg_sel === 'salao' ? 'checked' : ''; ?>> Salão de beleza / estética</label>
+            </div>
+            <small class="muted">Aplica o tema no site, no agendamento, no login e no painel. Dá para trocar depois em Configurações.</small>
           </div>
 
           <div class="duas-colunas" style="margin-top:12px">

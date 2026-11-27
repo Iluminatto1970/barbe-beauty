@@ -6,7 +6,7 @@ bb_tenant_garantir_colunas($pdo);
 $versao_codigo = bb_migracoes_versao_final();
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-$tenant = array('id' => '', 'nome' => '', 'slug' => '', 'email' => '', 'telefone' => '', 'plano_id' => '', 'status' => 'trial', 'vencimento' => '');
+$tenant = array('id' => '', 'nome' => '', 'slug' => '', 'email' => '', 'telefone' => '', 'plano_id' => '', 'status' => 'trial', 'vencimento' => '', 'segmento' => 'barbearia');
 
 if ($id > 0) {
     $q = $pdo->prepare("SELECT * FROM tenants WHERE id = :id");
@@ -88,6 +88,14 @@ sa_topo('Estabelecimentos');
             <div class="campo">
                 <label for="vencimento">Vencimento</label>
                 <input type="date" id="vencimento" name="vencimento" value="<?php echo sa_e(substr((string) $tenant['vencimento'], 0, 10)); ?>">
+            </div>
+            <div class="campo">
+                <label for="segmento">Segmento</label>
+                <select id="segmento" name="segmento">
+                    <option value="barbearia" <?php echo (isset($tenant['segmento']) && $tenant['segmento'] === 'salao') ? '' : 'selected'; ?>>Barbearia</option>
+                    <option value="salao" <?php echo (isset($tenant['segmento']) && $tenant['segmento'] === 'salao') ? 'selected' : ''; ?>>Salão de beleza / estética</option>
+                </select>
+                <small class="muted">Aplica o tema no site, no agendamento, no login e no painel do estabelecimento.</small>
             </div>
             <div class="campo">
                 <label for="senha">Senha do administrador</label>

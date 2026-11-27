@@ -188,5 +188,29 @@ if ($nome_salao !== '') {
 	$query_salao->execute();
 }
 
+	// Escolheu "Salão" e o tema ainda não tinha identidade própria: cria agora,
+	// com os dados atuais do estabelecimento, para o site não continuar com o
+	// nome, o banner e os textos da barbearia.
+	if ($segmento === 'salao' && !$salao_atual) {
+		$ins_salao = $pdo->prepare("INSERT INTO config_salao
+			(nome, img_banner_index, imagem_sobre, icone_site, logo, logo_rel, texto_sobre, texto_rodape, texto_agendamento, texto_fidelidade, whatsapp, endereco, instagram, email)
+			VALUES (:nome, :banner, :sobre, :icone, :logo, :logo_rel, :texto_sobre, :texto_rodape, :texto_agendamento, :texto_fidelidade, :whatsapp, :endereco, :instagram, :email)");
+		$ins_salao->bindValue(':nome', $nome);
+		$ins_salao->bindValue(':banner', $img_banner_index);
+		$ins_salao->bindValue(':sobre', $img_sobre);
+		$ins_salao->bindValue(':icone', $arquivo_icone_site);
+		$ins_salao->bindValue(':logo', $arquivo_logo);
+		$ins_salao->bindValue(':logo_rel', $arquivo_logo_rel);
+		$ins_salao->bindValue(':texto_sobre', $texto_sobre);
+		$ins_salao->bindValue(':texto_rodape', $texto_rodape);
+		$ins_salao->bindValue(':texto_agendamento', $texto_agendamento);
+		$ins_salao->bindValue(':texto_fidelidade', $texto_fidelidade);
+		$ins_salao->bindValue(':whatsapp', $whatsapp);
+		$ins_salao->bindValue(':endereco', $endereco);
+		$ins_salao->bindValue(':instagram', $instagram);
+		$ins_salao->bindValue(':email', $email);
+		$ins_salao->execute();
+	}
+
 echo 'Editado com Sucesso';
  ?>

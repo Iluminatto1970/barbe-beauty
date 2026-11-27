@@ -9,6 +9,7 @@ require_once(__DIR__ . '/superadmin/_auth.php');
 require_once(__DIR__ . '/superadmin/_asaas.php');
 sa_garantir_tabelas($pdo);
 asaas_garantir_colunas($pdo);
+bb_tenant_garantir_colunas($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: assinar.php');
@@ -30,13 +31,14 @@ $senha2    = (string) @$_POST['senha2'];
 $plano_id  = (int) @$_POST['plano_id'];
 $forma     = (string) @$_POST['forma'];
 $cpf_cnpj  = preg_replace('/\D+/', '', (string) @$_POST['cpf_cnpj']);
+$segmento  = (isset($_POST['segmento']) && $_POST['segmento'] === 'salao') ? 'salao' : 'barbearia';
 
 $formas_validas = array('UNDEFINED', 'PIX', 'BOLETO');
 if (!in_array($forma, $formas_validas, true)) {
     $forma = 'UNDEFINED';
 }
 
-$voltar = function ($mensagem) use ($nome, $slug, $email, $telefone, $cpf_cnpj) {
+$voltar = function ($mensagem) use ($nome, $slug, $email, $telefone, $cpf_cnpj, $segmento) {
     $params = http_build_query(array(
         'erro'      => $mensagem,
         'nome'      => $nome,
@@ -44,6 +46,7 @@ $voltar = function ($mensagem) use ($nome, $slug, $email, $telefone, $cpf_cnpj) 
         'email'     => $email,
         'telefone'  => $telefone,
         'cpf_cnpj'  => $cpf_cnpj,
+        'segmento'  => $segmento,
     ));
     header('Location: assinar.php?' . $params);
     exit;
@@ -107,8 +110,9 @@ $token = bin2hex(random_bytes(24));
 
 // Cria o estabelecimento aguardando pagamento
 $ins = $pdo->prepare("INSERT INTO tenants
-    (slug, nome, email, telefone, cpf_cnpj, plano_id, status, vencimento, senha_crip, token, origem, criado_em)
-    VALUES (:slug, :nome, :email, :telefone, :cpf, :plano, :status, NULL, :senha, :token, 'autocadastro', NOW())");
+    (slug, nome, email, telefone, cpf_cnpj, segmento, plano_id, status, vencimento, senha_crip, token, origem, criado_em)
+    VALUES (:slug, :nome, :email, :telefone, :cpf, :segmento, :plano, :status, NULL, :senha, :token, 'autocadastro', NOW())");
+$ins->bindValue(':segmento', $segmento);
 $ins->bindValue(':status', $gratis ? 'trial' : 'pendente');
 $ins->bindValue(':cpf', $cpf_cnpj !== '' ? $cpf_cnpj : null, $cpf_cnpj !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
 $ins->bindValue(':slug', $slug);

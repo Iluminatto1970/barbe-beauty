@@ -181,9 +181,15 @@ if ($rec_metodo === 'GET' && isset($_GET['token'])) {
 <title>Recuperar senha · <?php echo htmlspecialchars($nome_sistema); ?></title>
 <style>
   :root {
-    --gold: #D4AF37; --gold-light: #F0CD7F; --bg: #070707;
-    --card: #141414; --line: rgba(255,255,255,.10);
+    /* A tela segue o segmento do estabelecimento (barbearia x salao) */
+    --gold: <?php echo ($segmento == 'salao') ? '#C9978C' : '#D4AF37'; ?>;
+    --gold-light: <?php echo ($segmento == 'salao') ? '#EBCFC5' : '#F0CD7F'; ?>;
+    --bg: <?php echo ($segmento == 'salao') ? '#100A0E' : '#070707'; ?>;
+    --card: <?php echo ($segmento == 'salao') ? '#1A1319' : '#141414'; ?>;
+    --line: rgba(255,255,255,.10);
     --text: #e8e8e8; --muted: #9ca3af;
+    --acento-fundo: <?php echo ($segmento == 'salao') ? '#1E1218' : '#171204'; ?>;
+    --foco: <?php echo ($segmento == 'salao') ? 'rgba(201,151,140,.16)' : 'rgba(212,175,55,.16)'; ?>;
   }
   * { box-sizing: border-box; }
   body {
@@ -211,10 +217,10 @@ if ($rec_metodo === 'GET' && isset($_GET['token'])) {
     border: 1px solid rgba(255,255,255,.16); background: #0d0d0d; color: var(--text);
     font-size: 15px; font-family: inherit;
   }
-  input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,.16); }
+  input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--foco); }
   button {
     width: 100%; padding: 13px 18px; border: 0; border-radius: 8px; cursor: pointer;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #171204;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--acento-fundo);
     font-size: 14px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; font-family: inherit;
   }
   button:hover { filter: brightness(1.05); }

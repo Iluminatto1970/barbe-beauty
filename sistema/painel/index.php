@@ -796,7 +796,7 @@ $dataMesInicial = $partesInicial[1];
 									<option value="barbearia" <?php if($segmento != 'salao'){?> selected <?php } ?> >Barbearia</option>
 									<option value="salao" <?php if($segmento == 'salao'){?> selected <?php } ?> >Salão de Beleza</option>
 								</select>
-								<small style="color:#888">Altera o tema do site público</small>
+								<small style="color:#888">Aplica o tema em todo o sistema: site, agendamento, login e painel</small>
 							</div>
 						</div>
 

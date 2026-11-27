@@ -282,6 +282,7 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
                 'site_demo'      => "TINYINT(1) NOT NULL DEFAULT 0",
                 'boas_vindas_em' => "DATETIME NULL DEFAULT NULL",
                 'schema_version' => "INT UNSIGNED NOT NULL DEFAULT 0",
+                'segmento'       => "VARCHAR(20) NOT NULL DEFAULT 'barbearia'",
             );
             foreach ($colunas as $coluna => $definicao) {
                 // Identificador de whitelist estrita: nomes e tipos vem do mapa
@@ -297,6 +298,80 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
             $feito = true;
         } catch (Exception $e) {
             // Tabela ainda nao existe: nada a fazer
+        }
+    }
+}
+
+if (!function_exists('bb_tenant_semear_salao')) {
+    // Cria a identidade do tema salao (config_salao) quando o estabelecimento
+    // escolheu esse segmento e ainda nao tem a linha. Nunca sobrescreve o que
+    // o cliente ja editou no painel.
+    function bb_tenant_semear_salao($pdo_tenant, $tenant)
+    {
+        try {
+            $total = (int) $pdo_tenant->query('SELECT COUNT(*) FROM config_salao')->fetchColumn();
+            if ($total > 0) {
+                return;
+            }
+            $nome = substr(trim((string) @$tenant['nome']), 0, 50);
+            if ($nome === '') {
+                $nome = 'Salao de Beleza';
+            }
+            $q = $pdo_tenant->prepare("INSERT INTO config_salao
+                (nome, img_banner_index, imagem_sobre, icone_site, logo, logo_rel,
+                 texto_sobre, texto_rodape, texto_agendamento, texto_fidelidade, whatsapp, email)
+                VALUES (:nome, 'salao-banner.jpg', 'salao-sobre.jpg', 'salao-favicon.png', 'logo-salao.png', 'logo_rel.jpg',
+                        :texto, :texto, 'Escolha seu Profissional', 'A cada 10 servicos, ganhe 1!', :whatsapp, :email)");
+            $q->bindValue(':nome', $nome);
+            $q->bindValue(':texto', 'Edite este texto nas configuracoes do painel administrativo');
+            $q->bindValue(':whatsapp', substr((string) @$tenant['telefone'], 0, 20));
+            $q->bindValue(':email', substr((string) @$tenant['email'], 0, 50));
+            $q->execute();
+        } catch (Exception $e) {
+            error_log('tenant-salao: ' . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('bb_tenant_aplicar_segmento')) {
+    // Aplica no banco do estabelecimento o segmento salvo no cadastro
+    // (barbearia ou salao). Usado quando o super admin troca o segmento:
+    // a troca remodela site, agendamento, login e painel do cliente.
+    function bb_tenant_aplicar_segmento($pdo_controle, $tenant_id)
+    {
+        $tenant_id = (int) $tenant_id;
+        if (!$pdo_controle || $tenant_id <= 0) {
+            return false;
+        }
+        try {
+            $q = $pdo_controle->prepare('SELECT * FROM tenants WHERE id = :id LIMIT 1');
+            $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+            $q->execute();
+            $tenant = $q->fetch(PDO::FETCH_ASSOC);
+            if (!$tenant) {
+                return false;
+            }
+            $segmento = (isset($tenant['segmento']) && $tenant['segmento'] === 'salao') ? 'salao' : 'barbearia';
+
+            $db_controle = (string) $pdo_controle->query('SELECT DATABASE()')->fetchColumn();
+            $db_nome = trim((string) @$tenant['db_name']);
+            if ($db_nome === '') {
+                $db_nome = bb_tenant_nome_banco($tenant_id);
+            }
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $db_nome)) {
+                return false;
+            }
+            $pdo_tenant = ($db_nome === $db_controle) ? $pdo_controle : bb_pdo_banco($db_nome);
+
+            $pdo_tenant->prepare('UPDATE config SET segmento = :seg')
+                ->execute(array(':seg' => $segmento));
+            if ($segmento === 'salao') {
+                bb_tenant_semear_salao($pdo_tenant, $tenant);
+            }
+            return true;
+        } catch (Exception $e) {
+            error_log('tenant-segmento: ' . $e->getMessage());
+            return false;
         }
     }
 }
@@ -448,6 +523,12 @@ if (!function_exists('bb_tenant_provisionar')) {
                     $pdo_tenant->prepare('INSERT INTO config (' . implode(', ', $colunas) . ') VALUES (' . implode(', ', $marcadores) . ')')
                         ->execute($valores);
                 }
+            }
+
+            // Banco novo de um salao: ja nasce com a identidade do tema
+            // (nome, banner, sobre e textos), e nao com os da barbearia.
+            if (isset($tenant['segmento']) && $tenant['segmento'] === 'salao') {
+                bb_tenant_semear_salao($pdo_tenant, $tenant);
             }
 
             // Usuario administrador do cliente (senha criada no cadastro)

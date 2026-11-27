@@ -51,12 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <title>Trocar Senha</title>
 <style>
+/* A tela segue o segmento do estabelecimento (barbearia x salao) */
 body{font-family:Arial,sans-serif;background:#f4f4f4;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
-.box{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:360px;max-width:90%}
+.box{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:360px;max-width:90%;border-top:3px solid <?php echo ($segmento == 'salao') ? '#7C5D67' : '#D4AF37'; ?>}
 h2{margin:0 0 20px;text-align:center}
 label{display:block;margin:10px 0 4px;font-size:14px}
 input{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
-button{width:100%;padding:10px;margin-top:16px;background:#2c3e50;color:#fff;border:none;border-radius:4px;cursor:pointer}
+input:focus{outline:none;border-color:<?php echo ($segmento == 'salao') ? '#7C5D67' : '#D4AF37'; ?>}
+button{width:100%;padding:10px;margin-top:16px;background:<?php echo ($segmento == 'salao') ? '#7C5D67' : '#2c3e50'; ?>;color:#fff;border:none;border-radius:4px;cursor:pointer}
 .erro{color:#c0392b;margin:10px 0;font-size:14px;text-align:center}
 .msg{color:#27ae60;margin:10px 0;font-size:14px;text-align:center}
 </style>
