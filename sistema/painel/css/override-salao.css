@@ -2,6 +2,12 @@
  * Sobrescritas específicas para garantir que o novo design seja aplicado
  */
 
+/* Paleta do segmento salao (usada pela barra mobile em responsivo.css) */
+:root {
+  --painel-topo-bg: linear-gradient(135deg, #2b1a22 0%, #3d2632 100%);
+  --painel-menu-bg: linear-gradient(135deg, #7c5d67 0%, #9a6e76 100%);
+}
+
 /* Força a aplicação da nova fonte */
 body,
 .sidebar-left,

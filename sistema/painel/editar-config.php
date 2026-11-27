@@ -81,6 +81,17 @@ if(@$_FILES['foto-icone-site']['name'] != ""){
 	bb_imagem_salvar_upload($_FILES['foto-icone-site']['tmp_name'], '../../images/' . $arquivo_icone_site, 512);
 }
 
+// A troca de segmento tambem troca as imagens padrao do tema: sem isso um
+// salao que volta para barbearia continuaria com o banner do salao. So mexe
+// nos arquivos de exemplo — imagem enviada pelo estabelecimento fica como esta.
+if ($segmento === 'salao') {
+	$troca_padroes = array('banner.jpg' => 'salao-banner.jpg', 'foto_barbearia.jpg' => 'salao-sobre.jpg');
+} else {
+	$troca_padroes = array('salao-banner.jpg' => 'banner.jpg', 'salao-sobre.jpg' => 'foto_barbearia.jpg');
+}
+if (isset($troca_padroes[$img_banner_index])) $img_banner_index = $troca_padroes[$img_banner_index];
+if (isset($troca_padroes[$img_sobre]))       $img_sobre = $troca_padroes[$img_sobre];
+
 // Atualiza apenas o registro de configuracao usado pelo sistema (primeiro)
 $query_id = $pdo->query("SELECT id FROM config ORDER BY id LIMIT 1");
 $res_id = $query_id->fetchAll(PDO::FETCH_ASSOC);

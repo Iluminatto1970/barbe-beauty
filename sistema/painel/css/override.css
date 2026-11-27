@@ -2,6 +2,12 @@
  * Sobrescritas específicas para garantir que o novo design seja aplicado
  */
 
+/* Paleta do segmento barbearia (usada pela barra mobile em responsivo.css) */
+:root {
+  --painel-topo-bg: linear-gradient(135deg, #0e3746 0%, #1a4a5c 100%);
+  --painel-menu-bg: linear-gradient(135deg, #be2623 0%, #d63031 100%);
+}
+
 /* Força a aplicação da nova fonte */
 body,
 .sidebar-left,

@@ -1179,7 +1179,11 @@ $query->execute(array(':v1' => $segmento_textos));
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg == 0){
-  $query = $pdo->query("SELECT * FROM textos_index ORDER BY id asc");
+  // Fallback antigo: apenas textos sem segmento definido. Buscar "qualquer
+  // segmento" fazia o site de um salao exibir o carrossel da barbearia (e o
+  // da barbearia exibir o do salao) depois da troca de tema.
+  $query = $pdo->prepare("SELECT * FROM textos_index WHERE segmento IS NULL OR segmento = '' ORDER BY id asc");
+  $query->execute();
   $res = $query->fetchAll(PDO::FETCH_ASSOC);
   $total_reg = @count($res);
 }
