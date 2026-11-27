@@ -18,6 +18,17 @@ $segmento_user = isset($_POST['segmento_user']) ? $_POST['segmento_user'] : '';
 if(!in_array($segmento_user, array('', 'barbearia', 'salao'))){
 	$segmento_user = '';
 }
+// Limite das colunas de usuarios (nome e email sao varchar(50)). O
+// formulario nao tem maxlength: estourar o banco derrubava o salvamento
+// com HTTP 500 em vez de avisar o usuario.
+if(mb_strlen(trim((string)$nome), 'UTF-8') > 50){
+	echo 'O nome deve ter no máximo 50 caracteres';
+	exit();
+}
+if(mb_strlen(trim((string)$email), 'UTF-8') > 50){
+	echo 'O e-mail deve ter no máximo 50 caracteres';
+	exit();
+}
 $senha = '123';
 $senha_crip = bb_hash_senha($senha);
 
