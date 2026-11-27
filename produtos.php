@@ -298,7 +298,7 @@ if($total_reg > 0){
     <div class="heading_container heading_center">
       <h2>Nossos Produtos</h2>
       <p class="col-lg-8 px-0">
-        Confira nossa seleção exclusiva de produtos de qualidade premium para cuidados masculinos. Oferecemos descontos especiais para compras em grande quantidade.
+        <?php echo ($segmento == 'salao') ? 'Confira nossa seleção exclusiva de produtos de beleza e estética com qualidade premium.' : 'Confira nossa seleção exclusiva de produtos de qualidade premium para cuidados masculinos.'; ?> Oferecemos descontos especiais para compras em grande quantidade.
       </p>
     </div>
     

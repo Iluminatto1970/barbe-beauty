@@ -58,12 +58,24 @@ if (!function_exists('bb_email_env')) {
     }
 }
 
+if (!function_exists('bb_email_marca_padrao')) {
+    // Nome usado como remetente quando MAIL_FROM_NAME nao esta definido:
+    // o do estabelecimento que esta enviando (barbearia, salao, o que for).
+    function bb_email_marca_padrao()
+    {
+        $nome = isset($GLOBALS['nome_sistema']) ? trim((string) $GLOBALS['nome_sistema']) : '';
+        return $nome !== '' ? $nome : 'Barbearia PRO';
+    }
+}
+
 if (!function_exists('bb_email_config')) {
     function bb_email_config()
     {
         return array(
             'de'         => bb_email_env('MAIL_FROM', 'nao-responda@' . BB_DOMINIO_BASE),
-            'nome'       => bb_email_env('MAIL_FROM_NAME', 'Barbearia PRO'),
+            // Remetente padrao: o nome do proprio estabelecimento (um salao nao
+            // recebe e-mail assinado como "Barbearia PRO").
+            'nome'       => bb_email_env('MAIL_FROM_NAME', bb_email_marca_padrao()),
             'resend'     => bb_email_env('RESEND_API_KEY', ''),
             'transporte' => strtolower(bb_email_env('MAIL_TRANSPORT', '')),
         );
@@ -158,7 +170,7 @@ if (!function_exists('bb_email_recuperacao_enviar')) {
     {
         $nome = trim((string) $nome);
         $saudacao = $nome !== '' ? 'Olá, ' . $nome . '.' : 'Olá.';
-        $marca = trim((string) $marca) !== '' ? trim((string) $marca) : 'Barbearia PRO';
+        $marca = trim((string) $marca) !== '' ? trim((string) $marca) : bb_email_marca_padrao();
         $assunto = 'Redefinir sua senha · ' . $marca;
 
         $html = '<div style="margin:0;padding:24px;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2430">'

@@ -1303,7 +1303,9 @@ for($i=0; $i < $total_reg; $i++){
 
   </div>
 
-  <!-- faixa: o sistema atende barbearias e saloes -->
+  <?php if (bb_site_demo()) { ?>
+  <!-- faixa: o sistema atende barbearias e saloes (so na demonstracao do SaaS;
+       no site de um cliente o visitante nao pode trocar o tema do estabelecimento) -->
   <section class="segmento_section">
     <div class="container">
       <div class="segmento_box">
@@ -1335,6 +1337,7 @@ for($i=0; $i < $total_reg; $i++){
       </div>
     </div>
   </section>
+  <?php } ?>
 
   <!-- services section -->
   <section class="services_section">
@@ -1390,7 +1393,7 @@ for($i=0; $i < $total_reg; $i++){
               <div class="service_img_container">
                 <img src="sistema/painel/img/servicos/<?php echo $foto ?>" alt="<?php echo $nome ?>">
                 <div class="service_overlay">
-                  <i class="fa fa-cut"></i>
+                  <i class="fa <?php echo ($segmento == 'salao') ? 'fa-magic' : 'fa-cut'; ?>"></i>
                 </div>
               </div>
               <div class="service_content">
@@ -1455,7 +1458,7 @@ for($i=0; $i < $total_reg; $i++){
       <div class="heading_container heading_center">
         <h2>Nossos Produtos</h2>
         <p class="col-lg-8 px-0">
-          Confira nossa seleção exclusiva de produtos de qualidade premium para cuidados masculinos.
+          <?php echo ($segmento == 'salao') ? 'Confira nossa seleção exclusiva de produtos de beleza e estética com qualidade premium.' : 'Confira nossa seleção exclusiva de produtos de qualidade premium para cuidados masculinos.'; ?>
         </p>
       </div>
       

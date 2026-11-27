@@ -151,8 +151,7 @@ if(@$funcionarios == 'ocultar'){
 								<label for="segmento_user">Tema</label>
 								<select class="form-control" name="segmento_user" id="segmento_user">
 									<option value="">Ambos os temas</option>
-									<option value="barbearia">Barbearia</option>
-									<option value="salao">Salão de Beleza</option>
+									<option value="<?php echo $segmento == 'salao' ? 'salao' : 'barbearia'; ?>"><?php echo $segmento == 'salao' ? 'Salão de Beleza' : 'Barbearia'; ?></option>
 								</select>
 							</div>
 						</div>
