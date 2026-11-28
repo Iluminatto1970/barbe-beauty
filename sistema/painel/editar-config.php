@@ -142,7 +142,7 @@ $salao_atual = bb_dados_salao($pdo);
 $logo_salao     = ($salao_atual && !empty($salao_atual['logo'])) ? $salao_atual['logo'] : 'logo-salao.png';
 $icone_salao    = ($salao_atual && !empty($salao_atual['icone_site'])) ? $salao_atual['icone_site'] : 'salao-favicon.png';
 
-$nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-logo-salao']['name']);
+$nome_img_salao = bb_arquivo_tenant(preg_replace('/[ :]+/', '-', @$_FILES['foto-logo-salao']['name']));
 if(@$_FILES['foto-logo-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-logo-salao'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
@@ -150,7 +150,7 @@ if(@$_FILES['foto-logo-salao']['name'] != ""){
 	bb_imagem_salvar_upload($_FILES['foto-logo-salao']['tmp_name'], '../img/' . $nome_img_salao, 512);
 }
 
-$nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-icone-salao']['name']);
+$nome_img_salao = bb_arquivo_tenant(preg_replace('/[ :]+/', '-', @$_FILES['foto-icone-salao']['name']));
 if(@$_FILES['foto-icone-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-icone-salao'], array('png'));
 	if ($erro_img !== '') { echo $erro_img; exit(); }
@@ -160,7 +160,7 @@ if(@$_FILES['foto-icone-salao']['name'] != ""){
 $img_banner_salao = ($salao_atual && !empty($salao_atual['img_banner_index'])) ? $salao_atual['img_banner_index'] : 'salao-banner.jpg';
 $img_sobre_salao  = ($salao_atual && !empty($salao_atual['imagem_sobre'])) ? $salao_atual['imagem_sobre'] : 'salao-sobre.jpg';
 
-$nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-banner-salao']['name']);
+$nome_img_salao = bb_arquivo_tenant(preg_replace('/[ :]+/', '-', @$_FILES['foto-banner-salao']['name']));
 if(@$_FILES['foto-banner-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-banner-salao']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
@@ -168,7 +168,7 @@ if(@$_FILES['foto-banner-salao']['name'] != ""){
 	bb_imagem_salvar_upload($_FILES['foto-banner-salao']['tmp_name'], '../../images/' . $nome_img_salao, 1920);
 }
 
-$nome_img_salao = preg_replace('/[ :]+/', '-', @$_FILES['foto-sobre-salao']['name']);
+$nome_img_salao = bb_arquivo_tenant(preg_replace('/[ :]+/', '-', @$_FILES['foto-sobre-salao']['name']));
 if(@$_FILES['foto-sobre-salao']['name'] != ""){
 	$erro_img = bb_imagem_upload_valida($_FILES['foto-sobre-salao']);
 	if ($erro_img !== '') { echo $erro_img; exit(); }
@@ -176,12 +176,13 @@ if(@$_FILES['foto-sobre-salao']['name'] != ""){
 	bb_imagem_salvar_upload($_FILES['foto-sobre-salao']['tmp_name'], '../../images/' . $nome_img_salao, 1600);
 }
 
+$salao_gravado = false;
 if ($nome_salao !== '') {
 	if ($salao_atual) {
-		$query_salao = $pdo->prepare("UPDATE config_salao SET nome = :nome, img_banner_index = :banner, imagem_sobre = :sobre, texto_sobre = :texto_sobre, texto_rodape = :texto_rodape, texto_agendamento = :texto_agendamento, whatsapp = :whatsapp, endereco = :endereco, instagram = :instagram, email = :email, icone_site = :icone_site, logo = :logo, logo_rel = :logo, texto_fidelidade = :texto_fidelidade WHERE id = :id");
+		$query_salao = $pdo->prepare("UPDATE config_salao SET nome = :nome, img_banner_index = :banner, imagem_sobre = :sobre, texto_sobre = :texto_sobre, texto_rodape = :texto_rodape, texto_agendamento = :texto_agendamento, whatsapp = :whatsapp, endereco = :endereco, instagram = :instagram, email = :email, icone_site = :icone_site, logo = :logo, logo_rel = :logo_rel, texto_fidelidade = :texto_fidelidade WHERE id = :id");
 		$query_salao->bindValue(":id", $salao_atual['id']);
 	} else {
-		$query_salao = $pdo->prepare("INSERT INTO config_salao (nome, img_banner_index, imagem_sobre, texto_sobre, texto_rodape, texto_agendamento, whatsapp, endereco, instagram, email, icone_site, logo, logo_rel, texto_fidelidade) VALUES (:nome, :banner, :sobre, :texto_sobre, :texto_rodape, :texto_agendamento, :whatsapp, :endereco, :instagram, :email, :icone_site, :logo, :logo, :texto_fidelidade)");
+		$query_salao = $pdo->prepare("INSERT INTO config_salao (nome, img_banner_index, imagem_sobre, texto_sobre, texto_rodape, texto_agendamento, whatsapp, endereco, instagram, email, icone_site, logo, logo_rel, texto_fidelidade) VALUES (:nome, :banner, :sobre, :texto_sobre, :texto_rodape, :texto_agendamento, :whatsapp, :endereco, :instagram, :email, :icone_site, :logo, :logo_rel, :texto_fidelidade)");
 	}
 	$query_salao->bindValue(":nome", $nome_salao);
 	$query_salao->bindValue(":banner", $img_banner_salao);
@@ -194,15 +195,17 @@ if ($nome_salao !== '') {
 	$query_salao->bindValue(":instagram", $instagram_salao);
 	$query_salao->bindValue(":email", $email_salao);
 	$query_salao->bindValue(":icone_site", $icone_salao);
-	$query_salao->bindValue(":logo", $logo_salao);
+			$query_salao->bindValue(":logo", $logo_salao);
+		$query_salao->bindValue(":logo_rel", $logo_salao);
 	$query_salao->bindValue(":texto_fidelidade", $texto_fidelidade_salao);
-	$query_salao->execute();
-}
+			$query_salao->execute();
+		$salao_gravado = true;
+	}
 
 	// Escolheu "Salão" e o tema ainda não tinha identidade própria: cria agora,
 	// com os dados atuais do estabelecimento, para o site não continuar com o
 	// nome, o banner e os textos da barbearia.
-	if ($segmento === 'salao' && !$salao_atual) {
+	if ($segmento === 'salao' && !$salao_atual && !$salao_gravado) {
 		$ins_salao = $pdo->prepare("INSERT INTO config_salao
 			(nome, img_banner_index, imagem_sobre, icone_site, logo, logo_rel, texto_sobre, texto_rodape, texto_agendamento, texto_fidelidade, whatsapp, endereco, instagram, email)
 			VALUES (:nome, :banner, :sobre, :icone, :logo, :logo_rel, :texto_sobre, :texto_rodape, :texto_agendamento, :texto_fidelidade, :whatsapp, :endereco, :instagram, :email)");

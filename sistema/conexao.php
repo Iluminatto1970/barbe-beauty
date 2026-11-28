@@ -72,6 +72,29 @@ $url_sistema = $scheme . '://' . $host_url . '/' . ($base_path !== '' ? $base_pa
 // ============================================================
 // CSRF (Sprint 1 - item 2)
 // ============================================================
+if (!function_exists('bb_bytes_ini')) {
+    // Converte "25M"/"1G" do php.ini em bytes (0 = sem limite)
+    function bb_bytes_ini($valor)
+    {
+        $valor = trim((string) $valor);
+        if ($valor === '' || $valor === '-1') {
+            return 0;
+        }
+        $numero = (int) $valor;
+        $unidade = strtolower(substr($valor, -1));
+        if ($unidade === 'g') {
+            return $numero * 1073741824;
+        }
+        if ($unidade === 'm') {
+            return $numero * 1048576;
+        }
+        if ($unidade === 'k') {
+            return $numero * 1024;
+        }
+        return $numero;
+    }
+}
+
 if (!function_exists('bb_csrf_token')) {
     function bb_csrf_token() {
         if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
@@ -96,6 +119,28 @@ if (!function_exists('bb_csrf_token')) {
         return $base . '/sistema/?sessao=expirada';
     }
     function bb_csrf_check_request() {
+        // Envio maior que o post_max_size: o PHP descarta $_POST e $_FILES
+        // inteiros, o token chega vazio e o usuario era mandado para o login
+        // sem entender por que o formulario "nao salvou". Aqui o motivo real
+        // aparece na tela (o painel mostra o texto do erro no ajax).
+        $tamanho_post = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+        $limite_post = bb_bytes_ini(ini_get('post_max_size'));
+        if ($tamanho_post > 0 && $limite_post > 0 && $tamanho_post > $limite_post
+            && empty($_POST) && empty($_FILES)) {
+            $msg_grande = 'Os arquivos enviados (' . round($tamanho_post / 1048576, 1)
+                . ' MB) passam do limite de ' . max(1, (int) round($limite_post / 1048576))
+                . ' MB do servidor. Envie imagens menores e tente novamente.';
+            $ajax_grande = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                || (isset($_SERVER['HTTP_ACCEPT']) && stripos((string) $_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+            if (!headers_sent()) {
+                http_response_code(413);
+                header('Content-Type: ' . ($ajax_grande ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8'));
+                header('Cache-Control: no-store, max-age=0');
+            }
+            echo $ajax_grande ? json_encode(array('ok' => false, 'erro' => $msg_grande)) : $msg_grande;
+            exit();
+        }
+
         $tok = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : (isset($_GET['csrf_token']) ? $_GET['csrf_token'] : '');
         if (bb_csrf_validate($tok)) {
             return;

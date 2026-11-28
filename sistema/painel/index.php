@@ -531,6 +531,7 @@ $dataMesInicial = $partesInicial[1];
 	
 	<!-- Bootstrap Core JavaScript -->
 	<script src="js/bootstrap.js"> </script>
+<script src="js/upload-imagem.js"></script>
 	<!-- //Bootstrap Core JavaScript -->
 
 	<script>
