@@ -17,6 +17,31 @@ apontar o **A de `@`** para `37.27.213.38` (hoje aponta para a Vercel, que
 segue atendendo o `www` se ele nao for alterado). O certificado do dominio
 raiz e emitido automaticamente pelo Caddy assim que o DNS propagar.
 
+## Certificados TLS (CA de producao)
+
+O `Caddyfile` **nao** define `acme_ca` nem `acme_ca_root`: vale o padrao do
+Caddy, que e o Let's Encrypt de producao. Todos os certificados em uso sao
+desse emissor (intermediarias atuais `CN=YE1`/`CN=YE2`, encadeando em
+`ISRG Root X2`), e o storage so tem o diretorio de producao:
+
+```bash
+# emissor realmente servido por um dominio da VPS
+echo | openssl s_client -connect 127.0.0.1:443 \
+  -servername beauty.iluminatto.online 2>/dev/null | openssl x509 -noout -issuer
+# issuer=C=US, O=Let's Encrypt, CN=YE2   (staging mostraria "(STAGING) ...")
+
+ls /root/.local/share/caddy/certificates/
+# acme-v02.api.letsencrypt.org-directory
+```
+
+Quando um desafio falha (DNS ainda no provedor antigo, por exemplo), o
+CertMagic registra novas tentativas em segundo plano; a conta ACME de
+staging que sobrava de testes antigos foi removida do storage (backup em
+`/root/caddy-acme-staging-backup-*.tar.gz`) para nao guardar certificado
+nao confiavel. A primeira tentativa de cada ciclo e sempre a de producao e,
+com o DNS correto, e ela que emite — comprovado emitindo um certificado
+novo em `zz-qa-ca.iluminatto.online` (descartado depois).
+
 ## O que ele protege
 
 No bloco do site (`beauty.iluminatto.online`), o docroot é a raiz do projeto
