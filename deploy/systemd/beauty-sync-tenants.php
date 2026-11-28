@@ -37,6 +37,20 @@ if (preg_match_all('/^env\[([A-Z_]+)\]\s*=\s*"?([^"\r\n]*)"?/m', $pool, $achados
     }
 }
 
+// Hosts que ja tem bloco proprio no Caddyfile: a instalacao principal e a
+// raiz/www do dominio base. Eles nunca podem virar bloco de tenant, senao o
+// Caddy recusa dois blocos para o mesmo endereco.
+$hosts_principais = array($host_principal, 'www.' . $host_principal);
+$base_env = getenv('SA_DOMINIO_BASE');
+if ($base_env === false || $base_env === '') {
+    $base_env = getenv('BB_DOMINIO_BASE');
+}
+$base_env = strtolower(trim((string) $base_env));
+if ($base_env !== '') {
+    $hosts_principais[] = $base_env;
+    $hosts_principais[] = 'www.' . $base_env;
+}
+
 try {
     $pdo = new PDO(
         'mysql:dbname=' . getenv('DB_NAME') . ';host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '3306') . ';charset=utf8',
@@ -56,7 +70,7 @@ $desejados = array();
 
 foreach ($linhas as $linha) {
     $host = strtolower(trim((string) $linha['hostname']));
-    if ($host === '' || $host === $host_principal) {
+    if ($host === '' || in_array($host, $hosts_principais, true)) {
         continue;
     }
     if (!preg_match('/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/', $host) || strpos($host, '.') === false) {

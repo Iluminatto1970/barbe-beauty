@@ -6,12 +6,20 @@ idealizada — se o servidor mudar, atualize este arquivo com o mesmo conteúdo.
 
 ## Dominio principal do SaaS
 
-A raiz `iluminatto.online` serve a plataforma: landing, login, planos,
-autocadastro e super admin, tudo no banco de controle. Cada estabelecimento
-fica no seu subdominio `{slug}.iluminatto.online`, que o
+O dominio principal e `beautypro.site`: a raiz serve a plataforma (landing,
+login, planos, autocadastro e super admin, tudo no banco de controle). Cada
+estabelecimento fica no seu subdominio `{slug}.beautypro.site`, que o
 `beauty-sync-tenants.php` publica em `/etc/caddy/sites/`. O `www` e apelido:
 responde 301 para a raiz, e o HTTP (80) dos dois responde 301 para
-`https://iluminatto.online`.
+`https://beautypro.site`.
+
+`iluminatto.online` continua atendendo a plataforma como alias (os hosts
+antigos estao em `BB_HOSTS_CONTROLE`, no pool do PHP-FPM) e os subdominios
+`*.iluminatto.online` dos clientes seguem no ar junto com os novos
+`*.beautypro.site`, registrados em `tenant_dominios`. O dominio base vem de
+`env[SA_DOMINIO_BASE]` no `/etc/php/8.4/fpm/pool.d/www.conf`, lido por
+`sistema/tenant.php` (como `BB_DOMINIO_BASE`) e por `superadmin/_auth.php`
+(como `SA_DOMINIO_BASE`).
 
 ### Mesmo padrao do agreste.shop
 
@@ -43,10 +51,38 @@ curl -s http://127.0.0.1:2019/config/apps/tls/automation/policies | python3 -m j
 #           www.iluminatto.online, iluminatto.online
 ```
 
-Para a raiz sair do provedor antigo e passar a responder aqui, o DNS precisa
-apontar o **A de `@`** (e o `www`) para `37.27.213.38`. Hoje os dois apontam
-para a Vercel; quando apontarem para a VPS o certificado sai por TLS-ALPN
-sem nenhuma outra mudanca no Caddy.
+### DNS (Hostinger)
+
+A zona de `iluminatto.online` fica na Hostinger (`ns1`/`ns2.dns-parking.com`)
+e e gerida pela API deles (base `developers.hostinger.com`; o antigo
+`api.hostinger.com` responde 530). Token em `.secrets/hostinger.env`, fora do
+git.
+
+Registros do dominio principal novo (`beautypro.site`):
+
+| Nome  | Tipo | Valor          | TTL |
+|-------|------|----------------|-----|
+| `@`   | A    | `37.27.213.38` | 300 |
+| `www` | A    | `37.27.213.38` | 300 |
+| `*`   | A    | `37.27.213.38` | 300 |
+
+O curinga e obrigatorio: e ele que faz `{slug}.beautypro.site` chegar na VPS
+para cada estabelecimento. O mesmo vale em `iluminatto.online`, onde `@` e
+`www` tambem apontam para `37.27.213.38` (antes eram os IPs da Vercel) e os
+subdominios de servico (`crm`, `beauty`, `mario`, `coolify`, `chatwoot`,
+`agents`, `apolo`, `oauth`, `langfuse`) e o `TXT _sabia-verificacao.www`
+foram mantidos.
+
+```bash
+set -a; . ./.secrets/hostinger.env; set +a
+curl -s -H "Authorization: Bearer $HOSTINGER_API_TOKEN" \
+  https://developers.hostinger.com/api/dns/v1/zones/beautypro.site
+```
+
+O `PUT` parcial nao substitui um RRset do mesmo nome: para trocar `www` de
+`CNAME` para `A` e preciso `DELETE` do filtro antigo antes, e `overwrite: true`
+so troca os RRs do nome+tipo enviados. Backups das zonas antes da troca:
+`/root/dns-*-backup-*.json` na VPS.
 
 ## Certificados TLS (CA de producao)
 

@@ -77,3 +77,38 @@ https://www.iluminatto.online {
 http://iluminatto.online, http://www.iluminatto.online {
 	redir https://iluminatto.online{uri} permanent
 }
+
+# beautypro.site: dominio principal novo do SaaS. Mesmo desenho da raiz do
+# iluminatto.online (e do agreste.shop): HTTPS explicito e emissao por
+# TLS-ALPN, porque o bloco global desabilita o redirect automatico e o
+# 80 -> 443 e um redir fixo, entao o HTTP-01 nunca chega ao Caddy. Os
+# subdominios dos clientes ({slug}.beautypro.site) vem de /etc/caddy/sites/,
+# gerados pelo beauty-sync-tenants.php.
+https://beautypro.site {
+	tls {
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+	root * /var/www/beauty
+	encode gzip
+	php_fastcgi unix//run/php/php8.4-fpm.sock {
+		try_files {path} {path}.php {path}/index.php index.php
+	}
+	@sensivel path_regexp (?i)(^/[.][^/]+|^/(caddy|docker)file$|[.](md|ya?ml|sql|gz|zip|log|sh|bat|ini|env|json|lock|bak|old|orig|swp)$)
+	respond @sensivel 404
+	file_server
+}
+
+https://www.beautypro.site {
+	tls {
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+	redir https://beautypro.site{uri} permanent
+}
+
+http://beautypro.site, http://www.beautypro.site {
+	redir https://beautypro.site{uri} permanent
+}

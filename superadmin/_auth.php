@@ -7,9 +7,13 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 require_once(__DIR__ . '/../sistema/conexao.php');
 
-// Dominio base dos subdominios dos clientes
+// Dominio base dos subdominios dos clientes (env do pool do php-fpm)
 if (!defined('SA_DOMINIO_BASE')) {
-    define('SA_DOMINIO_BASE', 'iluminatto.online');
+    $sa_dominio_base = getenv('SA_DOMINIO_BASE');
+    if ($sa_dominio_base === false || $sa_dominio_base === '') {
+        $sa_dominio_base = getenv('BB_DOMINIO_BASE');
+    }
+    define('SA_DOMINIO_BASE', ($sa_dominio_base !== false && $sa_dominio_base !== '') ? trim($sa_dominio_base) : 'iluminatto.online');
 }
 
 function sa_logado()
