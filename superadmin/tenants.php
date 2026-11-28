@@ -100,7 +100,7 @@ sa_topo('Estabelecimentos');
             <div class="campo">
                 <label for="senha">Senha do administrador</label>
                 <input type="password" id="senha" name="senha" minlength="6" autocomplete="new-password" <?php echo $id > 0 ? '' : 'required'; ?> placeholder="<?php echo $id > 0 ? 'Deixe em branco para manter' : 'Mínimo 6 caracteres'; ?>">
-                <small class="muted">Usada para entrar no painel do estabelecimento.</small>
+                                    <small class="muted">Vale no login do estabelecimento assim que salvar (e-mail de acesso: <?php echo htmlspecialchars($tenant['email'] ?? 'o e-mail do cadastro'); ?>).</small>
             </div>
 
             <div class="acoes-form" style="grid-column: 1 / -1;">

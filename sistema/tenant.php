@@ -376,6 +376,98 @@ if (!function_exists('bb_tenant_aplicar_segmento')) {
     }
 }
 
+if (!function_exists('bb_tenant_sincronizar_admin')) {
+    // Senha e e-mail definidos no super admin precisam valer no login do
+    // estabelecimento: o administrador do cliente vive na tabela usuarios do
+    // banco dele, e nao na tabela tenants do banco de controle. Sem esta
+    // sincronizacao, trocar a senha no painel SaaS nao muda o login e o
+    // cliente continua recebendo "Usuario ou Senha Incorretos".
+    function bb_tenant_sincronizar_admin($pdo_controle, $tenant_id, $senha_crip = '', $email = '')
+    {
+        $tenant_id = (int) $tenant_id;
+        $senha_crip = (string) $senha_crip;
+        $email = trim((string) $email);
+        if (!$pdo_controle || $tenant_id <= 0 || ($senha_crip === '' && $email === '')) {
+            return false;
+        }
+
+        try {
+            $q = $pdo_controle->prepare('SELECT * FROM tenants WHERE id = :id LIMIT 1');
+            $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+            $q->execute();
+            $tenant = $q->fetch(PDO::FETCH_ASSOC);
+            if (!$tenant) {
+                return false;
+            }
+
+            $db_controle = (string) $pdo_controle->query('SELECT DATABASE()')->fetchColumn();
+            $db_nome = bb_tenant_banco($tenant);
+            if ($db_nome === '') {
+                return false;
+            }
+
+            if ($db_nome === $db_controle) {
+                $pdo_tenant = $pdo_controle;
+            } else {
+                $cred = bb_tenant_db_credenciais($tenant);
+                if ($cred) {
+                    $pdo_tenant = new PDO(
+                        'mysql:dbname=' . $cred['banco'] . ';host=' . $cred['host'] . ';port=' . $cred['porta'] . ';charset=utf8',
+                        $cred['usuario'],
+                        $cred['senha']
+                    );
+                    $pdo_tenant->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                } else {
+                    $pdo_tenant = bb_pdo_banco($db_nome);
+                }
+            }
+
+            $q = $pdo_tenant->query("SELECT id, email FROM usuarios WHERE nivel = 'Administrador' ORDER BY id ASC LIMIT 1");
+            $admin = $q ? $q->fetch(PDO::FETCH_ASSOC) : false;
+            if (!$admin) {
+                return false;
+            }
+
+            $sets = array();
+            $params = array(':id' => (int) $admin['id']);
+
+            if ($senha_crip !== '') {
+                $sets[] = 'senha_crip = :hash';
+                $sets[] = "senha = ''";
+                $sets[] = 'precisa_trocar_senha = 0';
+                $params[':hash'] = $senha_crip;
+            }
+
+            // O e-mail do cadastro e o login informado ao cliente: mantem os dois
+            // iguais, sem criar duplicidade dentro do proprio estabelecimento.
+            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) && strcasecmp($email, (string) $admin['email']) !== 0) {
+                $dup = $pdo_tenant->prepare('SELECT id FROM usuarios WHERE LOWER(email) = LOWER(:e) AND id <> :id LIMIT 1');
+                $dup->bindValue(':e', $email);
+                $dup->bindValue(':id', (int) $admin['id'], PDO::PARAM_INT);
+                $dup->execute();
+                if (!$dup->fetchColumn()) {
+                    $sets[] = 'email = :email';
+                    $params[':email'] = $email;
+                }
+            }
+
+            if (!$sets) {
+                return false;
+            }
+
+            $up = $pdo_tenant->prepare('UPDATE usuarios SET ' . implode(', ', $sets) . ' WHERE id = :id');
+            foreach ($params as $marcador => $valor) {
+                $up->bindValue($marcador, $valor);
+            }
+            $up->execute();
+            return true;
+        } catch (Exception $e) {
+            error_log('tenant-admin-sync: ' . $e->getMessage());
+            return false;
+        }
+    }
+}
+
 if (!function_exists('bb_tenant_provisionar')) {
     // Cria (ou atualiza) o banco de dados do tenant e o usuario admin.
     // Idempotente: pode ser chamada varias vezes sem duplicar dados.

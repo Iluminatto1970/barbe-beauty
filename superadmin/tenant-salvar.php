@@ -46,6 +46,10 @@ if ($motivo_slug !== '') {
 $plano_id = $plano_id > 0 ? $plano_id : null;
 $vencimento = ($vencimento !== '') ? $vencimento : null;
 
+// Hash calculado uma vez: o mesmo valor vai para tenants e, depois, para o
+// usuario administrador do banco do estabelecimento (bb_tenant_sincronizar_admin).
+$senha_hash = ($senha !== '') ? bb_hash_senha($senha) : '';
+
 if ($id > 0) {
     $q = $pdo->prepare("UPDATE tenants SET nome = :nome, slug = :slug, email = :email, telefone = :telefone,
                         plano_id = :plano, status = :status, vencimento = :venc, segmento = :segmento WHERE id = :id");
@@ -53,7 +57,7 @@ if ($id > 0) {
 } else {
     $q = $pdo->prepare("INSERT INTO tenants (nome, slug, email, telefone, segmento, plano_id, status, vencimento, senha_crip, origem, criado_em)
                         VALUES (:nome, :slug, :email, :telefone, :segmento, :plano, :status, :venc, :senha, 'manual', NOW())");
-    $q->bindValue(':senha', $senha !== '' ? bb_hash_senha($senha) : '');
+    $q->bindValue(':senha', $senha_hash);
 }
 
 $q->bindValue(':nome', $nome);
@@ -70,7 +74,7 @@ if ($id == 0) {
     $id = (int) $pdo->lastInsertId();
 } elseif ($senha !== '') {
     $q = $pdo->prepare("UPDATE tenants SET senha_crip = :senha WHERE id = :id");
-    $q->bindValue(':senha', bb_hash_senha($senha));
+    $q->bindValue(':senha', $senha_hash);
     $q->bindValue(':id', $id, PDO::PARAM_INT);
     $q->execute();
 }
@@ -98,6 +102,10 @@ if (!$provisionamento['ok']) {
 // O segmento salvo aqui manda no sistema do cliente: trocar entre
 // barbearia e salao remodela site, agendamento, login e painel dele.
 bb_tenant_aplicar_segmento($pdo, $id);
+
+// Senha e e-mail do administrador definidos aqui precisam valer no login do
+// estabelecimento (tabela usuarios do banco do cliente, nao em tenants).
+bb_tenant_sincronizar_admin($pdo, $id, $senha_hash, $email);
 
 header('Location: tenants.php?ok=1');
 exit;
