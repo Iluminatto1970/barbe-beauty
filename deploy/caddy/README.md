@@ -1,8 +1,21 @@
-# Caddy da VPS (beauty.iluminatto.online)
+# Caddy da VPS (iluminatto.online e beauty.iluminatto.online)
 
 `Caddyfile` neste diretório é uma **cópia fiel** do arquivo em produção:
 `/etc/caddy/Caddyfile` na VPS (`vps`, `37.27.213.38`). Não é uma versão
 idealizada — se o servidor mudar, atualize este arquivo com o mesmo conteúdo.
+
+## Dominio principal do SaaS
+
+A raiz `iluminatto.online` (e `www`) serve a plataforma: landing, login,
+planos, autocadastro e super admin, tudo no banco de controle. Cada
+estabelecimento fica no seu subdominio `{slug}.iluminatto.online`, que o
+`beauty-sync-tenants.php` publica em `/etc/caddy/sites/`. O HTTP da raiz
+redireciona para HTTPS (301).
+
+Para a raiz sair do provedor antigo e passar a responder aqui, o DNS precisa
+apontar o **A de `@`** para `37.27.213.38` (hoje aponta para a Vercel, que
+segue atendendo o `www` se ele nao for alterado). O certificado do dominio
+raiz e emitido automaticamente pelo Caddy assim que o DNS propagar.
 
 ## O que ele protege
 

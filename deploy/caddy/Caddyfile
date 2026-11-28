@@ -37,3 +37,22 @@ crm.iluminatto.online, crm.claudeapi.space {
 }
 
 import /etc/caddy/sites/*.caddy
+
+
+# Dominio principal do SaaS (barbearias e saloes): a raiz serve a landing, o
+# login, os planos, o autocadastro e o super admin. Cada estabelecimento vive
+# no seu subdominio {slug}.iluminatto.online.
+http://iluminatto.online, http://www.iluminatto.online {
+	redir https://{host}{uri} permanent
+}
+
+iluminatto.online, www.iluminatto.online {
+	root * /var/www/beauty
+	encode gzip
+	php_fastcgi unix//run/php/php8.4-fpm.sock {
+		try_files {path} {path}.php {path}/index.php index.php
+	}
+	@sensivel path_regexp (?i)(^/[.][^/]+|^/(caddy|docker)file$|[.](md|ya?ml|sql|gz|zip|log|sh|bat|ini|env|json|lock|bak|old|orig|swp)$)
+	respond @sensivel 404
+	file_server
+}
