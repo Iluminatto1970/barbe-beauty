@@ -237,6 +237,26 @@ if (!function_exists('asaas_garantir_colunas')) {
     }
 }
 
+if (!function_exists('asaas_telefone_cliente')) {
+    // Celular no formato que o Asaas aceita (DDD + 9 digitos, sem +55).
+    // Devolve vazio quando o numero nao serve: telefone e opcional e nunca
+    // pode impedir a emissao da cobranca.
+    function asaas_telefone_cliente($telefone)
+    {
+        $digitos = preg_replace('/\D+/', '', (string) $telefone);
+        if ($digitos === '') {
+            return '';
+        }
+        if (strlen($digitos) >= 12 && substr($digitos, 0, 2) === '55') {
+            $digitos = substr($digitos, 2);
+        }
+        if (strlen($digitos) !== 11 || substr($digitos, 2, 1) !== '9') {
+            return '';
+        }
+        return $digitos;
+    }
+}
+
 if (!function_exists('asaas_cliente_do_tenant')) {
     // Garante um cliente no Asaas e devolve o id (cus_...)
     function asaas_cliente_do_tenant($pdo, $tenant)
@@ -260,14 +280,21 @@ if (!function_exists('asaas_cliente_do_tenant')) {
             'externalReference' => 'tenant-' . (int) $tenant['id'],
             'notificationDisabled' => false,
         );
-        if (!empty($tenant['telefone'])) {
-            $dados['mobilePhone'] = preg_replace('/\D+/', '', $tenant['telefone']);
+        $telefone = asaas_telefone_cliente(isset($tenant['telefone']) ? $tenant['telefone'] : '');
+        if ($telefone !== '') {
+            $dados['mobilePhone'] = $telefone;
         }
         if ($cpf_cnpj !== '') {
             $dados['cpfCnpj'] = $cpf_cnpj;
         }
 
         $r = asaas_req('POST', '/customers', $dados);
+        if (!$r['ok'] && $telefone !== '') {
+            // Numero recusado pelo Asaas nao pode derrubar o checkout:
+            // cadastra o cliente sem telefone e segue para a cobranca.
+            unset($dados['mobilePhone']);
+            $r = asaas_req('POST', '/customers', $dados);
+        }
         if (!$r['ok']) {
             return array('ok' => false, 'id' => '', 'erro' => $r['erro']);
         }
