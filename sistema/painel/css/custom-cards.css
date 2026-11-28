@@ -392,3 +392,126 @@
   position: relative;
   overflow: hidden;
 }
+
+/* Cartao com o link publico do estabelecimento (home do painel) */
+.cartao-link-site {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e6e8ef;
+  border-left: 5px solid #7460ee;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin: 0 0 22px;
+  box-shadow: 0 4px 15px rgba(20, 24, 40, 0.06);
+}
+
+.cartao-link-site-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 240px;
+  flex: 1 1 320px;
+}
+
+.cartao-link-site-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #8d93a6;
+}
+
+.cartao-link-site-titulo i {
+  color: #7460ee;
+}
+
+.cartao-link-site-endereco {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1f2437 !important;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.cartao-link-site-endereco:hover,
+.cartao-link-site-endereco:focus {
+  color: #7460ee !important;
+  text-decoration: underline;
+}
+
+.cartao-link-site-ajuda {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7286;
+}
+
+.cartao-link-site-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.botao-link-site {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d9dce8;
+  background: #f6f7fb;
+  color: #2b3049 !important;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 11px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none !important;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.botao-link-site:hover,
+.botao-link-site:focus {
+  background: #eceef7;
+  border-color: #c3c8dc;
+  transform: translateY(-1px);
+}
+
+.botao-link-site i {
+  font-size: 15px;
+}
+
+.botao-link-site-verde {
+  background: #25d366;
+  border-color: #1fbe5a;
+  color: #ffffff !important;
+}
+
+.botao-link-site-verde:hover,
+.botao-link-site-verde:focus {
+  background: #1fbe5a;
+  border-color: #189b49;
+}
+
+.botao-link-site.copiado {
+  background: #e7f7ed;
+  border-color: #25d366;
+  color: #12833f !important;
+}
+
+@media (max-width: 767px) {
+  .cartao-link-site {
+    padding: 16px;
+  }
+
+  .cartao-link-site-acoes {
+    width: 100%;
+  }
+
+  .botao-link-site {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}

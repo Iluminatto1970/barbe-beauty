@@ -249,6 +249,31 @@ $dados_meses_vendas =  '';
     <input type="hidden" id="dados_grafico_servico">
 <div class="main-page">
 
+<?php
+// Link publico do estabelecimento: o que o cliente divulga e o que os
+// links antigos passam a apontar. Escondido na instalacao principal, que
+// nao tem site de cliente para divulgar.
+$bb_link_site = bb_tenant_url_publica();
+if ($bb_link_site !== '') {
+	$bb_link_visivel = preg_replace('~^https?://~', '', $bb_link_site);
+	$bb_link_whatsapp = 'https://wa.me/?text=' . rawurlencode('Agende seu horário com a gente: ' . $bb_link_site);
+?>
+<div class="cartao-link-site">
+	<div class="cartao-link-site-texto">
+		<span class="cartao-link-site-titulo"><i class="fa fa-link"></i> Link do seu site</span>
+		<a class="cartao-link-site-endereco" href="<?php echo bb_e($bb_link_site); ?>" target="_blank" rel="noopener"><?php echo bb_e($bb_link_visivel); ?></a>
+		<span class="cartao-link-site-ajuda">Divulgue no WhatsApp, na bio do Instagram e nas suas redes. Os endereços antigos continuam levando até aqui.</span>
+	</div>
+	<div class="cartao-link-site-acoes">
+		<button type="button" class="botao-link-site" id="btn-copiar-link" data-link="<?php echo bb_e($bb_link_site); ?>">
+			<i class="fa fa-copy"></i> <span>Copiar link</span>
+		</button>
+		<a class="botao-link-site botao-link-site-verde" href="<?php echo bb_e($bb_link_whatsapp); ?>" target="_blank" rel="noopener">
+			<i class="fa fa-whatsapp"></i> Compartilhar
+		</a>
+	</div>
+</div>
+<?php } ?>
 
 	<div class="col_3">
 
@@ -484,6 +509,52 @@ $dados_meses_vendas =  '';
                 }
             });
         });
-    </script>
+    	</script>
 	<!-- //Script para o novo gráfico financeiro moderno -->
+
+	<!-- Copiar o link do site (com reserva para navegador sem clipboard) -->
+	<script>
+		(function () {
+			var botao = document.getElementById('btn-copiar-link');
+			if (!botao) { return; }
+			var rotulo = botao.querySelector('span');
+			var textoOriginal = rotulo.textContent;
+
+			function avisar(texto) {
+				rotulo.textContent = texto;
+				botao.classList.add('copiado');
+				setTimeout(function () {
+					rotulo.textContent = textoOriginal;
+					botao.classList.remove('copiado');
+				}, 2200);
+			}
+
+			function copiarAntigo(texto) {
+				var campo = document.createElement('textarea');
+				campo.value = texto;
+				campo.setAttribute('readonly', 'readonly');
+				campo.style.position = 'fixed';
+				campo.style.top = '-1000px';
+				document.body.appendChild(campo);
+				campo.select();
+				var ok = false;
+				try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+				document.body.removeChild(campo);
+				return ok;
+			}
+
+			botao.addEventListener('click', function () {
+				var link = botao.getAttribute('data-link');
+				if (navigator.clipboard && window.isSecureContext) {
+					navigator.clipboard.writeText(link).then(function () {
+						avisar('Copiado!');
+					}, function () {
+						avisar(copiarAntigo(link) ? 'Copiado!' : 'Copie o link acima');
+					});
+					return;
+				}
+				avisar(copiarAntigo(link) ? 'Copiado!' : 'Copie o link acima');
+			});
+		})();
+	</script>
 	

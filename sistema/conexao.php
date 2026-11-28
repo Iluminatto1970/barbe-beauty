@@ -822,6 +822,11 @@ if (bb_requisicao_de_controle($bb_caminho_req)) {
         exit;
     }
 } else {
+    // Link antigo de um estabelecimento (mario.iluminatto.online): 301 para o
+    // endereco novo antes de abrir o banco do cliente. Vale mesmo se o host
+    // antigo nao tiver bloco proprio no Caddy.
+    bb_redirecionar_endereco_legado($pdo_controle, $bb_host_req);
+
     $tenant_atual = bb_tenant_resolver($pdo_controle, $bb_host_req);
     if ($tenant_atual) {
         $tenant_id_atual = (int) $tenant_atual['id'];

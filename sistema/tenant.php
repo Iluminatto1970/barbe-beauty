@@ -17,6 +17,29 @@ if (!defined('BB_DOMINIO_BASE')) {
     define('BB_DOMINIO_BASE', ($bb_dominio_env !== false && $bb_dominio_env !== '') ? $bb_dominio_env : 'iluminatto.online');
 }
 
+// Dominio antigo do SaaS: enderecos que os clientes divulgaram antes da
+// migracao. Tudo o que estiver nele (menos os hosts abaixo) responde 301
+// para o equivalente em BB_DOMINIO_BASE.
+if (!defined('BB_DOMINIO_LEGADO')) {
+    $bb_legado_env = getenv('SA_DOMINIO_LEGADO');
+    if ($bb_legado_env === false || trim((string) $bb_legado_env) === '') {
+        $bb_legado_env = getenv('BB_DOMINIO_LEGADO');
+    }
+    $bb_legado_env = trim(strtolower((string) $bb_legado_env));
+    define('BB_DOMINIO_LEGADO', $bb_legado_env !== '' ? $bb_legado_env : 'iluminatto.online');
+}
+
+// Hosts que continuam servindo a aplicacao mesmo no dominio antigo (a
+// instalacao principal). Os demais viram redirecionamento.
+if (!defined('BB_HOSTS_SERVIR_LEGADO')) {
+    $bb_servir_legado_env = getenv('SA_HOSTS_SERVIR_LEGADO');
+    if ($bb_servir_legado_env === false || trim((string) $bb_servir_legado_env) === '') {
+        $bb_servir_legado_env = getenv('BB_HOSTS_SERVIR_LEGADO');
+    }
+    $bb_servir_legado_env = trim((string) $bb_servir_legado_env);
+    define('BB_HOSTS_SERVIR_LEGADO', $bb_servir_legado_env !== '' ? $bb_servir_legado_env : 'beauty.iluminatto.online');
+}
+
 // Estrutura canonica e migracoes versionadas por banco
 require_once(__DIR__ . '/migracoes.php');
 
@@ -206,6 +229,78 @@ if (!function_exists('bb_host_controle')) {
         }
         $base = strtolower(BB_DOMINIO_BASE);
         return ($host === $base || $host === 'www.' . $base);
+    }
+}
+
+if (!function_exists('bb_host_no_dominio_legado')) {
+    // Rotulo do host quando ele pertence ao dominio antigo
+    // (mario.iluminatto.online -> 'mario'). Devolve '' para a raiz, o www,
+    // para os hosts que continuam servindo e quando nao ha dominio legado
+    // diferente do dominio base.
+    function bb_host_no_dominio_legado($host)
+    {
+        $host = bb_normalizar_host($host);
+        $legado = strtolower((string) BB_DOMINIO_LEGADO);
+        $base = strtolower((string) BB_DOMINIO_BASE);
+        if ($host === '' || $legado === '' || $legado === $base) {
+            return '';
+        }
+
+        foreach (explode(',', (string) BB_HOSTS_SERVIR_LEGADO) as $permitido) {
+            if (bb_normalizar_host(trim($permitido)) === $host) {
+                return '';
+            }
+        }
+
+        $sufixo = '.' . $legado;
+        if (substr($host, -strlen($sufixo)) !== $sufixo) {
+            return '';
+        }
+
+        $rotulo = substr($host, 0, -strlen($sufixo));
+        return (bool) preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $rotulo) ? $rotulo : '';
+    }
+}
+
+if (!function_exists('bb_redirecionar_endereco_legado')) {
+    // Link antigo de um estabelecimento: 301 para o mesmo caminho no endereco
+    // novo. Roda antes de o banco do cliente ser aberto. Devolve false quando
+    // o host nao e do dominio antigo (ou nao tem equivalente novo).
+    function bb_redirecionar_endereco_legado($pdo_controle, $host)
+    {
+        $rotulo = bb_host_no_dominio_legado($host);
+        if ($rotulo === '') {
+            return false;
+        }
+
+        // Resolve pelo host antigo cadastrado; sem cadastro, pelo slug novo.
+        $tenant = bb_tenant_resolver($pdo_controle, $host);
+        if (!$tenant || empty($tenant['slug'])) {
+            $tenant = bb_tenant_resolver($pdo_controle, $rotulo . '.' . BB_DOMINIO_BASE);
+        }
+        if (!$tenant || empty($tenant['slug'])) {
+            return false;
+        }
+
+        $slug = strtolower(trim((string) $tenant['slug']));
+        if (!preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $slug)) {
+            return false;
+        }
+
+        $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '/';
+        $destino = 'https://' . $slug . '.' . BB_DOMINIO_BASE;
+
+        // Destino igual a origem: nao redireciona (evita laco).
+        $atual = 'https://' . bb_normalizar_host($host);
+        if (strlen($destino) >= strlen($atual) && substr($destino, 0, strlen($atual)) === $atual) {
+            return false;
+        }
+
+        if (!headers_sent()) {
+            header('Location: ' . $destino . $uri, true, 301);
+            exit;
+        }
+        return false;
     }
 }
 
@@ -758,6 +853,48 @@ if (!function_exists('bb_login_encaminhar_tenant')) {
             exit;
         }
         return false;
+    }
+}
+
+if (!function_exists('bb_tenant_url_publica')) {
+    // Endereco do site que o estabelecimento divulga: o dominio proprio ja
+    // verificado, quando existe, senao o subdominio {slug}.{dominio-base}.
+    // Vazio na instalacao principal (nao ha site de cliente para divulgar).
+    function bb_tenant_url_publica($tenant = null)
+    {
+        global $tenant_atual, $pdo_controle;
+
+        if ($tenant === null) {
+            $tenant = $tenant_atual;
+        }
+        if (!is_array($tenant) || empty($tenant['slug'])) {
+            return '';
+        }
+
+        $slug = strtolower(trim((string) $tenant['slug']));
+        if (!preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $slug)) {
+            return '';
+        }
+
+        $host = '';
+        if (($pdo_controle instanceof PDO) && !empty($tenant['id'])) {
+            try {
+                $q = $pdo_controle->prepare("SELECT hostname FROM tenant_dominios
+                    WHERE tenant_id = :id AND tipo = 'proprio' AND verificado_em IS NOT NULL
+                    ORDER BY verificado_em ASC LIMIT 1");
+                $q->bindValue(':id', (int) $tenant['id'], PDO::PARAM_INT);
+                $q->execute();
+                $host = strtolower(trim((string) $q->fetchColumn()));
+            } catch (Exception $e) {
+                $host = '';
+            }
+        }
+
+        if ($host === '' || strpos($host, '.') === false) {
+            $host = $slug . '.' . BB_DOMINIO_BASE;
+        }
+
+        return 'https://' . $host;
     }
 }
 
