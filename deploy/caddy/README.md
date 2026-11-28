@@ -35,12 +35,25 @@ ls /root/.local/share/caddy/certificates/
 ```
 
 Quando um desafio falha (DNS ainda no provedor antigo, por exemplo), o
-CertMagic registra novas tentativas em segundo plano; a conta ACME de
-staging que sobrava de testes antigos foi removida do storage (backup em
-`/root/caddy-acme-staging-backup-*.tar.gz`) para nao guardar certificado
-nao confiavel. A primeira tentativa de cada ciclo e sempre a de producao e,
-com o DNS correto, e ela que emite — comprovado emitindo um certificado
-novo em `zz-qa-ca.iluminatto.online` (descartado depois).
+Caddy continua tentando em segundo plano e, **por projeto**, passa a usar o
+staging da Let's Encrypt nas retentativas para nao estourar rate limit da
+producao (ver `caddyserver.com/docs/automatic-https` > Errors). Isso gera
+linhas `ca=...staging...` no log e recria a conta ACME de staging, mas
+**nenhum certificado de staging e guardado**: o storage de certificados so
+recebe o que for emitido com sucesso e, quando a validacao passa, a
+producao ja emitiu primeiro. A prova disso e que so existe o diretorio de
+producao:
+
+```bash
+find /root/.local/share/caddy/certificates -path "*staging*" -name "*.crt"
+# nada
+```
+
+Emissao nova pela mesma politica (comprovada em `zz-qa-ca.iluminatto.online`,
+host descartavel no curinga `*.iluminatto.online`, removido depois): HTTP 200
+em 9s, `issuer=C=US, O=Let's Encrypt, CN=YE2` e cadeia
+`YE2 -> Root YE -> ISRG Root X2`. Quando o `A @` de `iluminatto.online`
+apontar para a VPS, o certificado da raiz sai pelo mesmo caminho.
 
 ## O que ele protege
 
