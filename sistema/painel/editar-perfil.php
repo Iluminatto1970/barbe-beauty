@@ -93,6 +93,9 @@ $st->bindValue(":foto", $foto);
 $st->bindValue(":atendimento", $atendimento);
 $st->bindValue(":id", $id, PDO::PARAM_INT);
 $st->execute();
+// O e-mail do perfil e o login: atualiza o indice usado pelo dominio
+// principal para encaminhar ao subdominio deste estabelecimento.
+bb_tenant_emails_atualizar_atual();
 
 echo 'Editado com Sucesso';
  ?>

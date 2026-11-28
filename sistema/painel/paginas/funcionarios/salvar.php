@@ -133,6 +133,8 @@ $query->bindValue(":telefone", "$telefone");
 $query->bindValue(":endereco", "$endereco");
 $query->bindValue(":chave_pix", "$chave_pix");
 $query->execute();
+// Mantem o indice de logins do estabelecimento em dia.
+bb_tenant_emails_atualizar_atual();
 
 echo 'Salvo com Sucesso';
  ?>

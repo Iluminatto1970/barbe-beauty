@@ -107,6 +107,9 @@ $query->bindValue(":cpf", "$cpf");
 $query->bindValue(":telefone", "$telefone");
 $query->bindValue(":endereco", "$endereco");
 $query->execute();
+// O e-mail criado/editado aqui e um login: reflete no indice do dominio
+// principal para o encaminhamento ao subdominio deste estabelecimento.
+bb_tenant_emails_atualizar_atual();
 
 echo 'Salvo com Sucesso';
  ?>

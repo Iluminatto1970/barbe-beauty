@@ -376,6 +376,7 @@ if (!function_exists('bb_tenant_garantir_colunas')) {
                 'db_user'        => "VARCHAR(64) NULL DEFAULT NULL",
                 'site_demo'      => "TINYINT(1) NOT NULL DEFAULT 0",
                 'boas_vindas_em' => "DATETIME NULL DEFAULT NULL",
+                'emails_sincronizado_em' => "DATETIME NULL DEFAULT NULL",
                 'schema_version' => "INT UNSIGNED NOT NULL DEFAULT 0",
                 'segmento'       => "VARCHAR(20) NOT NULL DEFAULT 'barbearia'",
             );
@@ -555,6 +556,7 @@ if (!function_exists('bb_tenant_sincronizar_admin')) {
                 $up->bindValue($marcador, $valor);
             }
             $up->execute();
+            bb_tenant_emails_sincronizar($pdo_controle, $tenant_id);
             return true;
         } catch (Exception $e) {
             error_log('tenant-admin-sync: ' . $e->getMessage());
@@ -758,6 +760,10 @@ if (!function_exists('bb_tenant_provisionar')) {
                     ':id'      => $tenant_id,
                 ));
 
+            // O login do dominio principal precisa saber quem entra neste
+            // estabelecimento: grava os e-mails da equipe no indice.
+            bb_tenant_emails_sincronizar($pdo_controle, $tenant_id);
+
             $resultado['ok'] = true;
             $resultado['versao'] = (int) $migracao['versao'];
             return $resultado;
@@ -768,8 +774,207 @@ if (!function_exists('bb_tenant_provisionar')) {
     }
 }
 
+if (!function_exists('bb_tenant_emails_tabela')) {
+    // Indice, no banco de controle, dos e-mails que fazem login em cada
+    // estabelecimento. O e-mail do cadastro (tenants.email) e apenas um deles:
+    // o administrador e a equipe entram com os e-mails da tabela usuarios do
+    // banco do cliente, que o dominio principal nao tem como consultar.
+    function bb_tenant_emails_tabela($pdo_controle)
+    {
+        static $pronta = false;
+        if ($pronta) {
+            return true;
+        }
+        if (!($pdo_controle instanceof PDO)) {
+            return false;
+        }
+        try {
+            $pdo_controle->exec("CREATE TABLE IF NOT EXISTS tenant_emails (
+                email VARCHAR(150) NOT NULL,
+                tenant_id INT NOT NULL,
+                atualizado_em DATETIME NULL DEFAULT NULL,
+                PRIMARY KEY (email, tenant_id),
+                KEY tenant_emails_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+            $pronta = true;
+        } catch (Exception $e) {
+            error_log('tenant-emails: ' . $e->getMessage());
+        }
+        return $pronta;
+    }
+}
+
+if (!function_exists('bb_tenant_emails_pdo')) {
+    // Conexao com o banco do estabelecimento (credencial propria quando ha).
+    function bb_tenant_emails_pdo($tenant)
+    {
+        $db = bb_tenant_banco($tenant);
+        if ($db === '' || $db === bb_banco_controle()) {
+            return null;
+        }
+        $cred = bb_tenant_db_credenciais($tenant);
+        try {
+            if ($cred) {
+                return bb_pdo_tenant($cred);
+            }
+            return bb_pdo_banco($db);
+        } catch (Exception $e) {
+            error_log('tenant-emails-db: ' . $e->getMessage());
+            return null;
+        }
+    }
+}
+
+if (!function_exists('bb_tenant_emails_sincronizar')) {
+    // Rele os logins no banco do estabelecimento e regrava o indice.
+    // Idempotente: roda no provisionamento, no painel e no login sem
+    // correspondencia (para nunca ficar desatualizado em silencio).
+    function bb_tenant_emails_sincronizar($pdo_controle, $tenant_id)
+    {
+        $tenant_id = (int) $tenant_id;
+        if ($tenant_id <= 0 || !bb_tenant_emails_tabela($pdo_controle)) {
+            return false;
+        }
+        bb_tenant_garantir_colunas($pdo_controle);
+
+        try {
+            $q = $pdo_controle->prepare('SELECT * FROM tenants WHERE id = :id LIMIT 1');
+            $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+            $q->execute();
+            $tenant = $q->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return false;
+        }
+        if (!$tenant) {
+            return false;
+        }
+
+        $pdo_tenant = bb_tenant_emails_pdo($tenant);
+        if (!$pdo_tenant) {
+            return false;
+        }
+
+        try {
+            $linhas = $pdo_tenant->query('SELECT email FROM usuarios')->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
+            error_log('tenant-emails-usuarios: ' . $e->getMessage());
+            return false;
+        }
+
+        $emails = array();
+        foreach ((array) $linhas as $email) {
+            $email = strtolower(trim((string) $email));
+            if ($email !== '' && strpos($email, '@') !== false) {
+                $emails[$email] = true;
+            }
+        }
+        // O e-mail do cadastro tambem e login, mesmo quando a tabela usuarios
+        // do cliente ainda nao tem essa linha (banco recem-provisionado).
+        $cadastro = strtolower(trim((string) @$tenant['email']));
+        if ($cadastro !== '' && strpos($cadastro, '@') !== false) {
+            $emails[$cadastro] = true;
+        }
+
+        try {
+            $pdo_controle->prepare('DELETE FROM tenant_emails WHERE tenant_id = :id')
+                ->execute(array(':id' => $tenant_id));
+            $ins = $pdo_controle->prepare('INSERT IGNORE INTO tenant_emails (email, tenant_id, atualizado_em) VALUES (:email, :id, NOW())');
+            foreach (array_keys($emails) as $email) {
+                $ins->bindValue(':email', $email);
+                $ins->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+                $ins->execute();
+            }
+            $pdo_controle->prepare('UPDATE tenants SET emails_sincronizado_em = NOW() WHERE id = :id')
+                ->execute(array(':id' => $tenant_id));
+        } catch (Exception $e) {
+            error_log('tenant-emails-sync: ' . $e->getMessage());
+            return false;
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('bb_tenant_emails_atualizar_atual')) {
+    // Atalho do painel do cliente: depois de criar ou editar um usuario,
+    // regrava o indice do estabelecimento que esta sendo usado.
+    function bb_tenant_emails_atualizar_atual()
+    {
+        global $pdo_controle, $tenant_atual;
+        if (!($pdo_controle instanceof PDO) || !is_array($tenant_atual)) {
+            return false;
+        }
+        return bb_tenant_emails_sincronizar($pdo_controle, (int) $tenant_atual['id']);
+    }
+}
+
+if (!function_exists('bb_tenant_login_candidatos')) {
+    // Estabelecimentos em que este e-mail e um login (cadastro ou equipe).
+    function bb_tenant_login_candidatos($pdo_controle, $email)
+    {
+        $linhas = array();
+        try {
+            $q = $pdo_controle->prepare("SELECT id, slug, status FROM tenants
+                WHERE LOWER(TRIM(email)) = :email
+                ORDER BY id ASC");
+            $q->bindValue(':email', $email);
+            $q->execute();
+            $linhas = $q->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $linhas = array();
+        }
+        if ($linhas || !bb_tenant_emails_tabela($pdo_controle)) {
+            return $linhas;
+        }
+        try {
+            $q = $pdo_controle->prepare("SELECT t.id, t.slug, t.status FROM tenant_emails e
+                INNER JOIN tenants t ON t.id = e.tenant_id
+                WHERE e.email = :email
+                ORDER BY t.id ASC");
+            $q->bindValue(':email', $email);
+            $q->execute();
+            $linhas = $q->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $linhas = array();
+        }
+        return $linhas;
+    }
+}
+
+if (!function_exists('bb_tenant_login_atualizar_indice')) {
+    // Atualiza, no maximo, alguns indices por requisicao (os que nunca foram
+    // lidos primeiro). Assim um estabelecimento criado antes deste recurso
+    // passa a ser encontrado sem depender de rodar script na mao.
+    function bb_tenant_login_atualizar_indice($pdo_controle, $limite = 5)
+    {
+        if (!bb_tenant_emails_tabela($pdo_controle)) {
+            return 0;
+        }
+        bb_tenant_garantir_colunas($pdo_controle);
+        $limite = max(1, (int) $limite);
+        try {
+            $q = $pdo_controle->query("SELECT id FROM tenants
+                WHERE LOWER(TRIM(status)) NOT IN ('suspenso','cancelado','cancelada','inativo')
+                  AND (emails_sincronizado_em IS NULL OR emails_sincronizado_em < (NOW() - INTERVAL 1 DAY))
+                ORDER BY emails_sincronizado_em IS NOT NULL, emails_sincronizado_em ASC
+                LIMIT " . $limite);
+            $ids = $q ? $q->fetchAll(PDO::FETCH_COLUMN) : array();
+        } catch (Exception $e) {
+            return 0;
+        }
+
+        $total = 0;
+        foreach ((array) $ids as $id) {
+            if (bb_tenant_emails_sincronizar($pdo_controle, (int) $id)) {
+                $total++;
+            }
+        }
+        return $total;
+    }
+}
+
 if (!function_exists('bb_tenant_login_por_email')) {
-    // Em qual estabelecimento este e-mail e o login do administrador?
+    // Em qual estabelecimento este e-mail e um login?
     // Devolve estado: 'nenhum', 'unico' (com a url de login) ou 'multiplo'.
     // Consulta so o banco de controle: nenhum dado do cliente sai daqui.
     function bb_tenant_login_por_email($pdo_controle, $email)
@@ -780,15 +985,13 @@ if (!function_exists('bb_tenant_login_por_email')) {
             return $vazio;
         }
 
-        try {
-            $q = $pdo_controle->prepare("SELECT id, slug, status FROM tenants
-                WHERE LOWER(TRIM(email)) = :email
-                ORDER BY id ASC");
-            $q->bindValue(':email', $email);
-            $q->execute();
-            $linhas = $q->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            return $vazio;
+        $linhas = bb_tenant_login_candidatos($pdo_controle, $email);
+        if (!$linhas) {
+            // Indice vazio/velho (equipe criada antes desta rotina): atualiza
+            // e consulta de novo, uma unica vez.
+            if (bb_tenant_login_atualizar_indice($pdo_controle) > 0) {
+                $linhas = bb_tenant_login_candidatos($pdo_controle, $email);
+            }
         }
 
         // Estabelecimento sem site no ar nao recebe encaminhamento (o login
