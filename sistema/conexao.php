@@ -358,7 +358,10 @@ if (!function_exists('bb_js')) {
 // definidos por cada tela.
 // ============================================================
 if (!function_exists('bb_imagem_upload_valida')) {
-    function bb_imagem_upload_valida($arquivo, $exts = array('png', 'jpg', 'jpeg', 'gif', 'webp'), $max_bytes = 10485760)
+    // Limite alinhado ao upload_max_filesize do PHP-FPM (25M): foto de
+    // celular chega com 10-20 MB e era recusada aqui com "max 10MB", mesmo
+    // o servidor aceitando o envio. A imagem e reduzida logo depois.
+    function bb_imagem_upload_valida($arquivo, $exts = array('png', 'jpg', 'jpeg', 'gif', 'webp'), $max_bytes = 26214400)
     {
         if (!is_array($arquivo) || empty($arquivo['name'])) {
             return '';
@@ -487,8 +490,9 @@ if (!function_exists('bb_imagem_memoria')) {
             $multiplicador = 1024;
         }
         $bytes = (int) $limite * $multiplicador;
-        if ($bytes > 0 && $bytes < 268435456) {
-            @ini_set('memory_limit', '256M');
+        // 24-40 MP (foto de celular) precisa de mais que 256M no GD.
+        if ($bytes > 0 && $bytes < 536870912) {
+            @ini_set('memory_limit', '512M');
         }
     }
 }
@@ -604,7 +608,7 @@ if (!function_exists('bb_imagem_salvar_upload')) {
             $pixels = (int) $info[0] * (int) $info[1];
 
             // Limite de seguranca contra estouro de memoria no GD
-            if ($pixels > 0 && $pixels <= 25000000
+            if ($pixels > 0 && $pixels <= 40000000
                 && in_array($tipo, array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP), true)) {
                 if (bb_imagem_reduzir($origem, $destino, (int) $max_lado, (int) $qualidade, $tipo)) {
                     return true;
