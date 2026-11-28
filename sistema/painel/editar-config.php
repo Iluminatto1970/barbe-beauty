@@ -19,6 +19,36 @@ $texto_agendamento = $_POST['texto_agendamento'];
 $msg_agendamento = $_POST['msg_agendamento'];
 $segmento = (isset($_POST['segmento']) && $_POST['segmento'] == 'salao') ? 'salao' : 'barbearia';
 
+// ============================================================
+// CAMPOS OBRIGATORIOS
+// ------------------------------------------------------------
+// Antes, com um campo vazio o proprio navegador bloqueava o envio
+// (required) e o cliente nao via o aviso. A checagem agora e aqui
+// e a mensagem diz o que falta; o painel tambem avisa antes de
+// enviar (js/validar-config.js).
+// ============================================================
+$bb_obrigatorios = array(
+    'nome_sistema'     => 'Nome do Estabelecimento',
+    'email_sistema'    => 'E-mail do Estabelecimento',
+    'whatsapp_sistema' => 'WhatsApp do Estabelecimento',
+);
+if ($segmento === 'salao') {
+    $bb_obrigatorios['nome_salao']     = 'Nome do Salao';
+    $bb_obrigatorios['whatsapp_salao'] = 'WhatsApp do Salao';
+    $bb_obrigatorios['endereco_salao'] = 'Endereco do Salao';
+}
+$bb_faltando = array();
+foreach ($bb_obrigatorios as $bb_campo => $bb_rotulo) {
+    $bb_valor = isset($_POST[$bb_campo]) ? trim((string) $_POST[$bb_campo]) : '';
+    if ($bb_valor === '') {
+        $bb_faltando[] = $bb_rotulo;
+    }
+}
+if ($bb_faltando) {
+    echo 'Preencha os campos obrigatorios: ' . implode(', ', $bb_faltando) . '.';
+    exit();
+}
+
 // Arquivos de marca exclusivos do estabelecimento (nao sobrescrevem outro cliente)
 $arquivo_logo       = bb_arquivo_tenant('logo.png');
 $arquivo_icone      = bb_arquivo_tenant('favicon.png');

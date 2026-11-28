@@ -531,6 +531,7 @@ $dataMesInicial = $partesInicial[1];
 	
 	<!-- Bootstrap Core JavaScript -->
 	<script src="js/bootstrap.js"> </script>
+<script src="js/validar-config.js"></script>
 <script src="js/upload-imagem.js"></script>
 	<!-- //Bootstrap Core JavaScript -->
 
@@ -718,7 +719,7 @@ $dataMesInicial = $partesInicial[1];
 					<span aria-hidden="true" >&times;</span>
 				</button>
 			</div>
-			<form method="post" id="form-config">
+			<form method="post" id="form-config" novalidate>
 				<div class="modal-body">
 
 					<div class="row">
@@ -752,7 +753,7 @@ $dataMesInicial = $partesInicial[1];
 
 							<div class="form-group">
 								<label for="exampleInputEmail1">Tel Fixo do Estabelecimento</label>
-								<input type="text" class="form-control" id="telefone_fixo_sistema" name="telefone_fixo_sistema" placeholder="Fixo" value="<?php echo $telefone_fixo_sistema ?>" required>    
+								<input type="text" class="form-control" id="telefone_fixo_sistema" name="telefone_fixo_sistema" placeholder="Fixo (opcional)" value="<?php echo $telefone_fixo_sistema ?>">    
 							</div> 	
 						</div>
 						<div class="col-md-7">
