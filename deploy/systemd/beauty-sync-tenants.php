@@ -5,9 +5,13 @@
 // ------------------------------------------------------------
 // Le tenant_dominios no banco de controle e mantem um bloco de site
 // em /etc/caddy/sites/ para cada estabelecimento ativo. Com o DNS
-// curinga *.iluminatto.online apontando para esta VPS, o subdominio
-// de um cliente novo passa a responder (e a receber certificado)
-// sozinho, no maximo um minuto depois do cadastro.
+// curinga do dominio base apontando para esta VPS, o subdominio de um
+// cliente novo passa a responder (e a receber certificado) sozinho, no
+// maximo um minuto depois do cadastro.
+//
+// Hosts que sobraram no dominio antigo (iluminatto.online) nao servem
+// mais a aplicacao: viram um 301 para o equivalente no dominio base, e
+// o cliente cai no endereco novo (links salvos, e-mails, Google).
 //
 // Roda como root pelo systemd timer beauty-tenants.timer.
 // ============================================================
@@ -19,6 +23,17 @@ $prefixo = 'tenant-';
 // porque /etc/caddy/sites tambem guarda blocos de outros sistemas.
 $assinatura = '# gerado por /usr/local/sbin/beauty-sync-tenants.php - nao editar';
 $host_principal = 'beauty.iluminatto.online'; // bloco proprio no Caddyfile
+// Dominio antigo do SaaS. Pode ser trocado por env[SA_DOMINIO_LEGADO] no
+// pool do php-fpm; o padrao e o endereco que os clientes tiveram antes da
+// migracao para beautypro.site.
+$host_legado = getenv('SA_DOMINIO_LEGADO');
+if ($host_legado === false || $host_legado === '') {
+    $host_legado = getenv('BB_DOMINIO_LEGADO');
+}
+$host_legado = strtolower(trim((string) $host_legado));
+if ($host_legado === '') {
+    $host_legado = 'iluminatto.online';
+}
 
 if (!is_dir($dir_destino) && !@mkdir($dir_destino, 0755, true)) {
     fwrite(STDERR, "nao foi possivel criar $dir_destino\n");
@@ -84,6 +99,22 @@ foreach ($linhas as $linha) {
     // host nao resolve tenant no PHP e nao deve receber certificado.
     $tipo = strtolower(trim((string) $linha['tipo']));
     if ($tipo === 'proprio' && empty($linha['verificado_em'])) {
+        continue;
+    }
+
+    // Dominio antigo: o host deixa de servir a aplicacao e responde 301 no
+    // equivalente dentro do dominio base (mario.iluminatto.online ->
+    // mario.beautypro.site). A raiz e o www do dominio antigo tem bloco
+    // proprio no Caddyfile, por isso aqui so tratamos subdominios.
+    $sufixo_legado = '.' . $host_legado;
+    if ($base_env !== '' && $base_env !== $host_legado
+        && substr($host, -strlen($sufixo_legado)) === $sufixo_legado) {
+        $destino = substr($host, 0, -strlen($sufixo_legado)) . '.' . $base_env;
+        $arquivo = $dir_destino . '/' . $prefixo . $host . '.caddy';
+        $desejados[$arquivo] = $assinatura . "\n"
+            . 'http://' . $host . ', https://' . $host . " {\n"
+            . "\tredir https://" . $destino . "{uri} permanent\n"
+            . "}\n";
         continue;
     }
 

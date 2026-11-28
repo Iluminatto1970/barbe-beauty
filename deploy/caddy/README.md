@@ -13,13 +13,37 @@ estabelecimento fica no seu subdominio `{slug}.beautypro.site`, que o
 responde 301 para a raiz, e o HTTP (80) dos dois responde 301 para
 `https://beautypro.site`.
 
-`iluminatto.online` continua atendendo a plataforma como alias (os hosts
-antigos estao em `BB_HOSTS_CONTROLE`, no pool do PHP-FPM) e os subdominios
-`*.iluminatto.online` dos clientes seguem no ar junto com os novos
-`*.beautypro.site`, registrados em `tenant_dominios`. O dominio base vem de
-`env[SA_DOMINIO_BASE]` no `/etc/php/8.4/fpm/pool.d/www.conf`, lido por
-`sistema/tenant.php` (como `BB_DOMINIO_BASE`) e por `superadmin/_auth.php`
-(como `SA_DOMINIO_BASE`).
+`iluminatto.online` e o endereco antigo do SaaS: raiz, `www` e todos os
+subdominios `*.iluminatto.online` dos clientes respondem **301** para o
+equivalente em `beautypro.site` (ver "Endereco antigo" abaixo). A excecao e
+`beauty.iluminatto.online`, que continua servindo a instalacao principal no
+bloco proprio do `Caddyfile` — e o host usado pelo `deploy/deploy.sh` no
+smoke. O dominio base vem de `env[SA_DOMINIO_BASE]` no
+`/etc/php/8.4/fpm/pool.d/www.conf`, lido por `sistema/tenant.php` (como
+`BB_DOMINIO_BASE`) e por `superadmin/_auth.php` (como `SA_DOMINIO_BASE`).
+
+### Endereco antigo
+
+O 301 e feito no Caddy, antes do PHP, para o cliente antigo nunca cair numa
+pagina de tenant errada:
+
+| De                                        | Para                                              |
+|-------------------------------------------|---------------------------------------------------|
+| `iluminatto.online`                       | `301 https://beautypro.site` (mesmo path/query)    |
+| `www.iluminatto.online`                   | `301 https://beautypro.site` (salto unico)         |
+| `{slug}.iluminatto.online`                | `301 https://{slug}.beautypro.site`                |
+| `beauty.iluminatto.online`                | **serve** a instalacao principal (sem redirect)    |
+
+A raiz e o `www` estao no `Caddyfile`; os subdominios saem do gerador
+(`beauty-sync-tenants.php`), que troca o bloco do host antigo por um
+`redir https://{slug}.beautypro.site{uri} permanent` em
+`/etc/caddy/sites/tenant-{slug}.iluminatto.online.caddy`. O dominio antigo e
+`iluminatto.online` por padrao e pode ser trocado por
+`env[SA_DOMINIO_LEGADO]` (ou `BB_DOMINIO_LEGADO`) no pool do PHP-FPM.
+
+Os hosts antigos continuam registrados em `tenant_dominios`, entao o gerador
+segue emitindo (e renovando) o certificado deles: sem certificado valido o
+`301` em https nem seria entregue.
 
 ### Mesmo padrao do agreste.shop
 

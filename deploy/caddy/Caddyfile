@@ -39,43 +39,42 @@ crm.iluminatto.online, crm.claudeapi.space {
 import /etc/caddy/sites/*.caddy
 
 
-# Dominio principal do SaaS (barbearias e saloes): a raiz serve a landing, o
-# login, os planos, o autocadastro e o super admin. Cada estabelecimento vive
-# no seu subdominio {slug}.iluminatto.online.
+# iluminatto.online e o endereco ANTIGO do SaaS: a raiz e o www respondem
+# 301 para o dominio atual (beautypro.site). Os subdominios antigos dos
+# clientes (*.iluminatto.online) fazem o mesmo pelo gerador em
+# /etc/caddy/sites/ (beauty-sync-tenants.php). A excecao e
+# beauty.iluminatto.online, que continua servindo a instalacao principal no
+# bloco proprio acima.
 #
 # Mesmo padrao do agreste.shop (import acima): HTTPS explicito e emissao por
 # TLS-ALPN. O bloco global desta VPS tem `auto_https disable_redirects` e o
 # 80 -> 443 e um redir fixo, entao o desafio HTTP-01 nunca chega ao Caddy;
 # desabilitar o HTTP-01 evita retentativas inuteis e usa o caminho que ja
-# emite os certificados do curinga.
+# emite os certificados do curinga. O TLS fica no bloco justamente para o
+# certificado antigo continuar sendo renovado: sem ele o 301 nem chegaria a
+# ser servido em https.
 https://iluminatto.online {
 	tls {
 		issuer acme {
 			disable_http_challenge
 		}
 	}
-	root * /var/www/beauty
-	encode gzip
-	php_fastcgi unix//run/php/php8.4-fpm.sock {
-		try_files {path} {path}.php {path}/index.php index.php
-	}
-	@sensivel path_regexp (?i)(^/[.][^/]+|^/(caddy|docker)file$|[.](md|ya?ml|sql|gz|zip|log|sh|bat|ini|env|json|lock|bak|old|orig|swp)$)
-	respond @sensivel 404
-	file_server
+	redir https://beautypro.site{uri} permanent
 }
 
-# www e apenas apelido da raiz.
+# www e apenas apelido: vai direto para a raiz do dominio novo, sem um
+# segundo salto por www.beautypro.site.
 https://www.iluminatto.online {
 	tls {
 		issuer acme {
 			disable_http_challenge
 		}
 	}
-	redir https://iluminatto.online{uri} permanent
+	redir https://beautypro.site{uri} permanent
 }
 
 http://iluminatto.online, http://www.iluminatto.online {
-	redir https://iluminatto.online{uri} permanent
+	redir https://beautypro.site{uri} permanent
 }
 
 # beautypro.site: dominio principal novo do SaaS. Mesmo desenho da raiz do
