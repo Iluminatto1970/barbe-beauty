@@ -197,6 +197,8 @@ if (!function_exists('asaas_garantir_colunas')) {
                 'origem'                => "VARCHAR(20) NULL",
                 // Documento exigido pelo Asaas para emitir a cobranca
                 'cpf_cnpj'              => "VARCHAR(20) NULL",
+                // Ultima conferencia da cobranca na API (conciliacao)
+                'asaas_checado_em'      => "DATETIME NULL",
             ),
             'saas_pagamentos' => array(
                 'asaas_payment_id' => "VARCHAR(40) NULL",
@@ -288,6 +290,14 @@ if (!function_exists('asaas_criar_assinatura')) {
     // Cria a assinatura mensal e grava os ids no tenant
     function asaas_criar_assinatura($pdo, $tenant, $valor, $forma = 'UNDEFINED', $primeiro_venc = '')
     {
+        // Ja existe assinatura valida: reaproveita em vez de criar outra
+        // (duas assinaturas = duas cobrancas mensais para o mesmo cliente).
+        $existente = isset($tenant['asaas_subscription_id']) ? trim((string) $tenant['asaas_subscription_id']) : '';
+        $situacao = isset($tenant['asaas_assinatura']) ? strtolower(trim((string) $tenant['asaas_assinatura'])) : '';
+        if ($existente !== '' && $situacao !== 'cancelada') {
+            return array('ok' => true, 'erro' => '', 'id' => $existente, 'reaproveitada' => true, 'dados' => null);
+        }
+
         $cliente = asaas_cliente_do_tenant($pdo, $tenant);
         if (!$cliente['ok']) {
             return array('ok' => false, 'erro' => $cliente['erro']);
@@ -392,5 +402,203 @@ if (!function_exists('asaas_tenant_por_pagamento')) {
         }
 
         return null;
+    }
+}
+
+if (!function_exists('asaas_evento_pago')) {
+    // Eventos do Asaas que significam dinheiro recebido
+    function asaas_evento_pago($evento)
+    {
+        return in_array((string) $evento, array('PAYMENT_RECEIVED', 'PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED_IN_CASH'), true);
+    }
+}
+
+if (!function_exists('asaas_status_pago')) {
+    // Situacao da cobranca na API (usada na conciliacao da tela de pagamento)
+    function asaas_status_pago($status)
+    {
+        return in_array(strtoupper(trim((string) $status)), array('RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'), true);
+    }
+}
+
+if (!function_exists('asaas_registrar_pagamento')) {
+    // Grava/atualiza a cobranca em saas_pagamentos (idempotente pelo id do Asaas)
+    function asaas_registrar_pagamento($pdo, $tenant_id, $pagamento, $evento)
+    {
+        $tenant_id  = (int) $tenant_id;
+        $payment_id = isset($pagamento['id']) ? (string) $pagamento['id'] : '';
+        if ($tenant_id <= 0 || $payment_id === '') {
+            return array('ok' => false, 'status' => 'pendente', 'erro' => 'cobranca sem identificacao');
+        }
+
+        $valor = isset($pagamento['value']) ? (float) $pagamento['value'] : 0.0;
+        $venc  = substr((string) (isset($pagamento['dueDate']) ? $pagamento['dueDate'] : date('Y-m-d')), 0, 10);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $venc)) {
+            $venc = date('Y-m-d');
+        }
+        $link       = isset($pagamento['invoiceUrl']) ? (string) $pagamento['invoiceUrl'] : '';
+        $referencia = substr($venc, 0, 7);
+
+        $pago      = asaas_evento_pago($evento);
+        $estornado = in_array((string) $evento, array('PAYMENT_REFUNDED', 'PAYMENT_DELETED', 'PAYMENT_CHARGEBACK_REQUESTED'), true);
+        $status_local = $pago ? 'pago' : ($estornado ? 'estornado' : 'pendente');
+
+        try {
+            $existe = $pdo->prepare("SELECT id FROM saas_pagamentos WHERE asaas_payment_id = :pid LIMIT 1");
+            $existe->execute(array(':pid' => $payment_id));
+            $id_existente = $existe->fetchColumn();
+
+            if ($id_existente) {
+                $q = $pdo->prepare("UPDATE saas_pagamentos
+                    SET status = :status, valor = :valor, pago_em = :pago, asaas_status = :astatus,
+                        asaas_link = :link, asaas_venc = :venc
+                    WHERE id = :id");
+                $q->bindValue(':id', $id_existente, PDO::PARAM_INT);
+            } else {
+                $q = $pdo->prepare("INSERT INTO saas_pagamentos
+                    (tenant_id, valor, referencia, status, pago_em, asaas_payment_id, asaas_status, asaas_link, asaas_venc, criado_em)
+                    VALUES (:tenant, :valor, :ref, :status, :pago, :pid, :astatus, :link, :venc, NOW())");
+                $q->bindValue(':tenant', $tenant_id, PDO::PARAM_INT);
+                $q->bindValue(':ref', $referencia);
+                $q->bindValue(':pid', $payment_id);
+            }
+            $q->bindValue(':valor', $valor);
+            $q->bindValue(':status', $status_local);
+            $q->bindValue(':astatus', (string) $evento);
+            $q->bindValue(':link', substr($link, 0, 255));
+            $q->bindValue(':venc', $venc);
+            if ($pago) {
+                $q->bindValue(':pago', date('Y-m-d H:i:s'));
+            } else {
+                $q->bindValue(':pago', null, PDO::PARAM_NULL);
+            }
+            $q->execute();
+        } catch (Exception $e) {
+            return array('ok' => false, 'status' => $status_local, 'erro' => $e->getMessage());
+        }
+
+        return array('ok' => true, 'status' => $status_local, 'erro' => '');
+    }
+}
+
+if (!function_exists('asaas_ativar_acesso')) {
+    // Libera o estabelecimento depois do pagamento: status ativo, vencimento
+    // prorrogado (nunca retrocede), plano pago registrado, banco do cliente
+    // criado e e-mail com as instrucoes de acesso. Idempotente.
+    function asaas_ativar_acesso($pdo, $tenant_id, $venc_base = '')
+    {
+        $tenant_id = (int) $tenant_id;
+        $resultado = array(
+            'ok' => false, 'vencimento' => '', 'plano_id' => 0,
+            'provisionado' => false, 'email' => false, 'erro' => '',
+        );
+        if ($tenant_id <= 0) {
+            $resultado['erro'] = 'estabelecimento invalido';
+            return $resultado;
+        }
+
+        $venc = (string) $venc_base;
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $venc)) {
+            $venc = date('Y-m-d');
+        }
+
+        // Plano pago mais barato: substitui o gratuito na liberacao
+        $plano_pago = 0;
+        try {
+            $plano_pago = (int) $pdo->query("SELECT id FROM saas_planos WHERE ativo = 'Sim' AND valor > 0 ORDER BY valor ASC LIMIT 1")->fetchColumn();
+        } catch (Exception $e) {
+            $plano_pago = 0;
+        }
+
+        $trocar_plano = false;
+        try {
+            $q = $pdo->prepare("SELECT t.plano_id, p.valor FROM tenants t
+                LEFT JOIN saas_planos p ON p.id = t.plano_id WHERE t.id = :id LIMIT 1");
+            $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+            $q->execute();
+            $linha = $q->fetch(PDO::FETCH_ASSOC);
+            if ($linha && ($linha['plano_id'] === null || (float) $linha['valor'] <= 0)) {
+                $trocar_plano = true;
+            }
+        } catch (Exception $e) {
+            $trocar_plano = false;
+        }
+
+        try {
+            $sql = "UPDATE tenants SET status = 'ativo', asaas_assinatura = 'ativa',
+                    vencimento = GREATEST(COALESCE(vencimento, CURDATE()), DATE_ADD(:venc, INTERVAL 1 MONTH))";
+            if ($trocar_plano && $plano_pago > 0) {
+                $sql .= ", plano_id = :plano";
+            }
+            $sql .= " WHERE id = :id";
+            $q = $pdo->prepare($sql);
+            $q->bindValue(':venc', $venc);
+            $q->bindValue(':id', $tenant_id, PDO::PARAM_INT);
+            if ($trocar_plano && $plano_pago > 0) {
+                $q->bindValue(':plano', $plano_pago, PDO::PARAM_INT);
+            }
+            $q->execute();
+        } catch (Exception $e) {
+            $resultado['erro'] = 'nao foi possivel liberar: ' . $e->getMessage();
+            return $resultado;
+        }
+
+        $resultado['ok'] = true;
+        $resultado['plano_id'] = ($trocar_plano && $plano_pago > 0) ? $plano_pago : 0;
+
+        try {
+            $q = $pdo->prepare("SELECT vencimento FROM tenants WHERE id = :id LIMIT 1");
+            $q->execute(array(':id' => $tenant_id));
+            $resultado['vencimento'] = (string) $q->fetchColumn();
+        } catch (Exception $e) {
+            $resultado['vencimento'] = '';
+        }
+
+        // Banco do cliente (idempotente)
+        try {
+            if (function_exists('bb_tenant_provisionar')) {
+                $provisionamento = bb_tenant_provisionar($pdo, $tenant_id);
+                $resultado['provisionado'] = !empty($provisionamento['ok']);
+            }
+        } catch (Exception $e) {
+            $resultado['provisionado'] = false;
+        }
+
+        // Instrucoes de acesso: uma vez por estabelecimento
+        try {
+            $arquivo_email = __DIR__ . '/../sistema/email.php';
+            if (is_readable($arquivo_email)) {
+                require_once($arquivo_email);
+                if (function_exists('bb_boas_vindas_enviar')) {
+                    $envio = bb_boas_vindas_enviar($pdo, $tenant_id);
+                    $resultado['email'] = !empty($envio['enviado']);
+                }
+            }
+        } catch (Exception $e) {
+            $resultado['email'] = false;
+        }
+
+        return $resultado;
+    }
+}
+
+if (!function_exists('asaas_liberar_tenant')) {
+    // Passo unico usado pelo webhook e pela conciliacao: registra a cobranca e,
+    // se ela esta paga, libera o acesso.
+    function asaas_liberar_tenant($pdo, $tenant, $pagamento, $evento)
+    {
+        $tenant_id = isset($tenant['id']) ? (int) $tenant['id'] : 0;
+        $registro  = asaas_registrar_pagamento($pdo, $tenant_id, $pagamento, $evento);
+        $resultado = array('pago' => false, 'registro' => $registro, 'ativacao' => null);
+
+        if (!$registro['ok'] || !asaas_evento_pago($evento)) {
+            return $resultado;
+        }
+
+        $venc = isset($pagamento['dueDate']) ? substr((string) $pagamento['dueDate'], 0, 10) : date('Y-m-d');
+        $resultado['ativacao'] = asaas_ativar_acesso($pdo, $tenant_id, $venc);
+        $resultado['pago'] = !empty($resultado['ativacao']['ok']);
+
+        return $resultado;
     }
 }

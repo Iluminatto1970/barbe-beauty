@@ -7,6 +7,14 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 require_once(__DIR__ . '/../sistema/conexao.php');
 
+// Painel SaaS, checkout e webhook SEMPRE falam com o banco de CONTROLE.
+// No host de um estabelecimento o conexao.php troca $pdo pelo banco do
+// cliente; acessado por ali, o webhook gravaria o pagamento no banco errado
+// (sem a tabela tenants) e a liberacao automatica nunca aconteceria.
+if (isset($pdo_controle) && $pdo_controle instanceof PDO) {
+    $pdo = $pdo_controle;
+}
+
 // Dominio base dos subdominios dos clientes (env do pool do php-fpm)
 if (!defined('SA_DOMINIO_BASE')) {
     $sa_dominio_base = getenv('SA_DOMINIO_BASE');

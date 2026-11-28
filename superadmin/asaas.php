@@ -16,8 +16,9 @@ $lista = $pdo->query("SELECT t.*, p.nome AS plano, p.valor AS plano_valor
     FROM tenants t LEFT JOIN saas_planos p ON p.id = t.plano_id
     ORDER BY t.nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-$url_webhook = 'https://' . (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : SA_DOMINIO_BASE) . dirname($_SERVER['SCRIPT_NAME']) . '/webhook-asaas.php';
-$url_webhook = str_replace('//webhook', '/webhook', $url_webhook);
+// Endereco canonico do webhook: o handler funciona em qualquer host, mas e
+// este (dominio base do SaaS) que deve ficar cadastrado no Asaas.
+$url_webhook = 'https://' . SA_DOMINIO_BASE . '/superadmin/webhook-asaas.php';
 
 sa_topo('Cobranças Asaas');
 ?>

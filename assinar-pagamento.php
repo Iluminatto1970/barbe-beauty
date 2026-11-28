@@ -34,17 +34,45 @@ $gratis = ((float) $tenant['plano_valor'] <= 0);
 $pago = in_array($tenant['status'], array('ativo', 'trial'), true);
 $pagamento = null;
 $erro_api = '';
+$valor = ((float) $tenant['plano_valor'] > 0) ? (float) $tenant['plano_valor'] : asaas_config()['valor'];
 
-if (!$pago && !empty($tenant['asaas_subscription_id']) && asaas_configurado()) {
-    $r = asaas_req('GET', '/subscriptions/' . $tenant['asaas_subscription_id'] . '/payments?limit=1');
-    if ($r['ok'] && !empty($r['dados']['data'][0])) {
-        $pagamento = $r['dados']['data'][0];
-    } elseif (!$r['ok']) {
-        $erro_api = $r['erro'];
+// Cobranca pendente: confere a API e libera na hora. O webhook pode ter
+// atrasado (ou nem estar cadastrado), e o cliente nao pode ficar preso.
+if (!$pago && !$gratis && asaas_configurado()) {
+    if (empty($tenant['asaas_subscription_id'])) {
+        // Assinatura nao foi criada no cadastro: gera agora
+        $criada = asaas_criar_assinatura($pdo, $tenant, $valor, 'UNDEFINED', date('Y-m-d'));
+        if ($criada['ok']) {
+            $q = $pdo->prepare("SELECT t.*, p.nome AS plano, p.valor AS plano_valor FROM tenants t
+                LEFT JOIN saas_planos p ON p.id = t.plano_id
+                WHERE t.token = :token LIMIT 1");
+            $q->bindValue(':token', $token);
+            $q->execute();
+            $tenant = $q->fetch(PDO::FETCH_ASSOC);
+            if (!empty($tenant['asaas_subscription_id'])) {
+                $valor = ((float) $tenant['plano_valor'] > 0) ? (float) $tenant['plano_valor'] : $valor;
+            }
+        } else {
+            $erro_api = $criada['erro'];
+        }
+    }
+
+    if (!empty($tenant['asaas_subscription_id'])) {
+        $r = asaas_req('GET', '/subscriptions/' . $tenant['asaas_subscription_id'] . '/payments?limit=1');
+        if ($r['ok'] && !empty($r['dados']['data'][0])) {
+            $pagamento = $r['dados']['data'][0];
+            if (asaas_status_pago(isset($pagamento['status']) ? $pagamento['status'] : '')) {
+                $evento = (strtoupper((string) $pagamento['status']) === 'CONFIRMED')
+                    ? 'PAYMENT_CONFIRMED' : 'PAYMENT_RECEIVED';
+                asaas_liberar_tenant($pdo, $tenant, $pagamento, $evento);
+                header('Location: assinar-pagamento.php?t=' . urlencode($token));
+                exit;
+            }
+        } elseif (!$r['ok']) {
+            $erro_api = $r['erro'];
+        }
     }
 }
-
-$valor = ((float) $tenant['plano_valor'] > 0) ? (float) $tenant['plano_valor'] : asaas_config()['valor'];
 $boas_vindas_enviado = !empty($tenant['boas_vindas_em']);
 $painel_url = bb_boas_vindas_url($tenant['slug']);
 ?>

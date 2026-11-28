@@ -51,18 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$r['ok']) {
             $erro = $r['erro'];
         } else {
-            // Registra o plano contratado (a cota so libera com o pagamento)
-            $plano_id = bb_plano_pago_id($pdo_controle);
-            if ($plano_id > 0) {
-                try {
-                    $q = $pdo_controle->prepare("UPDATE tenants SET plano_id = :plano WHERE id = :id");
-                    $q->bindValue(':plano', $plano_id, PDO::PARAM_INT);
-                    $q->bindValue(':id', (int) $tenant['id'], PDO::PARAM_INT);
-                    $q->execute();
-                } catch (Exception $e) {
-                    // plano e apenas informativo; a assinatura ja foi criada
-                }
-            }
+            // O plano pago e registrado na liberacao (asaas_ativar_acesso),
+            // nunca no clique: senao a cota ilimitada valeria sem pagamento.
 
             // Link do primeiro pagamento da assinatura
             $rp = asaas_req('GET', '/subscriptions/' . $r['id'] . '/payments?limit=1');

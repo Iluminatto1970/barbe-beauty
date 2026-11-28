@@ -226,7 +226,7 @@ if (!function_exists('bb_boas_vindas_conteudo')) {
             . '<p style="margin:0 0 6px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#8a91a0">Acesso liberado</p>'
             . '<h1 style="margin:0 0 14px;font-size:22px">Bem-vindo(a), ' . htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') . '!</h1>'
             . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5261">'
-            . 'Seu pagamento foi confirmado e o seu sistema já está no ar. Use os dados abaixo para entrar no painel.</p>'
+            . 'Seu acesso está liberado e o seu sistema já está no ar. Use os dados abaixo para entrar no painel.</p>'
             . '<table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 18px">'
             . '<tr><td style="padding:10px 0;font-size:13px;color:#8a91a0;width:130px">Painel</td>'
             . '<td style="padding:10px 0;font-size:14px"><a href="' . htmlspecialchars($painel, ENT_QUOTES, 'UTF-8') . '" style="color:#2563eb">'
@@ -253,7 +253,7 @@ if (!function_exists('bb_boas_vindas_conteudo')) {
             . '</div></div>';
 
         $texto = "Bem-vindo(a), $nome!\n\n"
-            . "Seu pagamento foi confirmado e o acesso está liberado.\n\n"
+            . "Seu acesso está liberado.\n\n"
             . "Painel: $painel\n"
             . "Site público: $site\n"
             . "E-mail de acesso: $email\n"
