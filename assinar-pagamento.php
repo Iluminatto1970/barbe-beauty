@@ -122,11 +122,19 @@ $painel_url = bb_boas_vindas_url($tenant['slug']);
         </div>
       </div>
       <div class="painel">
+        <?php
+        // Sem transporte de e-mail configurado (RESEND_API_KEY) a promessa de
+        // "enviaremos as instruções" seria falsa: mostra o caminho real.
+        $bb_email_cfg = bb_email_config();
+        $bb_email_pronto = ($bb_email_cfg['transporte'] === 'log') || ($bb_email_cfg['resend'] !== '');
+        ?>
         <p style="margin:0 0 10px">Pagamento identificado para <strong><?php echo sa_e($tenant['email']); ?></strong>.
           <?php if ($boas_vindas_enviado) { ?>
             Enviamos as instruções de acesso para este e-mail (confira também a caixa de spam).
-          <?php } else { ?>
+          <?php } elseif ($bb_email_pronto) { ?>
             A liberação está sendo concluída e as instruções de acesso serão enviadas para este e-mail.
+          <?php } else { ?>
+            Seu acesso está liberado. Guarde o link do painel abaixo e use a senha que você criou no cadastro.
           <?php } ?>
         </p>
         <p style="margin:0;font-size:14px">Painel do estabelecimento:
