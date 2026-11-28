@@ -6,16 +6,47 @@ idealizada — se o servidor mudar, atualize este arquivo com o mesmo conteúdo.
 
 ## Dominio principal do SaaS
 
-A raiz `iluminatto.online` (e `www`) serve a plataforma: landing, login,
-planos, autocadastro e super admin, tudo no banco de controle. Cada
-estabelecimento fica no seu subdominio `{slug}.iluminatto.online`, que o
-`beauty-sync-tenants.php` publica em `/etc/caddy/sites/`. O HTTP da raiz
-redireciona para HTTPS (301).
+A raiz `iluminatto.online` serve a plataforma: landing, login, planos,
+autocadastro e super admin, tudo no banco de controle. Cada estabelecimento
+fica no seu subdominio `{slug}.iluminatto.online`, que o
+`beauty-sync-tenants.php` publica em `/etc/caddy/sites/`. O `www` e apelido:
+responde 301 para a raiz, e o HTTP (80) dos dois responde 301 para
+`https://iluminatto.online`.
+
+### Mesmo padrao do agreste.shop
+
+O bloco da raiz segue o desenho que ja funciona no `agreste.shop`
+(`/opt/agreste/deploy/Caddyfile.agreste`): HTTPS explicito e emissao por
+TLS-ALPN.
+
+```caddyfile
+https://iluminatto.online {
+	tls {
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+	...
+}
+```
+
+Motivo: o bloco global desta VPS tem `auto_https disable_redirects` e o
+80 -> 443 e um `redir` fixo, entao o desafio HTTP-01 nunca chega ao Caddy.
+Com `disable_http_challenge` a emissao vai pelo TLS-ALPN (443), o mesmo
+caminho que ja emite os certificados do curinga. A politica e identica a do
+agreste, e o Caddy as agrupa em runtime:
+
+```bash
+curl -s http://127.0.0.1:2019/config/apps/tls/automation/policies | python3 -m json.tool
+# issuers: acme com challenges.http.disabled = true
+# subjects: agreste.37-27-213-38.nip.io, agreste.shop,
+#           www.iluminatto.online, iluminatto.online
+```
 
 Para a raiz sair do provedor antigo e passar a responder aqui, o DNS precisa
-apontar o **A de `@`** para `37.27.213.38` (hoje aponta para a Vercel, que
-segue atendendo o `www` se ele nao for alterado). O certificado do dominio
-raiz e emitido automaticamente pelo Caddy assim que o DNS propagar.
+apontar o **A de `@`** (e o `www`) para `37.27.213.38`. Hoje os dois apontam
+para a Vercel; quando apontarem para a VPS o certificado sai por TLS-ALPN
+sem nenhuma outra mudanca no Caddy.
 
 ## Certificados TLS (CA de producao)
 
