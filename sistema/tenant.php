@@ -673,6 +673,94 @@ if (!function_exists('bb_tenant_provisionar')) {
     }
 }
 
+if (!function_exists('bb_tenant_login_por_email')) {
+    // Em qual estabelecimento este e-mail e o login do administrador?
+    // Devolve estado: 'nenhum', 'unico' (com a url de login) ou 'multiplo'.
+    // Consulta so o banco de controle: nenhum dado do cliente sai daqui.
+    function bb_tenant_login_por_email($pdo_controle, $email)
+    {
+        $vazio = array('estado' => 'nenhum', 'url' => '', 'tenant_id' => 0);
+        $email = strtolower(trim((string) $email));
+        if (!$pdo_controle || $email === '' || strpos($email, '@') === false) {
+            return $vazio;
+        }
+
+        try {
+            $q = $pdo_controle->prepare("SELECT id, slug, status FROM tenants
+                WHERE LOWER(TRIM(email)) = :email
+                ORDER BY id ASC");
+            $q->bindValue(':email', $email);
+            $q->execute();
+            $linhas = $q->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return $vazio;
+        }
+
+        // Estabelecimento sem site no ar nao recebe encaminhamento (o login
+        // dele responderia 503) nem slug fora do formato de subdominio.
+        $validos = array();
+        foreach ($linhas as $t) {
+            $status = strtolower(trim((string) $t['status']));
+            if (in_array($status, array('suspenso', 'cancelado', 'cancelada', 'inativo'), true)) {
+                continue;
+            }
+            $slug = strtolower(trim((string) $t['slug']));
+            if (!preg_match('/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $slug)) {
+                continue;
+            }
+            $t['slug'] = $slug;
+            $validos[] = $t;
+        }
+
+        if (count($validos) === 0) {
+            return $vazio;
+        }
+        if (count($validos) > 1) {
+            // Mais de um vinculo: nao adivinha qual estabelecimento abrir.
+            return array('estado' => 'multiplo', 'url' => '', 'tenant_id' => 0);
+        }
+
+        $t = $validos[0];
+        return array(
+            'estado'    => 'unico',
+            'url'       => 'https://' . $t['slug'] . '.' . BB_DOMINIO_BASE
+                . '/sistema/index.php?email=' . urlencode($email) . '&de=1',
+            'tenant_id' => (int) $t['id'],
+        );
+    }
+}
+
+if (!function_exists('bb_login_encaminhar_tenant')) {
+    // Chamado quando o e-mail nao existe no banco do host atual. No dominio
+    // principal, leva a pessoa para a tela de login do estabelecimento dono
+    // do e-mail (a senha continua sendo digitada la, nunca viaja por aqui).
+    // A partir do site de um cliente nao encaminha: isso revelaria o
+    // estabelecimento de outra conta.
+    function bb_login_encaminhar_tenant($pdo_controle, $email)
+    {
+        global $tenant_atual, $bb_instalacao_principal;
+
+        if (empty($bb_instalacao_principal) || $tenant_atual) {
+            return false;
+        }
+
+        $destino = bb_tenant_login_por_email($pdo_controle, $email);
+        if ($destino['estado'] === 'unico') {
+            if (!headers_sent()) {
+                header('Location: ' . $destino['url'], true, 302);
+                exit;
+            }
+            return false;
+        }
+        if ($destino['estado'] === 'multiplo') {
+            echo "<script>window.alert('Este e-mail está ligado a mais de um estabelecimento. Entre pelo endereço do estabelecimento que você quer acessar.')</script>";
+            echo "<script>window.location='index.php'</script>";
+            exit;
+        }
+        return false;
+    }
+}
+
 if (!function_exists('bb_tenant_bloqueio')) {
     // Mensagem de bloqueio do painel do cliente (vazio = liberado)
     function bb_tenant_bloqueio()

@@ -14,6 +14,14 @@ if ($uri_requisitada != '' and $uri_requisitada !== '/' and substr($uri_requisit
 require_once("conexao.php");
 require_once("google.php");
 
+// Encaminhado do dominio principal por ter digitado o e-mail de um
+// estabelecimento: ja chega com o e-mail preenchido e o aviso do porque.
+$bb_login_email = '';
+if (isset($_GET['email']) && is_string($_GET['email'])) {
+	$bb_login_email = substr(trim($_GET['email']), 0, 120);
+}
+$bb_login_encaminhado = isset($_GET['de']) && $_GET['de'] === '1';
+
 $google_indisponivel = isset($_GET['google']) && $_GET['google'] === 'indisponivel';
 $google_erro = isset($_GET['google']) && $_GET['google'] === 'erro';
 
@@ -167,6 +175,11 @@ try {
                                     Sua sessão expirou. Entre novamente para continuar.
                                 </div>
                             <?php } ?>
+                            <?php if ($bb_login_encaminhado && $bb_login_email !== '') { ?>
+                                <div class="alert alert-info py-2 px-3" style="font-size:13px">
+                                    Você foi encaminhado para o acesso do seu estabelecimento. Digite a sua senha para entrar.
+                                </div>
+                            <?php } ?>
                             <div class="heading_container text-center mb-4">
                                  <h2 class="text-white">Acesso ao Sistema</h2>
                                  <p class="text-white-50">
@@ -183,7 +196,7 @@ try {
                                                 <i class="fa fa-user"></i>
                                             </span>
                                         </div>
-                                        <input class="form-control" placeholder="E-mail ou CPF" name="email" type="text" required>
+                                        <input class="form-control" placeholder="E-mail ou CPF" name="email" type="text" required value="<?php echo htmlspecialchars($bb_login_email, ENT_QUOTES, 'UTF-8'); ?>">
                                     </div>
                                 </div>
                                 

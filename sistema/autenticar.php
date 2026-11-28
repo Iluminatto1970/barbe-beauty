@@ -23,10 +23,18 @@ if ($waitC > 0) {
 	exit;
 }
 
-$query = $pdo->prepare("SELECT * from usuarios where (email = :email or cpf = :email) limit 1");
-$query->bindValue(":email", $email);
-$query->execute();
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
+// No dominio principal o banco de controle nao tem a tabela usuarios: a
+// consulta falhar nao pode virar erro 500, e sim "nao encontrado" (o e-mail
+// pode pertencer a um estabelecimento e ser encaminhado mais abaixo).
+$res = array();
+try {
+	$query = $pdo->prepare("SELECT * from usuarios where (email = :email or cpf = :email) limit 1");
+	$query->bindValue(":email", $email);
+	$query->execute();
+	$res = $query->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+	$res = array();
+}
 
 $total_reg = 0;
 if (@count($res) > 0) {
@@ -89,6 +97,11 @@ if ($total_reg > 0) {
 	}
 	
 } else {
+	// Dominio principal: o e-mail pode ser o login de um estabelecimento.
+	// Nesse caso a pessoa vai para o login do subdominio dele (e nao recebe
+	// "usuario inexistente"). E-mail realmente inexistente segue o fluxo normal.
+	bb_login_encaminhar_tenant($pdo_controle, $email);
+
 	bb_rate_limit_login_fail();
 	bb_rate_limit_conta_fail($email);
 	echo "<script>window.alert('Usuário ou Senha Incorretos!')</script>";
