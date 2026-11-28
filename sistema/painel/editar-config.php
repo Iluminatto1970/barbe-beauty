@@ -33,9 +33,9 @@ $bb_obrigatorios = array(
     'whatsapp_sistema' => 'WhatsApp do Estabelecimento',
 );
 if ($segmento === 'salao') {
-    $bb_obrigatorios['nome_salao']     = 'Nome do Salao';
-    $bb_obrigatorios['whatsapp_salao'] = 'WhatsApp do Salao';
-    $bb_obrigatorios['endereco_salao'] = 'Endereco do Salao';
+    $bb_obrigatorios['nome_salao']     = 'Nome do Salão';
+    $bb_obrigatorios['whatsapp_salao'] = 'WhatsApp do Salão';
+    $bb_obrigatorios['endereco_salao'] = 'Endereço do Salão';
 }
 $bb_faltando = array();
 foreach ($bb_obrigatorios as $bb_campo => $bb_rotulo) {
@@ -45,7 +45,7 @@ foreach ($bb_obrigatorios as $bb_campo => $bb_rotulo) {
     }
 }
 if ($bb_faltando) {
-    echo 'Preencha os campos obrigatorios: ' . implode(', ', $bb_faltando) . '.';
+    echo 'Preencha os campos obrigatórios: ' . implode(', ', $bb_faltando) . '.';
     exit();
 }
 
